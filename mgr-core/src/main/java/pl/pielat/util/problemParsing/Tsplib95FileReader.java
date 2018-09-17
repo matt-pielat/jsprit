@@ -6,6 +6,7 @@ import com.graphhopper.jsprit.core.problem.job.Delivery;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
 import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.FastVehicleRoutingTransportCostsMatrix;
 import com.graphhopper.jsprit.core.util.VehicleRoutingTransportCostsMatrix;
 
 import java.io.BufferedReader;
@@ -34,23 +35,23 @@ public class Tsplib95FileReader implements VrpFileParser
         Unknown,
     }
 
-    private BufferedReader _reader;
+    private BufferedReader reader;
 
-    private String _name = null;
-    private String _comment = null;
-    private int _dimension = -1;
-    private int _capacity = -1;
-    private ProblemType _problemType = ProblemType.Unknown;
-    private EdgeWeightType _edgeWeightType = EdgeWeightType.Unknown;
-    private EdgeWeightFormat _edgeWeightFormat = EdgeWeightFormat.Unknown;
-    private Coordinate[] _nodeCoords = null;
-    private double[][] _edgeWeightMatrix = null;
-    private int[] _demands = null;
-    private int _depotIndex = -1;
+    private String name = null;
+    private String comment = null;
+    private int dimension = -1;
+    private int capacity = -1;
+    private ProblemType problemType = ProblemType.Unknown;
+    private EdgeWeightType edgeWeightType = EdgeWeightType.Unknown;
+    private EdgeWeightFormat edgeWeightFormat = EdgeWeightFormat.Unknown;
+    private Coordinate[] nodeCoords = null;
+    private double[][] edgeWeightMatrix = null;
+    private int[] demands = null;
+    private int depotIndex = -1;
 
     public VehicleRoutingProblem parse(String filename) throws FileNotFoundException, VrpParseException
     {
-        _reader = new BufferedReader(new FileReader(filename));
+        reader = new BufferedReader(new FileReader(filename));
         try
         {
             while (readNextSection());
@@ -63,23 +64,23 @@ public class Tsplib95FileReader implements VrpFileParser
         // Building problem instance
         VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
 
-        if (_problemType != ProblemType.CVRP)
+        if (problemType != ProblemType.CVRP)
             throw new VrpParseException("Problem type is unknown/unsupported");
-        if (_edgeWeightType == EdgeWeightType.Unsupported)
+        if (edgeWeightType == EdgeWeightType.Unsupported)
             throw new VrpParseException("Edge weight type is unsupported");
-        if (_dimension == -1)
+        if (dimension == -1)
             throw new VrpParseException("Dimension is unknown");
-        if (_capacity == -1)
+        if (capacity == -1)
             throw new VrpParseException("Capacity is unknown");
-        if (_depotIndex == -1)
+        if (depotIndex == -1)
             throw new VrpParseException("Depot index is unknown");
 
         Location depotLocation = Location.Builder.newInstance()
-            .setCoordinate(_nodeCoords[_depotIndex])
-            .setId(Integer.toString(_depotIndex + 1))
+            .setCoordinate(nodeCoords[depotIndex])
+            .setIndex(depotIndex)
             .build();
         VehicleTypeImpl vehicleType = VehicleTypeImpl.Builder.newInstance("vehicleType")
-            .addCapacityDimension(0, _capacity)
+            .addCapacityDimension(0, capacity)
             .build();
         VehicleImpl vehicle = VehicleImpl.Builder.newInstance("vehicle")
             .setType(vehicleType)
@@ -88,38 +89,34 @@ public class Tsplib95FileReader implements VrpFileParser
             .build();
         builder.addVehicle(vehicle);
 
-        if (_edgeWeightType == EdgeWeightType.Explicit)
+        if (edgeWeightType == EdgeWeightType.Explicit)
         {
-            VehicleRoutingTransportCostsMatrix.Builder matrixBuilder =
-                VehicleRoutingTransportCostsMatrix.Builder.newInstance(false);
+            FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder =
+                FastVehicleRoutingTransportCostsMatrix.Builder.newInstance(dimension, false);
 
-            for (int i = 0; i < _dimension; i++)
+            for (int i = 0; i < dimension; i++)
             {
-                for (int j = 0; j < _dimension; j++)
+                for (int j = 0; j < dimension; j++)
                 {
-                    String from = Integer.toString(i + 1);
-                    String to = Integer.toString(j + 1);
-                    double weight = _edgeWeightMatrix[i][j];
-
-                    matrixBuilder.addTransportDistance(from, to, weight);
-                    matrixBuilder.addTransportTime(from, to, weight);
+                    double weight = edgeWeightMatrix[i][j];
+                    matrixBuilder.addTransportDistance(i, j, weight);
                 }
             }
             builder.setRoutingCost(matrixBuilder.build());
         }
 
-        for (int i = 0; i < _dimension; i++)
+        for (int i = 0; i < dimension; i++)
         {
-            if (i == _depotIndex)
+            if (i == depotIndex)
                 continue;
 
             Location deliveryLocation = Location.Builder.newInstance()
-                .setCoordinate(_nodeCoords[i])
-                .setId(Integer.toString(i + 1))
+                .setCoordinate(nodeCoords[i])
+                .setIndex(i)
                 .build();
             Delivery delivery = Delivery.Builder.newInstance(Integer.toString(i + 1))
                 .setLocation(deliveryLocation)
-                .addSizeDimension(0, _demands[i])
+                .addSizeDimension(0, demands[i])
                 .build();
             builder.addJob(delivery);
         }
@@ -129,7 +126,7 @@ public class Tsplib95FileReader implements VrpFileParser
 
     private boolean readNextSection() throws IOException, VrpParseException
     {
-        String line = _reader.readLine();
+        String line = reader.readLine();
         if (line == null)
             return false;
 
@@ -139,25 +136,25 @@ public class Tsplib95FileReader implements VrpFileParser
         switch (section)
         {
             case "NAME":
-                _name = getStringScalarValue(line).trim();
+                name = getStringScalarValue(line).trim();
                 break;
             case "COMMENT":
-                _comment = getStringScalarValue(line).trim();
+                comment = getStringScalarValue(line).trim();
                 break;
             case "DIMENSION":
-                _dimension = getIntScalarValue(line);
+                dimension = getIntScalarValue(line);
                 break;
             case "CAPACITY":
-                _capacity = getIntScalarValue(line);
+                capacity = getIntScalarValue(line);
                 break;
             case "TYPE":
                 switch (getStringScalarValue(line).toUpperCase())
                 {
                     case "CVRP":
-                        _problemType = ProblemType.CVRP;
+                        problemType = ProblemType.CVRP;
                         break;
                     default:
-                        _problemType = ProblemType.Unsupported;
+                        problemType = ProblemType.Unsupported;
                         break;
                 }
                 break;
@@ -165,13 +162,13 @@ public class Tsplib95FileReader implements VrpFileParser
                 switch (getStringScalarValue(line).toUpperCase())
                 {
                     case "EXPLICIT":
-                        _edgeWeightType = EdgeWeightType.Explicit;
+                        edgeWeightType = EdgeWeightType.Explicit;
                         break;
                     case "EUC_2D":
-                        _edgeWeightType = EdgeWeightType.Euc_2D;
+                        edgeWeightType = EdgeWeightType.Euc_2D;
                         break;
                     default:
-                        _edgeWeightType = EdgeWeightType.Unsupported;
+                        edgeWeightType = EdgeWeightType.Unsupported;
                         break;
                 }
                 break;
@@ -179,10 +176,10 @@ public class Tsplib95FileReader implements VrpFileParser
                 switch (getStringScalarValue(line).toUpperCase())
                 {
                     case "FULL_MATRIX":
-                        _edgeWeightFormat = EdgeWeightFormat.FullMatrix;
+                        edgeWeightFormat = EdgeWeightFormat.FullMatrix;
                         break;
                     default:
-                        _edgeWeightFormat = EdgeWeightFormat.Unsupported;
+                        edgeWeightFormat = EdgeWeightFormat.Unsupported;
                         break;
                 }
                 break;
@@ -223,13 +220,13 @@ public class Tsplib95FileReader implements VrpFileParser
 
     private void readNodeCoordSection() throws VrpParseException, IOException
     {
-        if (_dimension == -1)
+        if (dimension == -1)
             throw new VrpParseException("Problem dimension is unknown");
 
-        _nodeCoords = new Coordinate[_dimension];
-        for (int i = 0; i < _dimension; i++)
+        nodeCoords = new Coordinate[dimension];
+        for (int i = 0; i < dimension; i++)
         {
-            String line = _reader.readLine();
+            String line = reader.readLine();
             String[] tokens = line.trim().split("\\s+");
 
             int nodeNumber = Integer.parseInt(tokens[0]);
@@ -240,42 +237,42 @@ public class Tsplib95FileReader implements VrpFileParser
             if (i + 1 != nodeNumber)
                 throw new VrpParseException("Unsupported node numbering");
 
-            _nodeCoords[nodeNumber - 1] = coords;
+            nodeCoords[i] = coords;
         }
     }
 
     private void readEdgeWeightSection() throws IOException, VrpParseException
     {
-        if (_dimension == -1)
+        if (dimension == -1)
             throw new VrpParseException("Problem dimension is unknown");
-        if (_edgeWeightType != EdgeWeightType.Explicit)
+        if (edgeWeightType != EdgeWeightType.Explicit)
             throw new VrpParseException("Edge weight type is not explicit");
-        if (_edgeWeightFormat != EdgeWeightFormat.FullMatrix)
+        if (edgeWeightFormat != EdgeWeightFormat.FullMatrix)
             throw new VrpParseException("Edge weight format is unknown/unsupported");
 
-        _edgeWeightMatrix = new double[_dimension][_dimension];
-        for (int i = 0; i < _dimension; i++)
+        edgeWeightMatrix = new double[dimension][dimension];
+        for (int i = 0; i < dimension; i++)
         {
-            String line = _reader.readLine();
+            String line = reader.readLine();
             String[] tokens = line.trim().split("\\s+");
 
-            for (int j = 0; j < _dimension; j++)
+            for (int j = 0; j < dimension; j++)
             {
                 double weight = Double.parseDouble(tokens[j]);
-                _edgeWeightMatrix[i][j] = weight;
+                edgeWeightMatrix[i][j] = weight;
             }
         }
     }
 
     private void readDemandSection() throws IOException, VrpParseException
     {
-        if (_dimension == -1)
+        if (dimension == -1)
             throw new VrpParseException("Problem dimension is unknown");
 
-        _demands = new int[_dimension];
-        for (int i = 0; i < _dimension; i++)
+        demands = new int[dimension];
+        for (int i = 0; i < dimension; i++)
         {
-            String line = _reader.readLine();
+            String line = reader.readLine();
             String[] tokens = line.trim().split("\\s+");
 
             int nodeNumber = Integer.parseInt(tokens[0]);
@@ -284,27 +281,27 @@ public class Tsplib95FileReader implements VrpFileParser
             if (i + 1 != nodeNumber)
                 throw new VrpParseException("Unsupported node numbering");
 
-            _demands[nodeNumber - 1] = demand;
+            demands[nodeNumber - 1] = demand;
         }
     }
 
     private void readDepotSection() throws VrpParseException, IOException
     {
-        if (_dimension == -1)
+        if (dimension == -1)
             throw new VrpParseException("Problem dimension is unknown");
 
-        for (int i = 0; i < _dimension; i++)
+        for (int i = 0; i < dimension; i++)
         {
-            String line = _reader.readLine();
+            String line = reader.readLine();
             int nodeNumber = Integer.parseInt(line.trim());
 
             if (nodeNumber == -1)
                 break;
-            if (nodeNumber == 0 || nodeNumber > _dimension)
+            if (nodeNumber == 0 || nodeNumber > dimension)
                 throw new VrpParseException("Unsupported node numbering");
             if (i > 0)
                 throw new VrpParseException("More than one depot index found");
-            _depotIndex = nodeNumber - 1;
+            depotIndex = nodeNumber - 1;
         }
     }
 }
