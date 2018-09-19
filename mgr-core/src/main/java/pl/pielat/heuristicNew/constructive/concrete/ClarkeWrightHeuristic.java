@@ -119,23 +119,23 @@ class ClarkeWrightHeuristic extends ConstructiveHeuristic
                 {
                     merged = routeA.copy();
                     boolean invert = !routeB.getFirst().equals(jobB);
-                    merged.addToEnd(routeB, invert);
+                    merged.addAll(routeB, invert);
                 }
                 else if (routeB.getLast().equals(jobB))
                 {
                     merged = routeB.copy();
                     boolean invert = !routeA.getFirst().equals(jobA);
-                    merged.addToEnd(routeA, invert);
+                    merged.addAll(routeA, invert);
                 }
                 else
                 {
                     throw new RuntimeException("Neither route has last node");
                 }
 
-                if (!merged.isTimeFeasible())
+                if (!merged.areTimeWindowsValid())
                 {
-                    merged.reverseOrder();
-                    if (!merged.isTimeFeasible())
+                    merged.reverse();
+                    if (!merged.areTimeWindowsValid())
                         continue;
                 }
 
@@ -148,11 +148,11 @@ class ClarkeWrightHeuristic extends ConstructiveHeuristic
 
                 if (routeA.getLast().equals(jobA) && routeB.getFirst().equals(jobB))
                 {
-                    routeA.addToEnd(routeB, false);
+                    routeA.addAll(routeB, false);
                 }
                 else if (routeB.getLast().equals(jobB) && routeA.getFirst().equals(jobA))
                 {
-                    routeA.addToFront(routeB, false);
+                    routeA.addAll(0, routeB, false);
                 }
                 else
                 {
@@ -164,12 +164,12 @@ class ClarkeWrightHeuristic extends ConstructiveHeuristic
                 if (routeA.getLast().equals(jobA))
                 {
                     boolean invert = !routeB.getFirst().equals(jobB);
-                    routeA.addToEnd(routeB, invert);
+                    routeA.addAll(routeB, invert);
                 }
                 else if (routeB.getLast().equals(jobB))
                 {
                     boolean invert = !routeA.getFirst().equals(jobA);
-                    routeA.addToFront(routeB, invert);
+                    routeA.addAll(routeB, invert);
                 }
                 else
                 {
