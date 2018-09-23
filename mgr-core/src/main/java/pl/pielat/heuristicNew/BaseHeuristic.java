@@ -43,6 +43,7 @@ public abstract class BaseHeuristic
         double getCost(Place from, Place to);
     }
 
+    protected static final double EPSILON = 1e-5;
     private static final int INITIAL_ROUTE_CAPACITY = 10;
 
     private final ProblemInfo problemInfo;
@@ -78,5 +79,10 @@ public abstract class BaseHeuristic
     protected Route createRoute(Job job)
     {
         return new Route(problemInfo, INITIAL_ROUTE_CAPACITY);
+    }
+
+    protected Route createRoute(int initialCapacity)
+    {
+        return new Route(problemInfo, initialCapacity);
     }
 }
