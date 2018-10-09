@@ -87,6 +87,16 @@ public class Route
         recalculateDemand = other.recalculateDemand;
     }
 
+    public void removeJobs()
+    {
+        length = 0;
+
+        demand = 0;
+        recalculateDemand = false;
+        areTimeWindowsOk = true;
+        recalculateTimeWindows = false;
+    }
+
     public int length()
     {
         return length;
@@ -167,6 +177,11 @@ public class Route
 
         ArrayUtils.reverseArray(jobs, length);
         recalculateTimeWindows = true;
+    }
+
+    public void add(Job j)
+    {
+        add(length, j);
     }
 
     public void add(int index, Job j)
