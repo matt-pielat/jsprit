@@ -162,7 +162,7 @@ public class ThreeOpt extends RepairingHeuristic
                 {
                     return newCost;
                 }
-                newRoute.removeJobs();
+                newRoute.removeAll();
             }
 
             if (!transportAsymmetry && !timeWindows)
@@ -216,7 +216,7 @@ public class ThreeOpt extends RepairingHeuristic
                 {
                     return newCost;
                 }
-                newRoute.removeJobs();
+                newRoute.removeAll();
             }
         }
 

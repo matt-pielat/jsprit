@@ -87,7 +87,7 @@ public class Route
         recalculateDemand = other.recalculateDemand;
     }
 
-    public void removeJobs()
+    public void removeAll()
     {
         length = 0;
 
@@ -95,6 +95,19 @@ public class Route
         recalculateDemand = false;
         areTimeWindowsOk = true;
         recalculateTimeWindows = false;
+    }
+
+    public void remove(int beginIndex, int endIndex)
+    {
+        int jobsToShift = length - endIndex;
+        if (jobsToShift > 0)
+        {
+            copy(this, endIndex, this, beginIndex, jobsToShift, false);
+        }
+
+        length -= (endIndex - beginIndex);
+        recalculateDemand = true;
+        recalculateTimeWindows = true;
     }
 
     public int length()
