@@ -34,6 +34,11 @@ public class Route
             earlyDeparture = new double[initialCapacity];
             lateArrival = new double[initialCapacity];
         }
+
+        recalculateTimeWindows = false;
+        areTimeWindowsOk = true;
+        recalculateDemand = false;
+        demand = 0;
     }
 
     private Route(Route other, int beginIndex, int endIndex, boolean invert)
@@ -210,10 +215,16 @@ public class Route
 
     public void addAll(Route o, boolean inversely)
     {
-        ensureCapacity(length + o.length);
-        copyInternalArrays(o, 0, this, length, o.length, inversely);
+        addAll(o, 0, o.length, inversely);
+    }
 
-        length += o.length;
+    public void addAll(Route o, int from, int to, boolean inversely)
+    {
+        int lengthDelta = to - from;
+        ensureCapacity(length + lengthDelta);
+        copyInternalArrays(o, from, this, length, lengthDelta, inversely);
+
+        length += lengthDelta;
         recalculateDemand = true;
         recalculateTimeWindows = true;
     }
