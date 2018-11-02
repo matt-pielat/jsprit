@@ -231,11 +231,17 @@ public class Route
 
     public void addAll(int index, Route o, boolean inversely)
     {
-        ensureCapacity(length + o.length);
-        copyInternalArrays(this, index, this, index + o.length, length - index, false);
-        copyInternalArrays(o, 0, this, index, o.length, inversely);
+        addAll(index, o, 0, length, inversely);
+    }
 
-        length += o.length;
+    public void addAll(int index, Route o, int from, int to, boolean inversely)
+    {
+        int lengthDelta = to - from;
+        ensureCapacity(length + lengthDelta);
+        copyInternalArrays(this, index, this, index + lengthDelta, length - index, false);
+        copyInternalArrays(o, from, this, index, lengthDelta, inversely);
+
+        length += lengthDelta;
         recalculateDemand = true;
         recalculateTimeWindows = true;
     }
