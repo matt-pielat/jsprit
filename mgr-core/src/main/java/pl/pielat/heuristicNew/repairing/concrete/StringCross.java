@@ -22,68 +22,76 @@ public class StringCross extends RepairingHeuristic
     {
         for (int i = 1; i < routes.size(); i++)
         {
-            if (routes.get(i).length() < 2)
+            Route alpha = routes.get(i);
+
+            if (alpha.length() < 2)
                 continue;
+
+            double alphaCost = alpha.getCost();
 
             for (int j = 0; j < i; j++)
             {
-                if (routes.get(j).length() < 2)
+                Route beta = routes.get(j);
+
+                if (beta.length() < 2)
                     continue;
 
-                if (findImprovementCross(routes, i, j))
+                double betaCost = beta.getCost();
+
+                if (findImprovementCross(routes, i, j, alphaCost + betaCost))
                     return true;
             }
         }
         return false;
     }
 
-    public boolean findImprovementCross(ArrayList<Route> routes, int aIndex, int bIndex)
+    public boolean findImprovementCross(ArrayList<Route> routes, int alphaIdx, int betaIdx, double costToBeat)
     {
-        Route a = routes.get(aIndex);
-        Route b = routes.get(bIndex);
+        Route alpha = routes.get(alphaIdx);
+        Route beta = routes.get(betaIdx);
 
         int demandA1 = 0;
-        int demandA2 = a.getDemand();
+        int demandA2 = alpha.getDemand();
 
-        for (int cA = 1; cA < a.length(); cA++)
+        for (int cA = 1; cA < alpha.length(); cA++)
         {
-            int demandDiff = a.getFromStart(cA - 1).demand;
-            demandA1 += demandDiff;
-            demandA2 -= demandDiff;
+            int demandDeltaA = alpha.getFromStart(cA - 1).demand;
+            demandA1 += demandDeltaA;
+            demandA2 -= demandDeltaA;
 
             int demandB1 = 0;
-            int demandB2 = b.getDemand();
+            int demandB2 = beta.getDemand();
 
-            for (int cB = 1; cB < b.length(); cB++)
+            for (int cB = 1; cB < beta.length(); cB++)
             {
-                demandDiff = b.getFromStart(cB - 1).demand;
-                demandB1 += demandDiff;
-                demandB2 -= demandDiff;
+                int demandDeltaB = beta.getFromStart(cB - 1).demand;
+                demandB1 += demandDeltaB;
+                demandB2 -= demandDeltaB;
 
                 if (demandB1 + demandA2 > vehicleCapacity)
                     break;
                 if (demandA1 + demandB2 > vehicleCapacity)
                     continue;
 
-                Route ba = createRoute(cB + a.length() - cA);
-                ba.addAll(b.subroute(0, cB), false);
-                ba.addAll(a.subroute(cA, a.length()), false);
+                Route ba = createRoute(cB + alpha.length() - cA);
+                ba.addAll(beta, 0, cB, false);
+                ba.addAll(alpha, cA, alpha.length(), false);
 
                 if (timeWindows && !ba.areTimeWindowsValid())
                     break;
 
-                Route ab = createRoute(cA + b.length() - cB);
-                ab.addAll(a.subroute(0, cA), false);
-                ab.addAll(b.subroute(cB, b.length()), false);
+                Route ab = createRoute(cA + beta.length() - cB);
+                ab.addAll(alpha, 0, cA, false);
+                ab.addAll(beta, cB, beta.length(), false);
 
                 if (timeWindows && !ab.areTimeWindowsValid())
                     continue;
 
-                if (ab.getCost() + ba.getCost() + EPSILON > a.getCost() + b.getCost())
+                if (ab.getCost() + ba.getCost() + EPSILON > costToBeat)
                     continue;
 
-                routes.set(aIndex, ab);
-                routes.set(bIndex, ba);
+                routes.set(alphaIdx, ab);
+                routes.set(betaIdx, ba);
 
                 return true;
             }
