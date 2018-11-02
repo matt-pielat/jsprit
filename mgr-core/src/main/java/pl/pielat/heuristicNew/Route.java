@@ -214,7 +214,7 @@ public class Route
         copyInternalArrays(o, 0, this, length, o.length, inversely);
 
         length += o.length;
-        demand += o.getDemand();
+        recalculateDemand = true;
         recalculateTimeWindows = true;
     }
 
@@ -225,7 +225,7 @@ public class Route
         copyInternalArrays(o, 0, this, index, o.length, inversely);
 
         length += o.length;
-        demand += o.getDemand();
+        recalculateDemand = true;
         recalculateTimeWindows = true;
     }
 
