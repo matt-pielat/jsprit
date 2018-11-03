@@ -20,9 +20,6 @@ public class MoleJamesonHeuristic extends ConstructiveHeuristic
     protected MoleJamesonHeuristic(ProblemInfo info)
     {
         super(info);
-
-        if (timeWindows)
-            throw new RuntimeException("This type of heuristic is not supported for VRPTW");
     }
 
     @Override
@@ -94,7 +91,19 @@ public class MoleJamesonHeuristic extends ConstructiveHeuristic
 
             for (InsertInfo insertionToUpdate : insertInfos)
             {
+                Job jobToUpdate = insertionToUpdate.job;
+
+                if (jobToUpdate.demand > maxDemand)
+                {
+                    insertionToUpdate.saving = Double.NEGATIVE_INFINITY;
+                    continue;
+                }
                 if (insertionToUpdate.indexToAddAt == changedEdgeIndex)
+                {
+                    recalculateInsertInfo(route, insertionToUpdate);
+                    continue;
+                }
+                if (timeWindows && !route.canFitIntoTimeSchedule(insertionToUpdate.indexToAddAt, jobToUpdate))
                 {
                     recalculateInsertInfo(route, insertionToUpdate);
                     continue;
@@ -103,25 +112,42 @@ public class MoleJamesonHeuristic extends ConstructiveHeuristic
                 // There are two new possible insertion spots,
                 // check if either is the new best.
 
-                Place toUpdate = insertionToUpdate.job;
                 Place precedingInserted = getJob(route, changedEdgeIndex - 1);
                 Place inserted = getJob(route, changedEdgeIndex);
                 Place succeedingInserted = getJob(route, changedEdgeIndex + 1);
 
-                double strainA = calculateStrain(precedingInserted, toUpdate, inserted);
-                double strainB = calculateStrain(inserted, toUpdate, succeedingInserted);
+                double strainBefore = calculateStrain(precedingInserted, jobToUpdate, inserted);
+                double strainAfter = calculateStrain(inserted, jobToUpdate, succeedingInserted);
 
-                if (strainA < strainB && strainA < insertionToUpdate.strain)
+                boolean canInsertBefore;
+                boolean canInsertAfter;
+                if (timeWindows)
                 {
-                    insertionToUpdate.strain = strainA;
-                    insertionToUpdate.indexToAddAt = changedEdgeIndex;
-                    insertionToUpdate.saving = calculateSaving(toUpdate, strainA);
+                    canInsertBefore = strainBefore < insertionToUpdate.strain
+                        && route.canFitIntoTimeSchedule(changedEdgeIndex, jobToUpdate);
+                    canInsertAfter = strainBefore < insertionToUpdate.strain
+                        && route.canFitIntoTimeSchedule(changedEdgeIndex + 1, jobToUpdate);
+
+                    if (canInsertBefore && canInsertAfter)
+                        canInsertBefore = strainBefore < strainAfter;
                 }
-                else if (strainB < strainA && strainB < insertionToUpdate.strain)
+                else
                 {
-                    insertionToUpdate.strain = strainB;
+                    canInsertBefore = strainBefore < strainAfter && strainBefore < insertionToUpdate.strain;
+                    canInsertAfter = strainAfter < strainBefore && strainAfter < insertionToUpdate.strain;
+                }
+
+                if (canInsertBefore)
+                {
+                    insertionToUpdate.strain = strainBefore;
+                    insertionToUpdate.indexToAddAt = changedEdgeIndex;
+                    insertionToUpdate.saving = calculateSaving(jobToUpdate, strainBefore);
+                }
+                else if (canInsertAfter)
+                {
+                    insertionToUpdate.strain = strainAfter;
                     insertionToUpdate.indexToAddAt = changedEdgeIndex + 1;
-                    insertionToUpdate.saving = calculateSaving(toUpdate, strainB);
+                    insertionToUpdate.saving = calculateSaving(jobToUpdate, strainAfter);
                 }
                 else if (insertionToUpdate.indexToAddAt > changedEdgeIndex)
                 {
@@ -145,14 +171,23 @@ public class MoleJamesonHeuristic extends ConstructiveHeuristic
         Place prev = route.getLast();
         Place next = depot;
 
-        double minStrain = calculateStrain(prev, job, next);
-        int bestIndex = route.length();
+        double minStrain = Double.POSITIVE_INFINITY;
+        int bestIndex = -1;
 
-        if (route.length() != 1 || transportAsymmetry)
+        if (!timeWindows || route.canFitIntoTimeSchedule(route.length(), job))
+        {
+            bestIndex = route.length();
+            minStrain = calculateStrain(prev, job, next);
+        }
+
+        if (route.length() != 1 || transportAsymmetry || timeWindows)
         {
             prev = depot;
             for (int i = 0; i < route.length(); i++)
             {
+                if (timeWindows && !route.canFitIntoTimeSchedule(i, job))
+                    continue;
+
                 next = route.getFromStart(i);
                 double strain = calculateStrain(prev, job, next);
                 if (strain < minStrain)
@@ -164,9 +199,12 @@ public class MoleJamesonHeuristic extends ConstructiveHeuristic
             }
         }
 
-        insertInfo.strain = minStrain;
-        insertInfo.indexToAddAt = bestIndex;
-        insertInfo.saving = calculateSaving(job, minStrain);
+        if (bestIndex == -1)
+        {
+            insertInfo.strain = minStrain;
+            insertInfo.indexToAddAt = bestIndex;
+            insertInfo.saving = calculateSaving(job, minStrain);
+        }
     }
 
     private double calculateStrain(Place prev, Place current, Place next)
