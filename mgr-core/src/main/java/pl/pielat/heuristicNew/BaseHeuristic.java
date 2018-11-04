@@ -6,6 +6,10 @@ import com.graphhopper.jsprit.core.problem.cost.TransportDistance;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TimeWindow;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 public abstract class BaseHeuristic
 {
     public class ProblemInfo
@@ -76,13 +80,23 @@ public abstract class BaseHeuristic
         return costFunction.getCost(from, to);
     }
 
-    protected Route createRoute(Job job)
-    {
-        return new Route(problemInfo, INITIAL_ROUTE_CAPACITY);
-    }
-
     protected Route createRoute(int initialCapacity)
     {
         return new Route(problemInfo, initialCapacity);
+    }
+
+    protected Route createRoute(Job job)
+    {
+        Route route = new Route(problemInfo, INITIAL_ROUTE_CAPACITY);
+        route.add(job);
+        return route;
+    }
+
+    protected Route createRoute(List<Job> jobs)
+    {
+        int initialCapacity = jobs.size() > INITIAL_ROUTE_CAPACITY ? jobs.size() : INITIAL_ROUTE_CAPACITY;
+        Route route = new Route(problemInfo, initialCapacity);
+        route.addAll(jobs);
+        return route;
     }
 }

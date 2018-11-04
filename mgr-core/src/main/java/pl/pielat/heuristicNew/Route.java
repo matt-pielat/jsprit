@@ -3,6 +3,7 @@ package pl.pielat.heuristicNew;
 import pl.pielat.util.ArrayUtils;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class Route
 {
@@ -210,6 +211,22 @@ public class Route
 
         length++;
         demand += j.demand;
+        recalculateTimeWindows = true;
+    }
+
+    public void addAll(List<Job> newJobs)
+    {
+        ensureCapacity(length + newJobs.size());
+
+        int i = length;
+        for (Job j : newJobs)
+        {
+            jobs[i] = j;
+            i++;
+        }
+
+        length += newJobs.size();
+        recalculateDemand = true;
         recalculateTimeWindows = true;
     }
 
