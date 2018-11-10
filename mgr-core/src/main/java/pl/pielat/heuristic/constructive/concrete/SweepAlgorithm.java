@@ -26,7 +26,7 @@ public class SweepAlgorithm extends ConstructiveHeuristic
     {
         List<Delivery> jobsLeft = new ArrayList<>(jobsToInsert);
 
-        Collections.sort(jobsLeft, _comparator);
+//        Collections.sort(jobsLeft, _comparator);
 
         while (jobsLeft.size() > 0)
         {

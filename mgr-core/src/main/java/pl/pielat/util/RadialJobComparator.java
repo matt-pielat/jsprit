@@ -1,31 +1,31 @@
 package pl.pielat.util;
 
-import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.util.Coordinate;
+import pl.pielat.heuristicNew.Job;
 
 import java.util.Comparator;
 
-public class RadialJobComparator implements Comparator<Service>
+public class RadialJobComparator implements Comparator<Job>
 {
-    private double _pX;
-    private double _pY;
+    private double pX;
+    private double pY;
 
     public RadialJobComparator(Coordinate pivot)
     {
-        _pX = pivot.getX();
-        _pY = pivot.getY();
+        pX = pivot.getX();
+        pY = pivot.getY();
     }
 
     @Override
-    public int compare(Service a, Service b)
+    public int compare(Job a, Job b)
     {
-        Coordinate aC = a.getLocation().getCoordinate();
-        Coordinate bC = b.getLocation().getCoordinate();
+        Coordinate aC = a.location.getCoordinate();
+        Coordinate bC = b.location.getCoordinate();
 
-        double aX = aC.getX() - _pX;
-        double aY = aC.getY() - _pY;
-        double bX = bC.getX() - _pX;
-        double bY = bC.getY() - _pY;
+        double aX = aC.getX() - pX;
+        double aY = aC.getY() - pY;
+        double bX = bC.getX() - pX;
+        double bY = bC.getY() - pY;
 
         int qDiff = getQuarter(aX, aY) - getQuarter(bX, bY);
 
