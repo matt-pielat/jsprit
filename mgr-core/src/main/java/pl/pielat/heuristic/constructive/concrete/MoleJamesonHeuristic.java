@@ -30,6 +30,7 @@ public class MoleJamesonHeuristic extends ConstructiveHeuristic
         for (Job job : jobsToInsert)
         {
             InsertInfo insertInfo = new InsertInfo();
+            insertInfo.job = job;
             insertInfos.add(insertInfo);
         }
 
