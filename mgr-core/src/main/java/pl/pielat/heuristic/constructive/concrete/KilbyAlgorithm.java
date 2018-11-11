@@ -1,61 +1,68 @@
 package pl.pielat.heuristic.constructive.concrete;
 
-import com.graphhopper.jsprit.core.problem.Location;
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import com.graphhopper.jsprit.core.problem.job.Delivery;
+import pl.pielat.algorithm.ProblemInfo;
+import pl.pielat.heuristic.Job;
+import pl.pielat.heuristic.Place;
+import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.constructive.ConstructiveHeuristic;
-import pl.pielat.algorithm.MgrRoute;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class KilbyAlgorithm extends ConstructiveHeuristic
 {
-    public KilbyAlgorithm(VehicleRoutingProblem vrp)
+    public KilbyAlgorithm(ProblemInfo info)
     {
-        super(vrp);
+        super(info);
     }
 
     @Override
-    public void insertJobs(List<MgrRoute> routes, List<Delivery> jobsToInsert)
+    public void insertJobs(ArrayList<Route> routes, ArrayList<Job> jobsToInsert)
     {
-        for (Delivery job : jobsToInsert)
+        for (Job job : jobsToInsert)
             insertJob(routes, job);
     }
 
-    private void insertJob(List<MgrRoute> routes, Delivery job)
+    private void insertJob(ArrayList<Route> routes, Job job)
     {
-        Location jobLocation = job.getLocation();
-
-        MgrRoute bestRoute = null;
+        Route bestRoute = null;
         int bestPosition = -1;
-        double minExtraDist = Double.POSITIVE_INFINITY;
+        double minExtraCost = Double.POSITIVE_INFINITY;
 
-        for (MgrRoute route : routes)
+        for (Route route : routes)
         {
-            if (getDemand(route) + getDemand(job) > getVehicleCapacity())
+            if (route.getDemand() + job.demand > vehicleCapacity)
                 continue;
 
-            Location prev = getDepotLocation();
-            Location next;
+            Place prev = depot;
+            Place next;
             for (int i = 0; i < route.length(); i++)
             {
-                next = route.get(i).getLocation();
-                double extraDist = getDistance(prev, jobLocation) + getDistance(jobLocation, next) - getDistance(prev, next);
-                if (extraDist < minExtraDist)
+                if (timeWindows && !route.canFitIntoTimeSchedule(i, job))
+                    continue;
+
+                next = route.getFromStart(i);
+                double extraCost = getCost(prev, job) + getCost(job, next) - getCost(prev, next);
+
+                if (extraCost < minExtraCost)
                 {
-                    minExtraDist = extraDist;
+                    minExtraCost = extraCost;
                     bestRoute = route;
                     bestPosition = i;
                 }
                 prev = next;
             }
-            if (route.length() > 1 || !distanceIsSymmetric())
+
+            if (route.length() > 1 || transportAsymmetry)
             {
-                next = getDepotLocation();
-                double extraCost = getDistance(prev, jobLocation) + getDistance(jobLocation, next) - getDistance(prev, next);
-                if (extraCost < minExtraDist)
+                if (timeWindows && !route.canFitIntoTimeSchedule(route.length(), job))
+                    continue;
+
+                next = depot;
+                double extraCost = getCost(prev, job) + getCost(job, next) - getCost(prev, next);
+
+                if (extraCost < minExtraCost)
                 {
-                    minExtraDist = extraCost;
+                    minExtraCost = extraCost;
                     bestRoute = route;
                     bestPosition = route.length();
                 }
@@ -64,10 +71,12 @@ public class KilbyAlgorithm extends ConstructiveHeuristic
 
         if (bestRoute == null)
         {
-            routes.add(new MgrRoute(job));
-            return;
+            Route newRoute = createRoute(job);
+            routes.add(newRoute);
         }
-
-        bestRoute.addAt(job, bestPosition);
+        else
+        {
+            bestRoute.add(bestPosition, job);
+        }
     }
 }

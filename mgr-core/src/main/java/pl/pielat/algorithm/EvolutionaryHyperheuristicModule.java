@@ -34,13 +34,23 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
     private int epoch = 0;
 
     private VehicleRoutingProblem problem;
+    private ProblemInfo problemInfo;
+
+    private EntityConverter converter;
 
     private static boolean DEBUG = false;
 
 
-    public EvolutionaryHyperheuristicModule(VehicleRoutingProblem problem, int popSize, int offspringSize, int initChromoSize, SolutionCostCalculator costCalculator)
+    public EvolutionaryHyperheuristicModule(VehicleRoutingProblem problem,
+                                            boolean transportAsymmetry, boolean timeWindows,
+                                            int popSize, int offspringSize, int initChromoSize,
+                                            SolutionCostCalculator costCalculator)
     {
         this.problem = problem;
+
+        converter = new EntityConverter(problem);
+        problemInfo = converter.getProblemInfo(transportAsymmetry, timeWindows);
+
         this.popSize = popSize;
         this.offspringSize = offspringSize;
         this.initChromoSize = initChromoSize;
@@ -49,7 +59,7 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
         customersToInsert = problem.getJobs().size();
 
         random = new Random(); //TODO parametrize?
-        operatorManager = new GeneticOperatorManager(problem, random);
+        operatorManager = new GeneticOperatorManager(problemInfo, random);
     }
 
     private void createRandomPopulation()
@@ -67,10 +77,10 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
             initChromoSize = jobCount;
         }
 
-        ConstructiveHeuristicProvider constructiveHP = new ConstructiveHeuristicProvider(problem, random);
-        OrderingHeuristicProvider orderingHP = new OrderingHeuristicProvider(problem, random);
-        RepairingHeuristicProvider localImprovementHP = new RepairingHeuristicProvider(problem, random);
-        RepairingHeuristicProvider improvementHP = new RepairingHeuristicProvider(problem, random);
+        ConstructiveHeuristicProvider constructiveHP = new ConstructiveHeuristicProvider(problemInfo, random);
+        OrderingHeuristicProvider orderingHP = new OrderingHeuristicProvider(problemInfo, random);
+        RepairingHeuristicProvider localImprovementHP = new RepairingHeuristicProvider(problemInfo, random);
+        RepairingHeuristicProvider improvementHP = new RepairingHeuristicProvider(problemInfo, random);
 
         population = new Chromosome[popSize];
         fitness = new double[popSize];
@@ -116,7 +126,7 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
             population[i] = new Chromosome();
             population[i].addAll(genes);
 
-            VehicleRoutingProblemSolution solution = population[i].evaluate(problem, costCalculator);
+            VehicleRoutingProblemSolution solution = converter.getSolution(population[i].calculateSolution(problemInfo));
             fitness[i] = 1 / solution.getCost();
 
             if (eliteIdx == -1 || fitness[i] > fitness[eliteIdx])
@@ -220,7 +230,7 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
             population[i] = offspring.get(j);
             j++;
 
-            VehicleRoutingProblemSolution newSolution = population[i].evaluate(problem, costCalculator);
+            VehicleRoutingProblemSolution newSolution = converter.getSolution(population[i].calculateSolution(problemInfo));
             fitness[i] = 1 / newSolution.getCost();
 
             // Update elite individual
@@ -287,6 +297,4 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
     {
         //TODO
     }
-
-
 }

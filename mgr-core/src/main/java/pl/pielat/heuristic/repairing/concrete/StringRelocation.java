@@ -1,125 +1,111 @@
 package pl.pielat.heuristic.repairing.concrete;
 
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import com.graphhopper.jsprit.core.problem.job.Delivery;
-import pl.pielat.algorithm.MgrRoute;
+import pl.pielat.algorithm.ProblemInfo;
+import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.repairing.RepairingHeuristic;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class StringRelocation extends RepairingHeuristic
 {
-    public StringRelocation(VehicleRoutingProblem vrp)
+    public StringRelocation(ProblemInfo info)
     {
-        super(vrp);
+        super(info);
     }
 
     @Override
-    public void improveRoutes(List<MgrRoute> routes)
+    public void improveRoutes(ArrayList<Route> routes)
     {
-        while (findImprovement(routes));
+        while (findAnyImprovement(routes, 2) || findAnyImprovement(routes, 1));
     }
 
-    private boolean findImprovement(List<MgrRoute> routes)
+    public boolean findAnyImprovement(ArrayList<Route> routes, int k)
     {
         for (int i = 0; i < routes.size(); i++)
         {
-            MgrRoute alpha = routes.get(i);
+            Route donor = routes.get(i);
+
+            if (donor.length() < k)
+                continue;
+
+            double donorCost = donor.getCost();
+
             for (int j = 0; j < routes.size(); j++)
             {
                 if (i == j)
                     continue;
 
-                MgrRoute beta = routes.get(j);
+                Route donee = routes.get(j);
+                double doneeCost = donee.getCost();
 
-                if (alpha.length() >= 2 && findImprovementK2(alpha, beta))
-                {
-                    if (alpha.length() == 0)
-                        routes.remove(alpha);
+                if (findImprovement(routes, i, j, k, donorCost + doneeCost))
                     return true;
-                }
-
-                if (findImprovementK1(alpha, beta))
-                {
-                    if (alpha.length() == 0)
-                        routes.remove(alpha);
-                    return true;
-                }
             }
         }
+
         return false;
     }
 
-    private boolean findImprovementK1(MgrRoute alpha, MgrRoute beta)
+    public boolean findImprovement(ArrayList<Route> routes, int donorIdx, int doneeIdx, int k, double costToBeat)
     {
-        double currentCost = getDistance(alpha) + getDistance(beta);
+        Route donor = routes.get(donorIdx);
+        Route donee = routes.get(doneeIdx);
 
-        for (int j = 0; j < alpha.length(); j++)
+        int doneeDemand = donee.getDemand();
+        boolean removeDonor = donor.length() == k;
+
+        for (int from = 0; from < donor.length() - k + 1; from++)
         {
-            MgrRoute alphaMod = new MgrRoute(alpha);
-            Delivery job = alphaMod.removeAt(j);
+            int stringDemand = getPartialDemand(donor, from, k);
 
-            for (int i = 0; i <= beta.length(); i++)
+            if (stringDemand + doneeDemand > vehicleCapacity)
+                continue;
+
+            Route donorNew;
+            double donorNewCost;
+            if (removeDonor)
             {
-                MgrRoute betaMod = new MgrRoute(beta);
-                betaMod.addAt(job, i);
+                donorNew = null;
+                donorNewCost = 0;
+            }
+            else
+            {
+                donorNew = donor.copy();
+                donorNew.remove(from, from + k);
+                donorNewCost = donorNew.getCost();
+            }
 
-                if (getDemand(betaMod) > getVehicleCapacity())
+            for (int to = 0; to < donee.length(); to++)
+            {
+                Route doneeNew = createRoute(donee.length() + k);
+                doneeNew.addAll(donee, 0, to, false);
+                doneeNew.addAll(donor, from, from + k, false);
+                doneeNew.addAll(donee, to, donee.length(), false);
+
+                if (timeWindows && !doneeNew.areTimeWindowsValid())
                     continue;
 
-                if (getDistance(alphaMod) + getDistance(betaMod) + EPSILON < currentCost)
-                {
-                    alpha.replace(alphaMod);
-                    beta.replace(betaMod);
-                    return true;
-                }
+                if (doneeNew.getCost() + donorNewCost > costToBeat + EPSILON)
+                    continue;
+
+                routes.set(doneeIdx, doneeNew);
+                if (removeDonor)
+                    routes.remove(donorIdx);
+                else
+                    routes.set(donorIdx, donorNew);
+
+                return true;
             }
         }
+
         return false;
     }
 
-    private boolean findImprovementK2(MgrRoute alpha, MgrRoute beta)
+    private int getPartialDemand(Route route, int from, int length)
     {
-        double currentCost = getDistance(alpha) + getDistance(beta);
-
-        for (int j = 0; j < alpha.length() - 1; j++)
-        {
-            MgrRoute alphaMod = new MgrRoute(alpha);
-            Delivery job1 = alphaMod.removeAt(j);
-            Delivery job2 = alphaMod.removeAt(j);
-            double alphaModDist = reverseIfDistanceIsSmaller(alphaMod);
-
-            for (int i = 0; i <= beta.length(); i++)
-            {
-                MgrRoute betaMod = new MgrRoute(beta);
-                betaMod.addAt(job1, i);
-                betaMod.addAt(job2, i);
-
-                if (getDemand(betaMod) > getVehicleCapacity())
-                    continue;
-                double betaModDist = reverseIfDistanceIsSmaller(betaMod);
-
-                if (alphaModDist + betaModDist + EPSILON < currentCost)
-                {
-                    alpha.replace(alphaMod);
-                    beta.replace(betaMod);
-                    return true;
-                }
-
-                // Try adding in reverse order
-                betaMod = new MgrRoute(beta);
-                betaMod.addAt(job2, i);
-                betaMod.addAt(job1, i);
-                betaModDist = reverseIfDistanceIsSmaller(betaMod);
-
-                if (alphaModDist + betaModDist + EPSILON < currentCost)
-                {
-                    alpha.replace(alphaMod);
-                    beta.replace(betaMod);
-                    return true;
-                }
-            }
-        }
-        return false;
+        int result = 0;
+        for (int i = from; i < from + length; i++)
+            result += route.getFromStart(i).demand;
+        return result;
     }
 }

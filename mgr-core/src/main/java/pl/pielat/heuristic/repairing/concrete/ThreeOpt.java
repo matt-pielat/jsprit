@@ -1,8 +1,9 @@
-package pl.pielat.heuristicNew.repairing.concrete;
+package pl.pielat.heuristic.repairing.concrete;
 
-import pl.pielat.heuristicNew.Place;
-import pl.pielat.heuristicNew.Route;
-import pl.pielat.heuristicNew.repairing.RepairingHeuristic;
+import pl.pielat.algorithm.ProblemInfo;
+import pl.pielat.heuristic.Place;
+import pl.pielat.heuristic.Route;
+import pl.pielat.heuristic.repairing.RepairingHeuristic;
 
 import java.util.ArrayList;
 

@@ -1,158 +1,223 @@
 package pl.pielat.heuristic.constructive.concrete;
 
-import com.graphhopper.jsprit.core.problem.Location;
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import com.graphhopper.jsprit.core.problem.job.Delivery;
+import pl.pielat.algorithm.ProblemInfo;
+import pl.pielat.heuristic.Job;
+import pl.pielat.heuristic.Place;
+import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.constructive.ConstructiveHeuristic;
-import pl.pielat.algorithm.MgrRoute;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class MoleJamesonHeuristic extends ConstructiveHeuristic
 {
     private class InsertInfo
     {
-        int indexToAddAt = -1;
-        Double saving;
+        int indexToAddAt;
+        Double saving = Double.NEGATIVE_INFINITY;
         Double strain;
-        Delivery job;
-
-        InsertInfo(Delivery job)
-        {
-            this.job = job;
-        }
+        Job job;
     }
 
-    public MoleJamesonHeuristic(VehicleRoutingProblem vrp)
+    public MoleJamesonHeuristic(ProblemInfo info)
     {
-        super(vrp);
+        super(info);
     }
 
     @Override
-    public void insertJobs(List<MgrRoute> routes, List<Delivery> jobsToInsert)
+    public void insertJobs(ArrayList<Route> routes, ArrayList<Job> jobsToInsert)
     {
-        List<InsertInfo> insertInfos = new ArrayList<>(jobsToInsert.size());
-        for (Delivery job : jobsToInsert)
-            insertInfos.add(new InsertInfo(job));
-
-        while (insertInfos.size() > 0)
+        ArrayList<InsertInfo> insertInfos = new ArrayList<>(jobsToInsert.size());
+        for (Job job : jobsToInsert)
         {
-            Delivery firstJob = insertInfos.remove(0).job;
-            MgrRoute emergingRoute = new MgrRoute(firstJob);
+            InsertInfo insertInfo = new InsertInfo();
+            insertInfos.add(insertInfo);
+        }
 
-            for (InsertInfo info : insertInfos)
-                recalculateInsertInfo(emergingRoute, info);
+        for (Route route : routes)
+        {
+            if (insertInfos.isEmpty())
+                break;
 
-            addJobsToEmergingRoute(emergingRoute, insertInfos);
-            routes.add(emergingRoute);
+            insertJobsIntoRoute(route, insertInfos);
+        }
+
+        while (!insertInfos.isEmpty())
+        {
+            Route newRoute = createRoute(insertInfos.remove(insertInfos.size() - 1).job);
+            routes.add(newRoute);
+
+            if (insertInfos.isEmpty())
+                break;
+
+            insertJobsIntoRoute(newRoute, insertInfos);
         }
     }
 
-    private void addJobsToEmergingRoute(MgrRoute route, List<InsertInfo> insertInfos)
+    public void insertJobsIntoRoute(Route route, ArrayList<InsertInfo> insertInfos)
     {
-        double routeDemand = getDemand(route);
-        while (insertInfos.size() > 0)
+        int maxDemand = vehicleCapacity - route.getDemand();
+
+        for (InsertInfo insertInfo : insertInfos)
         {
-            int bestI = -1;
+            if (insertInfo.job.demand > maxDemand)
+                continue;
+
+            recalculateInsertInfo(route, insertInfo);
+        }
+
+        while (!insertInfos.isEmpty())
+        {
+            int bestIndex = -1;
             double maxSaving = Double.NEGATIVE_INFINITY;
+
             for (int i = 0; i < insertInfos.size(); i++)
             {
-                InsertInfo current = insertInfos.get(i);
-                if (getDemand(current.job) + routeDemand > getVehicleCapacity())
+                InsertInfo insertInfo = insertInfos.get(i);
+
+                if (insertInfo.saving <= maxSaving)
                     continue;
 
-                if (current.saving <= maxSaving)
-                    continue;
-
-                maxSaving = current.saving;
-                bestI = i;
+                bestIndex = i;
+                maxSaving = insertInfo.saving;
             }
-            if (bestI == -1)
-                return;
 
-            //Insert job
-            InsertInfo newInsertion = insertInfos.remove(bestI);
-            route.addAt(newInsertion.job, newInsertion.indexToAddAt);
-            routeDemand += getDemand(newInsertion.job);
-            int insertedJobIdx = newInsertion.indexToAddAt;
+            if (bestIndex == -1)
+                break;
 
-            Location depot = getDepotLocation();
+            InsertInfo insertInfo = insertInfos.remove(bestIndex);
+            route.add(insertInfo.indexToAddAt, insertInfo.job);
+            maxDemand -= insertInfo.job.demand;
+
+            int changedEdgeIndex = insertInfo.indexToAddAt;
 
             for (InsertInfo insertionToUpdate : insertInfos)
             {
-                //Recalculate altogether
-                if (insertionToUpdate.indexToAddAt == insertedJobIdx)
+                Job jobToUpdate = insertionToUpdate.job;
+
+                if (jobToUpdate.demand > maxDemand)
+                {
+                    insertionToUpdate.saving = Double.NEGATIVE_INFINITY;
+                    continue;
+                }
+                if (insertionToUpdate.indexToAddAt == changedEdgeIndex)
+                {
+                    recalculateInsertInfo(route, insertionToUpdate);
+                    continue;
+                }
+                if (timeWindows && !route.canFitIntoTimeSchedule(insertionToUpdate.indexToAddAt, jobToUpdate))
                 {
                     recalculateInsertInfo(route, insertionToUpdate);
                     continue;
                 }
 
-                //Check only the two new possible spots for insertion
-                Location current = insertionToUpdate.job.getLocation();
-                Location inserted = route.get(insertedJobIdx).getLocation();
-                Location beforeInserted = insertedJobIdx == 0 ?
-                    depot : route.get(insertedJobIdx - 1).getLocation();
-                Location afterInserted = insertedJobIdx == route.length() - 1 ?
-                    depot : route.get(insertedJobIdx + 1).getLocation();
+                // There are two new possible insertion spots,
+                // check if either is the new best.
 
-                double strainA = getStrain(beforeInserted, current, inserted);
-                double strainB = getStrain(inserted, current, afterInserted);
+                Place precedingInserted = getJob(route, changedEdgeIndex - 1);
+                Place inserted = getJob(route, changedEdgeIndex);
+                Place succeedingInserted = getJob(route, changedEdgeIndex + 1);
 
-                if (strainA < strainB && strainA < insertionToUpdate.strain)
+                double strainBefore = calculateStrain(precedingInserted, jobToUpdate, inserted);
+                double strainAfter = calculateStrain(inserted, jobToUpdate, succeedingInserted);
+
+                boolean canInsertBefore;
+                boolean canInsertAfter;
+                if (timeWindows)
                 {
-                    insertionToUpdate.strain = strainA;
-                    insertionToUpdate.indexToAddAt = insertedJobIdx;
-                    insertionToUpdate.saving = getDistance(depot, current) + getDistance(current, depot) - strainA;
+                    canInsertBefore = strainBefore < insertionToUpdate.strain
+                        && route.canFitIntoTimeSchedule(changedEdgeIndex, jobToUpdate);
+                    canInsertAfter = strainBefore < insertionToUpdate.strain
+                        && route.canFitIntoTimeSchedule(changedEdgeIndex + 1, jobToUpdate);
+
+                    if (canInsertBefore && canInsertAfter)
+                        canInsertBefore = strainBefore < strainAfter;
                 }
-                else if (strainB < strainA && strainB < insertionToUpdate.strain)
+                else
                 {
-                    insertionToUpdate.strain = strainB;
-                    insertionToUpdate.indexToAddAt = insertedJobIdx + 1;
-                    insertionToUpdate.saving = getDistance(depot, current) + getDistance(current, depot) - strainB;
+                    canInsertBefore = strainBefore < strainAfter && strainBefore < insertionToUpdate.strain;
+                    canInsertAfter = strainAfter < strainBefore && strainAfter < insertionToUpdate.strain;
                 }
-                else if (insertionToUpdate.indexToAddAt > insertedJobIdx)
+
+                if (canInsertBefore)
                 {
-                    //Fix indices for nodes after newly added job.
+                    insertionToUpdate.strain = strainBefore;
+                    insertionToUpdate.indexToAddAt = changedEdgeIndex;
+                    insertionToUpdate.saving = calculateSaving(jobToUpdate, strainBefore);
+                }
+                else if (canInsertAfter)
+                {
+                    insertionToUpdate.strain = strainAfter;
+                    insertionToUpdate.indexToAddAt = changedEdgeIndex + 1;
+                    insertionToUpdate.saving = calculateSaving(jobToUpdate, strainAfter);
+                }
+                else if (insertionToUpdate.indexToAddAt > changedEdgeIndex)
+                {
+                    // Fix indices for nodes after newly added job.
                     insertionToUpdate.indexToAddAt += 1;
                 }
             }
         }
     }
 
-    private void recalculateInsertInfo(MgrRoute route, InsertInfo insertInfo)
+    private Place getJob(Route route, int index)
     {
-        Location depot = getDepotLocation();
-        Location current = insertInfo.job.getLocation();
-        Location prev = route.getLast().getLocation();
-        Location next = depot;
+        if (index == -1 || index == route.length())
+            return depot;
+        return route.getFromStart(index);
+    }
 
-        double minStrain = getStrain(prev, current, next);
-        int bestI = route.length();
+    private void recalculateInsertInfo(Route route, InsertInfo insertInfo)
+    {
+        Job job = insertInfo.job;
+        Place prev = route.getLast();
+        Place next = depot;
 
-        if (route.length() != 1 || !distanceIsSymmetric())
+        double minStrain = Double.POSITIVE_INFINITY;
+        int bestIndex = -1;
+
+        if (!timeWindows || route.canFitIntoTimeSchedule(route.length(), job))
+        {
+            bestIndex = route.length();
+            minStrain = calculateStrain(prev, job, next);
+        }
+
+        if (route.length() != 1 || transportAsymmetry || timeWindows)
         {
             prev = depot;
             for (int i = 0; i < route.length(); i++)
             {
-                next = route.get(i).getLocation();
-                double strain = getStrain(prev, current, next);
+                if (timeWindows && !route.canFitIntoTimeSchedule(i, job))
+                    continue;
+
+                next = route.getFromStart(i);
+                double strain = calculateStrain(prev, job, next);
                 if (strain < minStrain)
                 {
                     minStrain = strain;
-                    bestI = i;
+                    bestIndex = i;
                 }
                 prev = next;
             }
         }
 
-        insertInfo.strain = minStrain;
-        insertInfo.indexToAddAt = bestI;
-        insertInfo.saving = getDistance(depot, current) + getDistance(current, depot) - minStrain;
+        if (bestIndex == -1)
+        {
+            insertInfo.strain = minStrain;
+            insertInfo.indexToAddAt = bestIndex;
+            insertInfo.saving = calculateSaving(job, minStrain);
+        }
     }
 
-    private double getStrain(Location prev, Location current, Location next)
+    private double calculateStrain(Place prev, Place current, Place next)
     {
-        return getDistance(prev, current) + getDistance(current, next) - getDistance(prev, next);
+        return getCost(prev, current) + getCost(current, next) - getCost(prev, next);
+    }
+
+    private double calculateSaving(Place unassignedJob, double strain)
+    {
+        if (transportAsymmetry)
+            return getCost(depot, unassignedJob) + getCost(unassignedJob, depot) - strain;
+        else
+            return 2 * getCost(depot, unassignedJob) - strain;
     }
 }

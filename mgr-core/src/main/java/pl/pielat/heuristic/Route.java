@@ -1,5 +1,6 @@
-package pl.pielat.heuristicNew;
+package pl.pielat.heuristic;
 
+import pl.pielat.algorithm.ProblemInfo;
 import pl.pielat.util.ArrayUtils;
 
 import java.util.Arrays;
@@ -9,7 +10,7 @@ public class Route
 {
     private final boolean timeWindows;
     private final boolean transportAsymmetry;
-    private final BaseHeuristic.TransportCostFunction costFunction;
+    private final ProblemInfo.TransportCostFunction costFunction;
     private final Place depot;
 
     private int length = 0;
@@ -22,7 +23,7 @@ public class Route
     private boolean areTimeWindowsOk;
     private boolean recalculateTimeWindows = true;
 
-    Route(BaseHeuristic.ProblemInfo params, int initialCapacity)
+    Route(ProblemInfo params, int initialCapacity)
     {
         timeWindows = params.timeWindows;
         transportAsymmetry = params.transportAsymmetry;

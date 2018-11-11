@@ -1,60 +1,41 @@
 package pl.pielat.heuristic.repairing;
 
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import pl.pielat.heuristic.BaseHeuristicProvider;
+import pl.pielat.algorithm.ProblemInfo;
+import pl.pielat.algorithm.TabuRandomizer;
 import pl.pielat.heuristic.repairing.concrete.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-public class RepairingHeuristicProvider extends BaseHeuristicProvider<RepairingHeuristic>
+public class RepairingHeuristicProvider extends TabuRandomizer<RepairingHeuristic>
 {
-    public RepairingHeuristicProvider(VehicleRoutingProblem vrp, Random random)
+    private List<RepairingHeuristic> heuristics;
+
+    public RepairingHeuristicProvider(ProblemInfo problemInfo, Random random)
     {
-        super(vrp, random);
+        super(random);
+
+        heuristics = new ArrayList<>(Arrays.asList(
+            new OrOpt(problemInfo),
+            new StringCross(problemInfo),
+            new StringExchange(problemInfo),
+            new StringRelocation(problemInfo),
+            new ThreeOpt(problemInfo),
+            new TwoOpt(problemInfo)
+        ));
     }
 
     @Override
-    protected List<String> getAllIds()
+    protected int getSetSize()
     {
-        List<String> ids = new ArrayList<String>(4);
-        ids.add("2opt");
-        ids.add("3opt");
-        ids.add("orOpt");
-        ids.add("stringCross");
-        ids.add("stringRelocation");
-        ids.add("stringExchange");
-        return ids;
+        return heuristics.size();
     }
 
     @Override
-    protected RepairingHeuristic getInstanceById(String id) throws Exception
+    protected RepairingHeuristic getItemByIndex(int index)
     {
-        RepairingHeuristic instance;
-        switch (id)
-        {
-            case "2opt":
-                instance = new LambdaOptTwo(vrp);
-                break;
-            case "3opt":
-                instance = new LambdaOptThree(vrp);
-                break;
-            case "orOpt":
-                instance = new OrOpt(vrp);
-                break;
-            case "stringCross":
-                instance = new StringCross(vrp);
-                break;
-            case "stringRelocation":
-                instance = new StringRelocation(vrp);
-                break;
-            case "stringExchange":
-                instance = new StringExchange(vrp);
-                break;
-            default:
-                throw new Exception("Unknown id.");
-        }
-        return instance;
+        return heuristics.get(index);
     }
 }

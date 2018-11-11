@@ -1,64 +1,82 @@
 package pl.pielat.heuristic.ordering;
 
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import pl.pielat.heuristic.BaseHeuristicProvider;
+import pl.pielat.algorithm.ProblemInfo;
+import pl.pielat.algorithm.TabuRandomizer;
+import pl.pielat.heuristic.ordering.concrete.OrderingByCost;
 import pl.pielat.heuristic.ordering.concrete.OrderingByDemand;
-import pl.pielat.heuristic.ordering.concrete.OrderingByDistance;
-import pl.pielat.heuristic.ordering.concrete.RadialSweepOrdering;
+import pl.pielat.heuristic.ordering.concrete.OrderingByRadialSweep;
+import pl.pielat.heuristic.ordering.concrete.OrderingByTimeWindow;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Random;
 
-public class OrderingHeuristicProvider extends BaseHeuristicProvider<OrderingHeuristic>
+public class OrderingHeuristicProvider extends TabuRandomizer<OrderingHeuristic>
 {
-    public OrderingHeuristicProvider(VehicleRoutingProblem vrp, Random random)
-    {
-        super(vrp, random);
-    }
+    private ProblemInfo problemInfo;
+    private Random random;
+    private ArrayList<OrderingHeuristic> heuristics;
 
-    @Override
-    protected List<String> getAllIds()
+    public OrderingHeuristicProvider(ProblemInfo problemInfo, Random random)
     {
-        List<String> ids = new ArrayList<String>(4);
-        ids.add("increasingDemand");
-        ids.add("decreasingDemand");
-        ids.add("increasingDistance");
-        ids.add("decreasingDistance");
-        ids.add("sweepFarthest");
-        ids.add("sweepNearest");
-        return ids;
-    }
+        super(random);
+        this.problemInfo = problemInfo;
+        this.random = random;
+        heuristics = new ArrayList<>();
 
-    @Override
-    protected OrderingHeuristic getInstanceById(String id) throws Exception
-    {
-        OrderingHeuristic instance;
-        switch (id)
+        final OrderingHeuristic.Order ascending = OrderingHeuristic.Order.ASCENDING;
+        final OrderingHeuristic.Order descending = OrderingHeuristic.Order.DESCENDING;
+        final OrderingByCost.Direction fromDepot = OrderingByCost.Direction.FROM_DEPOT;
+        final OrderingByCost.Direction toDepot = OrderingByCost.Direction.TO_DEPOT;
+        final OrderingByRadialSweep.SweepStart closestJob = OrderingByRadialSweep.SweepStart.CLOSEST_JOB;
+        final OrderingByRadialSweep.SweepStart farthestJob = OrderingByRadialSweep.SweepStart.FARTHEST_JOB;
+        final OrderingByRadialSweep.RadialOrder clockwise = OrderingByRadialSweep.RadialOrder.CLOCKWISE;
+        final OrderingByRadialSweep.RadialOrder counterclockwise = OrderingByRadialSweep.RadialOrder.COUNTERCLOCKWISE;
+        final OrderingByTimeWindow.Property windowStart = OrderingByTimeWindow.Property.WINDOW_START;
+        final OrderingByTimeWindow.Property windowEnd = OrderingByTimeWindow.Property.WINDOW_END;
+        final OrderingByTimeWindow.Property windowSize = OrderingByTimeWindow.Property.WINDOW_SIZE;
+
+        heuristics.addAll(Arrays.asList(
+            new OrderingByCost(problemInfo, ascending, fromDepot),
+            new OrderingByCost(problemInfo, descending, fromDepot),
+            new OrderingByDemand(problemInfo, ascending),
+            new OrderingByDemand(problemInfo, descending),
+            new OrderingByRadialSweep(problemInfo, clockwise, closestJob),
+            new OrderingByRadialSweep(problemInfo, counterclockwise, closestJob),
+            new OrderingByRadialSweep(problemInfo, clockwise, farthestJob),
+            new OrderingByRadialSweep(problemInfo, counterclockwise, farthestJob)
+        ));
+
+        if (problemInfo.transportAsymmetry)
         {
-            case "increasingDemand":
-                instance = new OrderingByDemand(vrp, true);
-                break;
-            case "decreasingDemand":
-                instance = new OrderingByDemand(vrp, false);
-                break;
-            case "increasingDistance":
-                instance = new OrderingByDistance(vrp, true, true);
-                break;
-            case "decreasingDistance":
-                instance = new OrderingByDistance(vrp, false, true);
-                break;
-            case "sweepFarthest":
-                instance = new RadialSweepOrdering(vrp, true, false);
-                break;
-            case "sweepNearest":
-                instance = new RadialSweepOrdering(vrp, false, false);
-                break;
-            default:
-                throw new Exception("Unknown id.");
+            heuristics.addAll(Arrays.asList(
+                new OrderingByCost(problemInfo, ascending, toDepot),
+                new OrderingByCost(problemInfo, descending, toDepot)
+            ));
         }
-        return instance;
+
+        if (problemInfo.timeWindows)
+        {
+            heuristics.addAll(Arrays.asList(
+                new OrderingByTimeWindow(problemInfo, ascending, windowStart),
+                new OrderingByTimeWindow(problemInfo, descending, windowStart),
+                new OrderingByTimeWindow(problemInfo, ascending, windowEnd),
+                new OrderingByTimeWindow(problemInfo, descending, windowEnd),
+                new OrderingByTimeWindow(problemInfo, ascending, windowSize),
+                new OrderingByTimeWindow(problemInfo, descending, windowSize)
+            ));
+        }
     }
 
+    @Override
+    protected int getSetSize()
+    {
+        return heuristics.size();
+    }
 
+    @Override
+    protected OrderingHeuristic getItemByIndex(int index)
+    {
+        return heuristics.get(index);
+    }
 }

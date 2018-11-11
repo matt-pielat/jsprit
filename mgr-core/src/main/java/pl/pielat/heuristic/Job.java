@@ -1,4 +1,4 @@
-package pl.pielat.heuristicNew;
+package pl.pielat.heuristic;
 
 import com.graphhopper.jsprit.core.problem.job.Service;
 

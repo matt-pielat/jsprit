@@ -1,110 +1,103 @@
 package pl.pielat.heuristic.repairing.concrete;
 
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import pl.pielat.algorithm.MgrRoute;
+import pl.pielat.algorithm.ProblemInfo;
+import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.repairing.RepairingHeuristic;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class StringCross extends RepairingHeuristic
 {
-    public StringCross(VehicleRoutingProblem vrp)
+    public StringCross(ProblemInfo info)
     {
-        super(vrp);
+        super(info);
     }
 
     @Override
-    public void improveRoutes(List<MgrRoute> routes)
+    public void improveRoutes(ArrayList<Route> routes)
     {
-        while (findAnyImprovementCrossing(routes));
+        while (findAnyImprovementCross(routes));
     }
 
-    private boolean findAnyImprovementCrossing(List<MgrRoute> routes)
+    public boolean findAnyImprovementCross(ArrayList<Route> routes)
     {
         for (int i = 1; i < routes.size(); i++)
         {
-            MgrRoute alpha = routes.get(i);
+            Route alpha = routes.get(i);
+
+            if (alpha.length() < 2)
+                continue;
+
+            double alphaCost = alpha.getCost();
+
             for (int j = 0; j < i; j++)
             {
-                MgrRoute beta = routes.get(j);
-                if (findImprovementCrossing(alpha, beta))
+                Route beta = routes.get(j);
+
+                if (beta.length() < 2)
+                    continue;
+
+                double betaCost = beta.getCost();
+
+                if (findImprovementCross(routes, i, j, alphaCost + betaCost))
                     return true;
             }
         }
         return false;
     }
 
-    private boolean findImprovementCrossing(MgrRoute alpha, MgrRoute beta)
+    public boolean findImprovementCross(ArrayList<Route> routes, int alphaIdx, int betaIdx, double costToBeat)
     {
-        double currentCost = getDistance(alpha) + getDistance(beta);
+        Route alpha = routes.get(alphaIdx);
+        Route beta = routes.get(betaIdx);
 
-        MgrRoute alpha1 = new MgrRoute(alpha);
-        MgrRoute alpha2 = new MgrRoute();
+        int demandA1 = 0;
+        int demandA2 = alpha.getDemand();
 
-        for (int i = 1; i < alpha.length(); i++)
+        for (int cA = 1; cA < alpha.length(); cA++)
         {
-            alpha2.addToFront(alpha1.removeLast());
+            int demandDeltaA = alpha.getFromStart(cA - 1).demand;
+            demandA1 += demandDeltaA;
+            demandA2 -= demandDeltaA;
 
-            int demandA1 = getDemand(alpha1);
-            int demandA2 = getDemand(alpha2);
+            int demandB1 = 0;
+            int demandB2 = beta.getDemand();
 
-            MgrRoute beta1 = new MgrRoute(beta);
-            MgrRoute beta2 = new MgrRoute();
-
-            for (int j = 1; j < beta.length(); j++)
+            for (int cB = 1; cB < beta.length(); cB++)
             {
-                beta2.addToFront(beta1.removeLast());
+                int demandDeltaB = beta.getFromStart(cB - 1).demand;
+                demandB1 += demandDeltaB;
+                demandB2 -= demandDeltaB;
 
-                int demandB1 = getDemand(beta1);
-                int demandB2 = getDemand(beta2);
+                if (demandB1 + demandA2 > vehicleCapacity)
+                    break;
+                if (demandA1 + demandB2 > vehicleCapacity)
+                    continue;
 
-                if (demandA1 + demandB2 <= getVehicleCapacity() &&
-                    demandB1 + demandA2 <= getVehicleCapacity())
-                {
-                    MgrRoute gamma = makeCrossRoute(alpha1, beta2);
-                    MgrRoute delta = makeCrossRoute(beta1, alpha2);
+                Route ba = createRoute(cB + alpha.length() - cA);
+                ba.addAll(beta, 0, cB, false);
+                ba.addAll(alpha, cA, alpha.length(), false);
 
-                    if (getDistance(gamma) + getDistance(delta) + EPSILON < currentCost)
-                    {
-                        alpha.replace(gamma);
-                        beta.replace(delta);
-                        return true;
-                    }
-                }
+                if (timeWindows && !ba.areTimeWindowsValid())
+                    break;
 
-                if (demandA1 + demandB1 <= getVehicleCapacity() &&
-                    demandB2 + demandA2 <= getVehicleCapacity())
-                {
-                    MgrRoute gamma = makeCrossRoute(alpha1, makeReversedCopy(beta1));
-                    MgrRoute delta = makeCrossRoute(makeReversedCopy(beta2), alpha2);
+                Route ab = createRoute(cA + beta.length() - cB);
+                ab.addAll(alpha, 0, cA, false);
+                ab.addAll(beta, cB, beta.length(), false);
 
-                    if (getDistance(gamma) + getDistance(delta) + EPSILON < currentCost)
-                    {
-                        alpha.replace(gamma);
-                        beta.replace(delta);
-                        return true;
-                    }
-                }
+                if (timeWindows && !ab.areTimeWindowsValid())
+                    continue;
+
+                if (ab.getCost() + ba.getCost() + EPSILON > costToBeat)
+                    continue;
+
+                routes.set(alphaIdx, ab);
+                routes.set(betaIdx, ba);
+
+                return true;
             }
         }
 
         return false;
-    }
-
-    private static MgrRoute makeReversedCopy(MgrRoute route)
-    {
-        MgrRoute result = new MgrRoute(route);
-        result.reverse();
-        return result;
-    }
-
-    private MgrRoute makeCrossRoute(MgrRoute front, MgrRoute end)
-    {
-        MgrRoute result = new MgrRoute(front.length() + end.length());
-        result.addToEnd(front);
-        result.addToEnd(end);
-
-        reverseIfDistanceIsSmaller(result);
-        return result;
     }
 }

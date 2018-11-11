@@ -1,119 +1,119 @@
 package pl.pielat.heuristic.repairing.concrete;
 
-import com.graphhopper.jsprit.core.problem.Location;
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import pl.pielat.algorithm.MgrRoute;
+import pl.pielat.algorithm.ProblemInfo;
+import pl.pielat.heuristic.Place;
+import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.repairing.RepairingHeuristic;
 
-import java.util.List;
+import java.util.ArrayList;
 
-//TODO adjust to matrix-based cost calculation
 public class OrOpt extends RepairingHeuristic
 {
-    public OrOpt(VehicleRoutingProblem vrp)
+    public OrOpt(ProblemInfo info)
     {
-        super(vrp);
+        super(info);
     }
 
     @Override
-    public void improveRoutes(List<MgrRoute> routes)
+    public void improveRoutes(ArrayList<Route> routes)
     {
-        for (MgrRoute r : routes)
+        for (int i = 0; i < routes.size(); i++)
         {
-            while (improveRoute(r));
+            while (improveRouteOnce(routes, i));
         }
     }
 
-    private double getShiftDistanceGain(MgrRoute route, int fromIdx, int toIdx, int length, boolean reverse)
+    private boolean improveRouteOnce(ArrayList<Route> allRoutes, int routeIndex)
     {
-        double distanceDelta = 0;
+        Route route = allRoutes.get(routeIndex);
 
-        Location fromA = getLocation(route, fromIdx - 1);
-        Location toA = getLocation(route, fromIdx);
-
-        Location fromB = getLocation(route, fromIdx + length - 1);
-        Location toB = getLocation(route, fromIdx + length);
-
-        distanceDelta -= getDistance(fromA, toA);
-        distanceDelta -= getDistance(fromB, toB);
-        distanceDelta += getDistance(fromA, toB);
-
-        Location fromC = getLocation(route, toIdx - 1);
-        Location toC = getLocation(route, toIdx);
-
-        distanceDelta -= getDistance(fromC, toC);
-        if (reverse)
+        for (int len = 3; len >= 1; len--)
         {
-            if (!distanceIsSymmetric())
+            for (int from = 0; from <= route.length() - len; from++)
             {
-                for (int i = 1; i < length; i++)
+                for (int to = 0; to <= route.length() - len; to++)
                 {
-                    distanceDelta -= getDistance(
-                        getLocation(route, fromIdx + i - 1),
-                        getLocation(route, fromIdx + i)
-                    );
-                    distanceDelta += getDistance(
-                        getLocation(route, fromIdx + i),
-                        getLocation(route, fromIdx + i - 1)
-                    );
-                }
-            }
-
-            distanceDelta += getDistance(fromC, fromB);
-            distanceDelta += getDistance(toA, toC);
-        }
-        else
-        {
-            distanceDelta += getDistance(fromC, toA);
-            distanceDelta += getDistance(fromB, toC);
-        }
-
-        return distanceDelta;
-    }
-
-    private void performShift(MgrRoute route, int fromIdx, int toIdx, int length, boolean reverse)
-    {
-        MgrRoute subroute = route.removeSubroute(fromIdx, length);
-        if (reverse)
-            subroute.reverse();
-        if (toIdx > fromIdx)
-            toIdx -= length;
-        route.addAt(subroute, toIdx);
-    }
-
-    private boolean improveRoute(MgrRoute route)
-    {
-        int maxStringLen = Math.min(route.length() - 1, 3);
-        for (int stringLen = maxStringLen; stringLen >= 1; stringLen--)
-        {
-            for (int stringStart = 0; stringStart < route.length() - stringLen; stringStart++)
-            {
-                for (int i = 0; i <= route.length(); i++)
-                {
-                    if (i >= stringStart && i <= stringStart + stringLen)
+                    if (from == to)
                         continue;
 
-                    if (getShiftDistanceGain(route, stringStart, i, stringLen, false) < -EPSILON)
+                    double delta = getShiftCostDelta(route, from, to, len);
+                    if (delta > -EPSILON)
+                        continue;
+
+                    if (timeWindows)
                     {
-                        performShift(route, stringStart, i, stringLen, false);
-                        return true;
+                        Route copy = route.copy();
+                        performShift(copy, from, to, len);
+
+                        if (!copy.areTimeWindowsValid())
+                            continue;
+
+                        allRoutes.set(routeIndex, copy);
+                    }
+                    else
+                    {
+                        performShift(route, from, to, len);
                     }
 
-                    if (getShiftDistanceGain(route, stringStart, i, stringLen, true) < -EPSILON)
-                    {
-                        performShift(route, stringStart, i, stringLen, true);
-                        return true;
-                    }
+                    return true;
                 }
             }
         }
+
         return false;
     }
 
-    private Location getLocation(MgrRoute route, int index)
+    @SuppressWarnings("UnnecessaryLocalVariable")
+    private double getShiftCostDelta(Route route, int fromIndex, int toIndex, int segmentLength)
     {
-        if (index == -1 || index == route.length())
-            return getDepotLocation();
-        return route.get(index).getLocation();
+        // Before:
+        // ... A - [B - ... - C] - D - ... - E - F ...
+        // After:
+        // ... A - D' - ... - E' - [B' - ... - C'] - F ...
+
+        // fromIndex = B
+        // toIndex = B'
+
+        int a = fromIndex - 1;
+        int b = fromIndex;
+        int c = fromIndex + segmentLength - 1;
+        int d = fromIndex + segmentLength;
+
+        int eP = toIndex - 1;
+        int bP = toIndex;
+        int cP = toIndex + segmentLength - 1;
+        int f = toIndex + segmentLength;
+
+        return
+            - getCost(route, a, b) - getCost(route, c, d) + getCost(route, a, d)
+            + getCost(route, eP, bP) + getCost(route, cP, f) - getCost(route, eP, f);
+    }
+
+    @SuppressWarnings("UnnecessaryLocalVariable")
+    private void performShift(Route route, int fromIndex, int toIndex, int segmentLength)
+    {
+        // Before:
+        // ... A - [B - ... - C] - D - ... - E - F ...
+        // After:
+        // ... A - D' - ... - E' - [B' - ... - C'] - F ...
+
+        // fromIndex = B
+        // toIndex = B'
+
+        int b = fromIndex;
+        int d = fromIndex + segmentLength;
+        int bP = toIndex;
+
+        Route segment = route.subroute(b, d);
+
+        route.remove(b, d);
+        route.addAll(bP, segment, false);
+    }
+
+    private double getCost(Route route, int fromIndex, int toIndex)
+    {
+        Place from = fromIndex == -1 ? depot : route.getFromStart(fromIndex);
+        Place to = toIndex == route.length() ? depot : route.getFromStart(toIndex);
+        return getCost(from, to);
     }
 }

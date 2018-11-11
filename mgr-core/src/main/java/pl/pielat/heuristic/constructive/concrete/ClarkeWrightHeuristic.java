@@ -1,129 +1,192 @@
 package pl.pielat.heuristic.constructive.concrete;
 
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import com.graphhopper.jsprit.core.problem.job.Delivery;
+import pl.pielat.algorithm.ProblemInfo;
 import pl.pielat.heuristic.constructive.ConstructiveHeuristic;
-import pl.pielat.algorithm.MgrRoute;
+import pl.pielat.heuristic.Job;
+import pl.pielat.heuristic.Route;
 
 import java.util.*;
 
-//TODO adjust to matrix-based cost calculation
 public class ClarkeWrightHeuristic extends ConstructiveHeuristic
 {
+    public ClarkeWrightHeuristic(ProblemInfo info)
+    {
+        super(info);
+    }
+
     private class Saving implements Comparable<Saving>
     {
-        Delivery jobA;
-        Delivery jobB;
-        double savingValue;
+        Job jobA;
+        Job jobB;
+        double value;
 
-        Saving(Delivery a, Delivery b, double value)
+        public Saving(Job a, Job b, double value)
         {
             jobA = a;
             jobB = b;
-            savingValue = value;
+            this.value = value;
         }
 
         @Override
         public int compareTo(Saving o)
         {
-            return Double.compare(o.savingValue, savingValue);
+            // Compare inversely because we want high value savings in front of the PriorityQueue
+            return Double.compare(o.value, value);
         }
-    }
-
-    public ClarkeWrightHeuristic(VehicleRoutingProblem vrp)
-    {
-        super(vrp);
     }
 
     @Override
-    public void insertJobs(List<MgrRoute> routes, List<Delivery> jobsToInsert)
+    public void insertJobs(ArrayList<Route> routes, ArrayList<Job> jobsToInsert)
     {
-        int initialCapacity = routes.size() * 2 + jobsToInsert.size();
+        int mergeableEndpointsCapacity = routes.size() * 2 + jobsToInsert.size();
 
-        for (Delivery job : jobsToInsert)
-            routes.add(new MgrRoute(job));
+        // Create new one-client routes.
+        routes.ensureCapacity(routes.size() + jobsToInsert.size());
+        for (Job j : jobsToInsert)
+            routes.add(createRoute(j));
 
-        List<Delivery> jobsToProcess = new ArrayList<>(initialCapacity);
-        Map<Delivery, MgrRoute> jobToRoute = new HashMap<>(initialCapacity);
-
-        for (MgrRoute route : routes)
+        List<Job> mergeableEndpoints = new ArrayList<>(mergeableEndpointsCapacity);
+        Map<Integer, Route> jobIdToRouteMap = new HashMap<>(mergeableEndpointsCapacity);
+        for (Route r : routes)
         {
-            jobsToProcess.add(route.getFirst());
-            jobToRoute.put(route.getFirst(), route);
+            Job firstEndpoint = r.getFromStart(0);
+            mergeableEndpoints.add(firstEndpoint);
+            jobIdToRouteMap.put(firstEndpoint.id, r);
 
-            if (route.length() > 1) // route has another end
+            if (r.length() > 1) // Route has second endpoint.
             {
-                jobsToProcess.add(route.getLast());
-                jobToRoute.put(route.getLast(), route);
+                Job secondEndpoint = r.getFromEnd(0);
+                mergeableEndpoints.add(secondEndpoint);
+                jobIdToRouteMap.put(secondEndpoint.id, r);
             }
         }
 
-        if (jobsToProcess.size() == 1)
-            return;
+        List<Saving> savings = new LinkedList<>();
 
-        initialCapacity = (jobsToProcess.size() * jobsToProcess.size() - jobsToProcess.size()) / 2;
-        PriorityQueue<Saving> savings = new PriorityQueue<>(initialCapacity);
-
-        for (int i = 1; i < jobsToProcess.size(); i++)
+        for (int a = 1; a < mergeableEndpoints.size(); a++)
         {
-            Delivery jobA = jobsToProcess.get(i);
-            for (int j = 0; j < i; j++)
+            Job jobA = mergeableEndpoints.get(a);
+            Route routeA = jobIdToRouteMap.get(jobA.id);
+
+            for (int b = 0; b < a; b++)
             {
-                Delivery jobB = jobsToProcess.get(j);
+                Job jobB = mergeableEndpoints.get(b);
+                Route routeB = jobIdToRouteMap.get(jobB.id);
 
-                if (jobToRoute.get(jobA) == jobToRoute.get(jobB))
+                if (routeA == routeB)
+                    continue;
+                if (routeA.getDemand() + routeB.getDemand() > vehicleCapacity)
                     continue;
 
-                double savingValue = getDistance(jobA.getLocation(), getDepotLocation())
-                    + getDistance(getDepotLocation(), jobB.getLocation())
-                    - getDistance(jobA.getLocation(), jobB.getLocation());
+                double savingValue = -getCost(jobA, jobB) + getCost(jobA, depot) + getCost(depot, jobB);
 
-                if (savingValue <= 0)
-                    continue;
-
-                Saving saving = new Saving(jobA, jobB, savingValue);
-                savings.add(saving);
+                if (savingValue > 0)
+                {
+                    Saving newSaving = new Saving(jobA, jobB, savingValue);
+                    savings.add(newSaving);
+                }
             }
         }
 
-        // Jobs whose locations became interior within their routes
-        Set<Delivery> innerJobs = new HashSet<>(jobsToProcess.size());
+        // Jobs whose locations became interior within their routes.
+        Set<Integer> innerJobIds = new HashSet<>(mergeableEndpoints.size());
 
-        while (!savings.isEmpty())
+        PriorityQueue<Saving> savingsPriorityQueue = new PriorityQueue<>(savings);
+        while (!savingsPriorityQueue.isEmpty())
         {
-            Saving saving = savings.poll();
-            if (innerJobs.contains(saving.jobA) || innerJobs.contains(saving.jobB))
+            Saving saving = savingsPriorityQueue.poll();
+
+            Job jobA = saving.jobA;
+            Job jobB = saving.jobB;
+
+            if (innerJobIds.contains(jobA.id) || innerJobIds.contains(jobB.id))
                 continue;
 
-            MgrRoute routeA = jobToRoute.get(saving.jobA);
-            MgrRoute routeB = jobToRoute.get(saving.jobB);
+            Route routeA = jobIdToRouteMap.get(jobA.id);
+            Route routeB = jobIdToRouteMap.get(jobB.id);
 
             if (routeA == routeB)
                 continue;
-            if (getDemand(routeA) + getDemand(routeB) > getVehicleCapacity())
+            if (routeA.getDemand() + routeB.getDemand() > vehicleCapacity)
                 continue;
 
-            for (Delivery job : routeB)
-                jobToRoute.put(job, routeA);
+            int routeAOriginalLength = routeA.length();
 
-            if (routeA.length() > 1)
-                innerJobs.add(saving.jobA);
-            if (routeB.length() > 1)
-                innerJobs.add(saving.jobB);
-
-            // Merge routes
-            if (saving.jobA == routeA.getFirst())
+            if (timeWindows)
             {
-                if (saving.jobB == routeB.getFirst())
-                    routeB.reverse();
-                routeA.addToFront(routeB);
+                Route merged;
+
+                if (routeA.getLast().equals(jobA))
+                {
+                    merged = routeA.copy();
+                    boolean invert = !routeB.getFirst().equals(jobB);
+                    merged.addAll(routeB, invert);
+                }
+                else if (routeB.getLast().equals(jobB))
+                {
+                    merged = routeB.copy();
+                    boolean invert = !routeA.getFirst().equals(jobA);
+                    merged.addAll(routeA, invert);
+                }
+                else
+                {
+                    throw new RuntimeException("Neither route has last node");
+                }
+
+                if (!merged.areTimeWindowsValid())
+                {
+                    merged.reverse();
+                    if (!merged.areTimeWindowsValid())
+                        continue;
+                }
+
+                routeA.replaceInternals(merged);
+            }
+            else if (transportAsymmetry)
+            {
+                // Order is important and we don't want to create a route node
+                // with both roads going outward (or inward).
+
+                if (routeA.getLast().equals(jobA) && routeB.getFirst().equals(jobB))
+                {
+                    routeA.addAll(routeB, false);
+                }
+                else if (routeB.getLast().equals(jobB) && routeA.getFirst().equals(jobA))
+                {
+                    routeA.addAll(0, routeB, false);
+                }
+                else
+                {
+                    continue;
+                }
             }
             else
             {
-                if (saving.jobB != routeB.getFirst())
-                    routeB.reverse();
-                routeA.addToEnd(routeB);
+                if (routeA.getLast().equals(jobA))
+                {
+                    boolean invert = !routeB.getFirst().equals(jobB);
+                    routeA.addAll(routeB, invert);
+                }
+                else if (routeB.getLast().equals(jobB))
+                {
+                    boolean invert = !routeA.getFirst().equals(jobA);
+                    routeA.addAll(routeB, invert);
+                }
+                else
+                {
+                    throw new RuntimeException("Neither route has last node");
+                }
             }
+
+            // Update inner jobs.
+            if (routeAOriginalLength > 1)
+                innerJobIds.add(jobA.id);
+            if (routeB.length() > 1)
+                innerJobIds.add(jobB.id);
+
+            // Update job-to-route map.
+            jobIdToRouteMap.put(routeB.getFirst().id, routeA);
+            jobIdToRouteMap.put(routeB.getLast().id, routeA);
 
             routes.remove(routeB);
         }

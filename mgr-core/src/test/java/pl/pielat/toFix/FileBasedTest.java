@@ -85,7 +85,7 @@ public abstract class FileBasedTest
         {
             e.printStackTrace();
         }
-        VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(vrp);
+        VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(vrp, false, false);
         vra.setMaxIterations(iterations);
 
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
@@ -119,7 +119,7 @@ public abstract class FileBasedTest
 
                 VehicleRoutingProblem vrp = new Tsplib95FileReader().parse(f.getPath());
 
-                VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(vrp);
+                VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(vrp, false, false);
                 vra.setMaxIterations(iterations);
 
                 Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
@@ -160,7 +160,7 @@ public abstract class FileBasedTest
                 writer.print(";mgr");
                 for (int i = 0; i < runsPerProblem; i++)
                 {
-                    VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(vrp);
+                    VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(vrp, false, false);
                     vra.setMaxIterations(algorithmIters);
                     Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
                     VehicleRoutingProblemSolution solution = new SelectBest().selectSolution(solutions);

@@ -1,7 +1,7 @@
-package pl.pielat.heuristicNew.constructive;
+package pl.pielat.heuristic.constructive;
 
-import pl.pielat.heuristicNew.BaseHeuristic;
-import pl.pielat.heuristicNew.Place;
+import pl.pielat.algorithm.ProblemInfo;
+import pl.pielat.heuristic.Place;
 
 import java.util.*;
 
@@ -46,10 +46,10 @@ public class ChristofidesAlgorithm
         }
     }
 
-    private BaseHeuristic.TransportCostFunction costFunction;
+    private ProblemInfo.TransportCostFunction costFunction;
     private boolean costAsymmetry; //TODO assign
 
-    public ChristofidesAlgorithm(BaseHeuristic.TransportCostFunction costFunction)
+    public ChristofidesAlgorithm(ProblemInfo.TransportCostFunction costFunction)
     {
         this.costFunction = costFunction;
     }

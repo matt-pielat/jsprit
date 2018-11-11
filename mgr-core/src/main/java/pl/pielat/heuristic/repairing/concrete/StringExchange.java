@@ -1,37 +1,42 @@
 package pl.pielat.heuristic.repairing.concrete;
 
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import pl.pielat.algorithm.MgrRoute;
+import pl.pielat.algorithm.ProblemInfo;
+import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.repairing.RepairingHeuristic;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class StringExchange extends RepairingHeuristic
 {
-    public StringExchange(VehicleRoutingProblem vrp)
+    public StringExchange(ProblemInfo info)
     {
-        super(vrp);
+        super(info);
     }
 
     @Override
-    public void improveRoutes(List<MgrRoute> routes)
+    public void improveRoutes(ArrayList<Route> routes)
     {
-        while (optimize(routes));
+        while (findAnyImprovement(routes));
     }
 
-    private boolean optimize(List<MgrRoute> routes)
+    public boolean findAnyImprovement(ArrayList<Route> routes)
     {
         for (int a = 1; a < routes.size(); a++)
         {
-            MgrRoute alpha = routes.get(a);
+            Route alpha = routes.get(a);
+            double alphaCost = alpha.getCost();
+
             for (int b = 0; b < a; b++)
             {
-                MgrRoute beta = routes.get(b);
+                Route beta = routes.get(b);
+                double betaCost = beta.getCost();
 
-                if (performExchange(alpha, beta, 2, 2) ||
-                    performExchange(alpha, beta, 2, 1) ||
-                    performExchange(alpha, beta, 1, 2) ||
-                    performExchange(alpha, beta, 1, 1))
+                double costToBeat = alphaCost + betaCost;
+
+                if (performExchange(routes, a, b, 2, 2, costToBeat) ||
+                    performExchange(routes, a, b, 2, 1, costToBeat) ||
+                    performExchange(routes, a, b, 1, 2, costToBeat) ||
+                    performExchange(routes, a, b, 1, 1, costToBeat))
                 {
                     return true;
                 }
@@ -40,53 +45,61 @@ public class StringExchange extends RepairingHeuristic
         return false;
     }
 
-    private boolean performExchange(MgrRoute alpha, MgrRoute beta, int kA, int kB)
+    public boolean performExchange(ArrayList<Route> routes, int alphaIdx, int betaIdx, int kA, int kB, double costToBeat)
     {
-        double costToBeat = getDistance(alpha) + getDistance(beta);
+        Route alpha = routes.get(alphaIdx);
+        Route beta = routes.get(betaIdx);
+
+        int alphaDemand = alpha.getDemand();
+        int betaDemand = beta.getDemand();
 
         for (int i = 0; i < alpha.length() - kA + 1; i++)
         {
+            int alphaStringDemand = getPartialDemand(alpha, i, kA);
+
             for (int j = 0; j < beta.length() - kB + 1; j++)
             {
-                MgrRoute gamma = new MgrRoute(alpha);
-                MgrRoute subGamma = gamma.removeSubroute(i, kA);
+                int betaStringDemand = getPartialDemand(beta, j, kB);
 
-                MgrRoute delta = new MgrRoute(beta);
-                MgrRoute subDelta = delta.removeSubroute(j, kB);
-
-                if (getDemand(gamma) + getDemand(subDelta) > getVehicleCapacity() ||
-                    getDemand(delta) + getDemand(subGamma) > getVehicleCapacity())
-                {
+                if (alphaDemand - alphaStringDemand + betaStringDemand > vehicleCapacity)
                     continue;
-                }
+                if (betaDemand - betaStringDemand + alphaStringDemand > vehicleCapacity)
+                    continue;
 
-                gamma = addToRouteAt(gamma, subDelta, i);
-                delta = addToRouteAt(delta, subGamma, j);
+                Route alphaNew = createRoute(alpha.length() - kA + kB);
+                alphaNew.addAll(alpha, 0, i, false);
+                alphaNew.addAll(beta, j, j + kB, false);
+                alphaNew.addAll(alpha, i + kA, alpha.length(), false);
 
-                double gammaDist = getDistance(gamma);
-                double deltaDist = getDistance(delta);
-                if (gammaDist + deltaDist + EPSILON < costToBeat)
-                {
-                    alpha.replace(gamma);
-                    beta.replace(delta);
-                    return true;
-                }
+                if (timeWindows && !alphaNew.areTimeWindowsValid())
+                    continue;
+
+                Route betaNew = createRoute(beta.length() - kB + kA);
+                betaNew.addAll(beta, 0, j, false);
+                betaNew.addAll(alpha, i, i + kA, false);
+                betaNew.addAll(beta, j + kB, beta.length(), false);
+
+                if (timeWindows && !betaNew.areTimeWindowsValid())
+                    continue;
+
+                if (alphaNew.getCost() + betaNew.getCost() + EPSILON > costToBeat)
+                    continue;
+
+                routes.set(alphaIdx, alphaNew);
+                routes.set(betaIdx, betaNew);
+
+                return true;
             }
         }
+
         return false;
     }
 
-    private MgrRoute addToRouteAt(MgrRoute route, MgrRoute insert, int atIdx)
+    private int getPartialDemand(Route route, int from, int length)
     {
-        MgrRoute alpha = new MgrRoute(route);
-        alpha.addAt(insert, atIdx);
-
-        insert.reverse();
-        MgrRoute beta = new MgrRoute(route);
-        beta.addAt(insert, atIdx);
-
-        double alphaDist = reverseIfDistanceIsSmaller(alpha);
-        double betaDist = reverseIfDistanceIsSmaller(beta);
-        return alphaDist < betaDist ? alpha : beta;
+        int result = 0;
+        for (int i = from; i < from + length; i++)
+            result += route.getFromStart(i).demand;
+        return result;
     }
 }

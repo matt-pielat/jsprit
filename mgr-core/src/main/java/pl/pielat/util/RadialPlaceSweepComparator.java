@@ -1,7 +1,7 @@
 package pl.pielat.util;
 
 import com.graphhopper.jsprit.core.util.Coordinate;
-import pl.pielat.heuristicNew.Place;
+import pl.pielat.heuristic.Place;
 
 import java.util.Comparator;
 

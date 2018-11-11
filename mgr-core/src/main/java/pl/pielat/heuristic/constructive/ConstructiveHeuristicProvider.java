@@ -1,55 +1,43 @@
 package pl.pielat.heuristic.constructive;
 
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import pl.pielat.heuristic.BaseHeuristicProvider;
+import pl.pielat.algorithm.ProblemInfo;
+import pl.pielat.algorithm.TabuRandomizer;
 import pl.pielat.heuristic.constructive.concrete.ClarkeWrightHeuristic;
 import pl.pielat.heuristic.constructive.concrete.KilbyAlgorithm;
 import pl.pielat.heuristic.constructive.concrete.MoleJamesonHeuristic;
 import pl.pielat.heuristic.constructive.concrete.SweepAlgorithm;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Random;
 
-public class ConstructiveHeuristicProvider extends BaseHeuristicProvider<ConstructiveHeuristic>
+public class ConstructiveHeuristicProvider extends TabuRandomizer<ConstructiveHeuristic>
 {
-    public ConstructiveHeuristicProvider(VehicleRoutingProblem vrp, Random random)
+    private ArrayList<ConstructiveHeuristic> heuristics;
+
+    public ConstructiveHeuristicProvider(ProblemInfo problemInfo, Random random)
     {
-        super(vrp, random);
+        super(random);
+        heuristics = new ArrayList<>(4);
+
+        heuristics.addAll(Arrays.asList(
+            new ClarkeWrightHeuristic(problemInfo),
+            new KilbyAlgorithm(problemInfo),
+            new MoleJamesonHeuristic(problemInfo)));
+
+        if (!problemInfo.timeWindows)
+            heuristics.add( new SweepAlgorithm(problemInfo));
     }
 
     @Override
-    protected List<String> getAllIds()
+    protected int getSetSize()
     {
-        List<String> ids = new ArrayList<String>(4);
-        ids.add("clarke&wright");
-        ids.add("mole&jameson");
-        ids.add("sweep");
-        ids.add("kilby");
-        return ids;
+        return heuristics.size();
     }
 
     @Override
-    protected ConstructiveHeuristic getInstanceById(String id) throws Exception
+    protected ConstructiveHeuristic getItemByIndex(int index)
     {
-        ConstructiveHeuristic instance;
-        switch (id)
-        {
-            case "clarke&wright":
-                instance = new ClarkeWrightHeuristic(vrp);
-                break;
-            case "mole&jameson":
-                instance = new MoleJamesonHeuristic(vrp);
-                break;
-            case "sweep":
-                instance = new SweepAlgorithm(vrp);
-                break;
-            case "kilby":
-                instance = new KilbyAlgorithm(vrp);
-                break;
-            default:
-                throw new Exception("Unknown id.");
-        }
-        return instance;
+        return heuristics.get(index);
     }
 }

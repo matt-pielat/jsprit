@@ -1,17 +1,35 @@
 package pl.pielat.heuristic.ordering;
 
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import com.graphhopper.jsprit.core.problem.job.Delivery;
+import pl.pielat.algorithm.ProblemInfo;
 import pl.pielat.heuristic.BaseHeuristic;
+import pl.pielat.heuristic.Job;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public abstract class OrderingHeuristic extends BaseHeuristic
 {
-    public OrderingHeuristic(VehicleRoutingProblem vrp)
+    public enum Order
     {
-        super(vrp);
+        ASCENDING,
+        DESCENDING
     }
 
-    public abstract void orderUnassignedJobs(List<Delivery> jobs);
+    private Order order;
+
+    protected OrderingHeuristic(ProblemInfo info, Order order)
+    {
+        super(info);
+    }
+
+    protected abstract void orderJobsAscending(ArrayList<Job> jobs);
+
+    public void orderJobs(ArrayList<Job> jobs)
+    {
+        orderJobsAscending(jobs);
+
+        if (order == Order.DESCENDING)
+            Collections.reverse(jobs);
+    }
+
 }

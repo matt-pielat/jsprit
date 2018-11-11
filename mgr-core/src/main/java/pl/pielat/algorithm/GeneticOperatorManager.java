@@ -1,6 +1,5 @@
 package pl.pielat.algorithm;
 
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import pl.pielat.heuristic.constructive.ConstructiveHeuristicProvider;
 import pl.pielat.heuristic.ordering.OrderingHeuristicProvider;
 import pl.pielat.heuristic.repairing.RepairingHeuristicProvider;
@@ -18,14 +17,14 @@ public class GeneticOperatorManager
     private RepairingHeuristicProvider localImprovementHP;
     private RepairingHeuristicProvider improvementHP;
 
-    public GeneticOperatorManager(VehicleRoutingProblem vrp, Random random)
+    public GeneticOperatorManager(ProblemInfo problemInfo, Random random)
     {
         this.random = random;
 
-        constructiveHP = new ConstructiveHeuristicProvider(vrp, random);
-        orderingHP = new OrderingHeuristicProvider(vrp, random);
-        localImprovementHP = new RepairingHeuristicProvider(vrp, random);
-        improvementHP = new RepairingHeuristicProvider(vrp, random);
+        constructiveHP = new ConstructiveHeuristicProvider(problemInfo, random);
+        orderingHP = new OrderingHeuristicProvider(problemInfo, random);
+        localImprovementHP = new RepairingHeuristicProvider(problemInfo, random);
+        improvementHP = new RepairingHeuristicProvider(problemInfo, random);
     }
 
     public Chromosome[] crossChromosomes(Chromosome parentA, Chromosome parentB) throws Exception

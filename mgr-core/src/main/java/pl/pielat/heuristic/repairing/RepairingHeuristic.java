@@ -1,17 +1,17 @@
 package pl.pielat.heuristic.repairing;
 
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import pl.pielat.algorithm.MgrRoute;
+import pl.pielat.algorithm.ProblemInfo;
 import pl.pielat.heuristic.BaseHeuristic;
+import pl.pielat.heuristic.Route;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public abstract class RepairingHeuristic extends BaseHeuristic
 {
-    public RepairingHeuristic(VehicleRoutingProblem vrp)
+    protected RepairingHeuristic(ProblemInfo info)
     {
-        super(vrp);
+        super(info);
     }
 
-    public abstract void improveRoutes(List<MgrRoute> routes);
+    public abstract void improveRoutes(ArrayList<Route> routes);
 }

@@ -1,38 +1,34 @@
 package pl.pielat.heuristic.ordering.concrete;
 
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import com.graphhopper.jsprit.core.problem.job.Delivery;
+import pl.pielat.algorithm.ProblemInfo;
+import pl.pielat.heuristic.Job;
 import pl.pielat.heuristic.ordering.OrderingHeuristic;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 
 public class OrderingByDemand extends OrderingHeuristic
 {
-    private class DemandComparator implements Comparator<Delivery>
+    private class DemandComparator implements Comparator<Job>
     {
         @Override
-        public int compare(Delivery o1, Delivery o2)
+        public int compare(Job o1, Job o2)
         {
-            return getDemand(o1) - getDemand(o2);
+            return o1.demand - o2.demand;
         }
     }
 
-    private boolean _increasing;
-    private DemandComparator _comparator = new DemandComparator();
+    private DemandComparator comparator = new DemandComparator();
 
-    public OrderingByDemand(VehicleRoutingProblem vrp, boolean increasing)
+    public OrderingByDemand(ProblemInfo info, Order order)
     {
-        super(vrp);
-        _increasing = increasing;
+        super(info, order);
     }
 
     @Override
-    public void orderUnassignedJobs(List<Delivery> jobs)
+    protected void orderJobsAscending(ArrayList<Job> jobs)
     {
-        Collections.sort(jobs, _comparator);
-        if (!_increasing)
-            Collections.reverse(jobs);
+        Collections.sort(jobs, comparator);
     }
 }

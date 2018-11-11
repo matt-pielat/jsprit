@@ -1,8 +1,9 @@
-package pl.pielat.heuristicNew.ordering.concrete;
+package pl.pielat.heuristic.ordering.concrete;
 
 import com.graphhopper.jsprit.core.util.Coordinate;
-import pl.pielat.heuristicNew.Job;
-import pl.pielat.heuristicNew.ordering.OrderingHeuristic;
+import pl.pielat.algorithm.ProblemInfo;
+import pl.pielat.heuristic.Job;
+import pl.pielat.heuristic.ordering.OrderingHeuristic;
 import pl.pielat.util.RadialPlaceSweepComparator;
 
 import java.util.ArrayList;

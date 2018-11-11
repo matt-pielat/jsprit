@@ -21,7 +21,7 @@ public class CvrpTests extends SimpleTestsBase
             .addJob(0, -100).setDemand(500).build()
             .build();
 
-        VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(vrp);
+        VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(vrp, false, false);
         vra.setMaxIterations(100);
 
         runOnce(vra)
@@ -49,7 +49,7 @@ public class CvrpTests extends SimpleTestsBase
             .addJob(0, -300).setDemand(50).build()
             .build();
 
-        VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(vrp);
+        VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(vrp, false, false);
         vra.setMaxIterations(100);
 
         runOnce(vra)
@@ -70,7 +70,7 @@ public class CvrpTests extends SimpleTestsBase
             .addJob(100, 100).setDemand(10).build()
             .build();
 
-        VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(vrp);
+        VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(vrp, false, false);
         vra.setMaxIterations(100);
 
         double expectedCost = 3 * 200 + 2 * Math.sqrt(100 * 100 + 100 * 100);

@@ -1,101 +1,62 @@
 package pl.pielat.heuristic;
 
-import com.graphhopper.jsprit.core.problem.Location;
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import com.graphhopper.jsprit.core.problem.job.Delivery;
-import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
-import com.graphhopper.jsprit.core.util.CrowFlyCosts;
-import com.graphhopper.jsprit.core.util.EuclideanDistanceCalculator;
-import com.graphhopper.jsprit.core.util.VehicleRoutingTransportCostsMatrix;
-import pl.pielat.algorithm.MgrRoute;
+import pl.pielat.algorithm.ProblemInfo;
+
+import java.util.List;
 
 public abstract class BaseHeuristic
 {
+
     protected static final double EPSILON = 1e-5;
+    private static final int INITIAL_ROUTE_CAPACITY = 10;
 
-    private Location depotLocation;
-    private int vehicleCapacity;
-    private VehicleRoutingProblem vrp;
-    private boolean symmetricDistances;
+    private final ProblemInfo problemInfo;
 
-    public BaseHeuristic(VehicleRoutingProblem vrp)
+    protected final boolean transportAsymmetry;
+    protected final boolean timeWindows;
+    protected final int vehicleCapacity;
+    protected final Place depot;
+    private final ProblemInfo.TransportCostFunction costFunction;
+
+    protected BaseHeuristic(ProblemInfo info)
     {
-        vehicleCapacity = vrp.getTypes().iterator().next().getCapacityDimensions().get(0);
-        depotLocation = vrp.getVehicles().iterator().next().getStartLocation();
-        this.vrp = vrp;
-
-        if (vrp.getTransportCosts() instanceof VehicleRoutingTransportCostsMatrix)
-            symmetricDistances = false;
-        else if (vrp.getTransportCosts() instanceof CrowFlyCosts)
-            symmetricDistances = true;
-        else
+        if (info.transportAsymmetry && info.timeWindows)
         {
-            System.out.println("Unknown distance function");
-            symmetricDistances = false;
+            throw new IllegalArgumentException(
+                "Transport asymmetry and time windows cannot be enabled at the same time.");
         }
+
+        problemInfo = info;
+
+        transportAsymmetry = info.transportAsymmetry;
+        timeWindows = info.timeWindows;
+        vehicleCapacity = info.vehicleCapacity;
+        depot = info.depot;
+        costFunction = info.costFunction;
     }
 
-    protected Location getDepotLocation()
+    protected double getCost(Place from, Place to)
     {
-        return depotLocation;
+        return costFunction.getCost(from, to);
     }
 
-    protected int getVehicleCapacity()
+    protected Route createRoute(int initialCapacity)
     {
-        return vehicleCapacity;
+        return new Route(problemInfo, initialCapacity);
     }
 
-    protected int getDemand(Delivery job)
+    protected Route createRoute(Job job)
     {
-        return job.getSize().get(0);
+        Route route = new Route(problemInfo, INITIAL_ROUTE_CAPACITY);
+        route.add(job);
+        return route;
     }
 
-    protected int getDemand(MgrRoute route)
+    protected Route createRoute(List<Job> jobs)
     {
-        int sum = 0;
-        for (Delivery job : route)
-            sum += getDemand(job);
-        return sum;
-    }
-
-    protected double getDistance(Location from, Location to)
-    {
-        return vrp.getTransportCosts().getDistance(from, to, -1, null);
-    }
-
-    protected double getDistance(MgrRoute route)
-    {
-        double result = 0;
-        Location prevLocation = getDepotLocation();
-        for (Delivery d : route)
-        {
-            Location location = d.getLocation();
-            result += getDistance(prevLocation, location);
-            prevLocation = location;
-        }
-        result += getDistance(prevLocation, getDepotLocation());
-        return result;
-    }
-
-    protected boolean distanceIsSymmetric()
-    {
-        return symmetricDistances;
-    }
-
-    protected double reverseIfDistanceIsSmaller(MgrRoute route)
-    {
-        double distance = getDistance(route);
-        if (!distanceIsSymmetric())
-        {
-            route.reverse();
-            double revDistance = getDistance(route);
-
-            if (revDistance < distance)
-                return revDistance;
-
-            route.reverse(); //Reverse back
-        }
-        return distance;
+        int initialCapacity = jobs.size() > INITIAL_ROUTE_CAPACITY ? jobs.size() : INITIAL_ROUTE_CAPACITY;
+        Route route = new Route(problemInfo, initialCapacity);
+        route.addAll(jobs);
+        return route;
     }
 }

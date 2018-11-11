@@ -1,18 +1,18 @@
 package pl.pielat.heuristic.constructive;
 
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import com.graphhopper.jsprit.core.problem.job.Delivery;
-import pl.pielat.algorithm.MgrRoute;
+import pl.pielat.algorithm.ProblemInfo;
 import pl.pielat.heuristic.BaseHeuristic;
+import pl.pielat.heuristic.Job;
+import pl.pielat.heuristic.Route;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public abstract class ConstructiveHeuristic extends BaseHeuristic
 {
-    public ConstructiveHeuristic(VehicleRoutingProblem vrp)
+    protected ConstructiveHeuristic(ProblemInfo info)
     {
-        super(vrp);
+        super(info);
     }
 
-    public abstract void insertJobs(List<MgrRoute> routes, List<Delivery> jobsToInsert);
+    public abstract void insertJobs(ArrayList<Route> routes, ArrayList<Job> jobsToInsert);
 }

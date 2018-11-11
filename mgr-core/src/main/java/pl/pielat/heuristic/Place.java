@@ -1,4 +1,4 @@
-package pl.pielat.heuristicNew;
+package pl.pielat.heuristic;
 
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TimeWindow;

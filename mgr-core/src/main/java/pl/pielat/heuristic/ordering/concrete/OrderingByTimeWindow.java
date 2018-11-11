@@ -1,7 +1,8 @@
-package pl.pielat.heuristicNew.ordering.concrete;
+package pl.pielat.heuristic.ordering.concrete;
 
-import pl.pielat.heuristicNew.Job;
-import pl.pielat.heuristicNew.ordering.OrderingHeuristic;
+import pl.pielat.algorithm.ProblemInfo;
+import pl.pielat.heuristic.Job;
+import pl.pielat.heuristic.ordering.OrderingHeuristic;
 
 import java.util.ArrayList;
 import java.util.Collections;
