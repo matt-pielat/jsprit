@@ -7,10 +7,10 @@ public abstract class TabuRandomizer<T>
     private Random random;
     private ArrayList<Integer> remainingItemIndices;
 
-    public TabuRandomizer(Random random)
+    protected TabuRandomizer(Random random)
     {
         this.random = random;
-        remainingItemIndices = new ArrayList<>(getSetSize());
+        remainingItemIndices = new ArrayList<>();
     }
 
     public T getRandomInstance(boolean ignoreTabu)
