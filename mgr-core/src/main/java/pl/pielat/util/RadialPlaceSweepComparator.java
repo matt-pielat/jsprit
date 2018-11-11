@@ -15,7 +15,7 @@ public class RadialPlaceSweepComparator implements Comparator<Place>
     {
         pivotX = pivot.getX();
         pivotY = pivot.getY();
-        startingTheta = - 2 * Math.PI;
+        startingTheta = - Math.PI;
     }
 
     public void setStartingTheta(double theta)
@@ -42,6 +42,9 @@ public class RadialPlaceSweepComparator implements Comparator<Place>
 
     public double getTheta(double x, double y)
     {
-        return Math.atan2(y - pivotY, x - pivotX);
+        double result = Math.atan2(y - pivotY, x - pivotX);
+        if (result < 0)
+            result += 2 * Math.PI;
+        return result;
     }
 }

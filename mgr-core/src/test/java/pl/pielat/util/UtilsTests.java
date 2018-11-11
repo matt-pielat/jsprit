@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class UtilsTests extends FileBasedTest
+public class UtilsTests
 {
     @Test
     public void ccwRadialSort1()
@@ -22,13 +22,13 @@ public class UtilsTests extends FileBasedTest
 
         List<Place> expected = Arrays.asList(
             makePlace(1, 0),
-            makePlace(2, 0),
+            makePlace(2, 1),
             makePlace(1,1),
             makePlace(0, 1),
             makePlace(-1, 1),
             makePlace(-1, 0),
             makePlace(-1, -1),
-            makePlace(-2, -2),
+            makePlace(-1, -2),
             makePlace(0, -1),
             makePlace(1, -1)
         );
