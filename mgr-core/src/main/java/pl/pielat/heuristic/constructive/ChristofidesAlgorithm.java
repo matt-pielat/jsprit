@@ -21,6 +21,8 @@ public class ChristofidesAlgorithm
         {
             //noinspection unchecked
             edges = new ArrayList<>(vertexCount);
+            for (int i = 0; i < vertexCount; i++)
+                edges.add(new LinkedList<Integer>());
         }
 
         public void addEdges(Collection<Edge> newEdges)
