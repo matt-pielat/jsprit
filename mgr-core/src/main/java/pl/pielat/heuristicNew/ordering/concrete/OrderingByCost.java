@@ -29,9 +29,9 @@ public class OrderingByCost extends OrderingHeuristic
     private Direction direction;
     private HashMap<Job, Double> distances;
 
-    protected OrderingByCost(ProblemInfo info, Direction direction)
+    protected OrderingByCost(ProblemInfo info, Order order, Direction direction)
     {
-        super(info);
+        super(info, order);
         this.direction = direction;
     }
 
@@ -42,13 +42,13 @@ public class OrderingByCost extends OrderingHeuristic
 
         if (direction == Direction.FROM_DEPOT)
         {
-            for (int i = 0; i < jobs.size(); i++)
-                distances.put(jobs.get(i), getCost(depot, jobs.get(i)));
+            for (Job job : jobs)
+                distances.put(job, getCost(depot, job));
         }
         else
         {
-            for (int i = 0; i < jobs.size(); i++)
-                distances.put(jobs.get(i), getCost(jobs.get(i), depot));
+            for (Job job : jobs)
+                distances.put(job, getCost(job, depot));
         }
 
         Collections.sort(jobs, comparator);

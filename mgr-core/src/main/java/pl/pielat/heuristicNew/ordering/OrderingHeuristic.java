@@ -14,14 +14,16 @@ public abstract class OrderingHeuristic extends BaseHeuristic
         DESCENDING
     }
 
-    protected OrderingHeuristic(ProblemInfo info)
+    private Order order;
+
+    protected OrderingHeuristic(ProblemInfo info, Order order)
     {
         super(info);
     }
 
     protected abstract void orderJobsAscending(ArrayList<Job> jobs);
 
-    public void orderJobs(ArrayList<Job> jobs, Order order)
+    public void orderJobs(ArrayList<Job> jobs)
     {
         orderJobsAscending(jobs);
 

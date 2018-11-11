@@ -16,6 +16,12 @@ public class OrderingByRadialSweep extends OrderingHeuristic
         FARTHEST_JOB
     }
 
+    public enum RadialOrder
+    {
+        CLOCKWISE,
+        COUNTERCLOCKWISE
+    }
+
     private double startTheta;
     private double depotX;
     private double depotY;
@@ -23,9 +29,9 @@ public class OrderingByRadialSweep extends OrderingHeuristic
     private RadialPlaceSweepComparator comparator;
     private SweepStart sweepStart;
 
-    protected OrderingByRadialSweep(ProblemInfo info, SweepStart sweepStart)
+    protected OrderingByRadialSweep(ProblemInfo info, RadialOrder order, SweepStart sweepStart)
     {
-        super(info);
+        super(info, order == RadialOrder.CLOCKWISE ? Order.ASCENDING : Order.DESCENDING);
 
         Coordinate depotCoordinate = depot.location.getCoordinate();
         depotX = depotCoordinate.getX();
