@@ -15,7 +15,7 @@ public class SweepAlgorithm extends ConstructiveHeuristic
     private ChristofidesAlgorithm tspAlgorithm;
     private RadialPlaceSweepComparator comparator;
 
-    protected SweepAlgorithm(ProblemInfo info)
+    public SweepAlgorithm(ProblemInfo info)
     {
         super(info);
 

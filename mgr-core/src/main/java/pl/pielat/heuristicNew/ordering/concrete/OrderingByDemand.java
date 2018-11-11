@@ -20,7 +20,7 @@ public class OrderingByDemand extends OrderingHeuristic
 
     private DemandComparator comparator = new DemandComparator();
 
-    protected OrderingByDemand(ProblemInfo info, Order order)
+    public OrderingByDemand(ProblemInfo info, Order order)
     {
         super(info, order);
     }

@@ -29,7 +29,7 @@ public class OrderingByRadialSweep extends OrderingHeuristic
     private RadialPlaceSweepComparator comparator;
     private SweepStart sweepStart;
 
-    protected OrderingByRadialSweep(ProblemInfo info, RadialOrder order, SweepStart sweepStart)
+    public OrderingByRadialSweep(ProblemInfo info, RadialOrder order, SweepStart sweepStart)
     {
         super(info, order == RadialOrder.CLOCKWISE ? Order.ASCENDING : Order.DESCENDING);
 

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class StringRelocation extends RepairingHeuristic
 {
-    protected StringRelocation(ProblemInfo info)
+    public StringRelocation(ProblemInfo info)
     {
         super(info);
     }

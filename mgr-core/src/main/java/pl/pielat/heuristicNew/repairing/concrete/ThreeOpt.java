@@ -10,7 +10,7 @@ public class ThreeOpt extends RepairingHeuristic
 {
     private static final double LOCAL_MINIMUM_FLAG = Double.NEGATIVE_INFINITY;
 
-    protected ThreeOpt(ProblemInfo info)
+    public ThreeOpt(ProblemInfo info)
     {
         super(info);
     }

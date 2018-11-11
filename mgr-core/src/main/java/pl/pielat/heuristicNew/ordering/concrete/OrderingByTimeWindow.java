@@ -45,7 +45,7 @@ public class OrderingByTimeWindow extends OrderingHeuristic
 
     private Comparator<Job> comparator;
 
-    protected OrderingByTimeWindow(ProblemInfo info, Order order, Property property)
+    public OrderingByTimeWindow(ProblemInfo info, Order order, Property property)
     {
         super(info, order);
 

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class StringExchange extends RepairingHeuristic
 {
-    protected StringExchange(ProblemInfo info)
+    public StringExchange(ProblemInfo info)
     {
         super(info);
     }

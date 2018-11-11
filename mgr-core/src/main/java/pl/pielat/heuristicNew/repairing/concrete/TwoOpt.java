@@ -9,7 +9,7 @@ public class TwoOpt extends RepairingHeuristic
 {
     private static final double LOCAL_MINIMUM_FLAG = Double.NEGATIVE_INFINITY;
 
-    protected TwoOpt(ProblemInfo info)
+    public TwoOpt(ProblemInfo info)
     {
         super(info);
     }

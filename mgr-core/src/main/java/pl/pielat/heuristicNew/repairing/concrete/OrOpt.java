@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class OrOpt extends RepairingHeuristic
 {
-    protected OrOpt(ProblemInfo info)
+    public OrOpt(ProblemInfo info)
     {
         super(info);
     }

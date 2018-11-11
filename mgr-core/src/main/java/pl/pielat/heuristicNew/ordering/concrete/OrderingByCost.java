@@ -29,7 +29,7 @@ public class OrderingByCost extends OrderingHeuristic
     private Direction direction;
     private HashMap<Job, Double> distances;
 
-    protected OrderingByCost(ProblemInfo info, Order order, Direction direction)
+    public OrderingByCost(ProblemInfo info, Order order, Direction direction)
     {
         super(info, order);
         this.direction = direction;

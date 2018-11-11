@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class StringCross extends RepairingHeuristic
 {
-    protected StringCross(ProblemInfo info)
+    public StringCross(ProblemInfo info)
     {
         super(info);
     }

@@ -17,7 +17,7 @@ public class MoleJamesonHeuristic extends ConstructiveHeuristic
         Job job;
     }
 
-    protected MoleJamesonHeuristic(ProblemInfo info)
+    public MoleJamesonHeuristic(ProblemInfo info)
     {
         super(info);
     }

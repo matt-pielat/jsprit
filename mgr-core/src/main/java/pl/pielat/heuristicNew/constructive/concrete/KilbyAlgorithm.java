@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class KilbyAlgorithm extends ConstructiveHeuristic
 {
-    protected KilbyAlgorithm(ProblemInfo info)
+    public KilbyAlgorithm(ProblemInfo info)
     {
         super(info);
     }

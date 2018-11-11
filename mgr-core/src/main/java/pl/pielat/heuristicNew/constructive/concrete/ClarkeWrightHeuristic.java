@@ -6,9 +6,9 @@ import pl.pielat.heuristicNew.Route;
 
 import java.util.*;
 
-class ClarkeWrightHeuristic extends ConstructiveHeuristic
+public class ClarkeWrightHeuristic extends ConstructiveHeuristic
 {
-    protected ClarkeWrightHeuristic(ProblemInfo info)
+    public ClarkeWrightHeuristic(ProblemInfo info)
     {
         super(info);
     }
