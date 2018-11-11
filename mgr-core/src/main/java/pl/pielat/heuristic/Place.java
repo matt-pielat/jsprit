@@ -18,7 +18,7 @@ public class Place
 
     public Place(Location location)
     {
-        this(location, TimeWindow.newInstance(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY));
+        this(location, TimeWindow.newInstance(0.0, Double.MAX_VALUE));
     }
 
     Place(Place other)
