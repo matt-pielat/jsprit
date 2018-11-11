@@ -2,12 +2,11 @@ package pl.pielat.heuristicNew.ordering.concrete;
 
 import com.graphhopper.jsprit.core.util.Coordinate;
 import pl.pielat.heuristicNew.Job;
-import pl.pielat.heuristicNew.Place;
 import pl.pielat.heuristicNew.ordering.OrderingHeuristic;
+import pl.pielat.util.RadialPlaceSweepComparator;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 
 public class OrderingByRadialSweep extends OrderingHeuristic
 {
@@ -17,37 +16,11 @@ public class OrderingByRadialSweep extends OrderingHeuristic
         FARTHEST_JOB
     }
 
-    public enum TieBreak
-    {
-        CLOSER_FIRST,
-        FARTHER_FIRST
-    }
-
-    private class AngleComparator implements Comparator<Place>
-    {
-        @Override
-        public int compare(Place o1, Place o2)
-        {
-            Coordinate c1 = o1.location.getCoordinate();
-            Coordinate c2 = o2.location.getCoordinate();
-
-            double r1 = getTheta(c1.getX(), c1.getY());
-            double r2 = getTheta(c2.getX(), c2.getY());
-
-            if (r1 < startTheta)
-                r1 += 2 * Math.PI;
-            if (r2 < startTheta)
-                r2 += 2 * Math.PI;
-
-            return Double.compare(r1, r2);
-        }
-    }
-
     private double startTheta;
     private double depotX;
     private double depotY;
 
-    private AngleComparator comparator = new AngleComparator();
+    private RadialPlaceSweepComparator comparator;
     private SweepStart sweepStart;
 
     protected OrderingByRadialSweep(ProblemInfo info, SweepStart sweepStart)
@@ -57,6 +30,7 @@ public class OrderingByRadialSweep extends OrderingHeuristic
         Coordinate depotCoordinate = depot.location.getCoordinate();
         depotX = depotCoordinate.getX();
         depotY = depotCoordinate.getY();
+        comparator = new RadialPlaceSweepComparator(depotCoordinate);
     }
 
     @Override
@@ -85,13 +59,8 @@ public class OrderingByRadialSweep extends OrderingHeuristic
             }
         }
 
-        startTheta = getTheta(bestX, bestY);
+        startTheta = comparator.getTheta(bestX, bestY);
         Collections.sort(jobs, comparator);
-    }
-
-    private double getTheta(double x, double y)
-    {
-        return Math.atan2(y - depotY, x - depotX);
     }
 
     private double getDistanceToDepotSquared(double x, double y)

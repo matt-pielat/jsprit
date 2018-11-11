@@ -5,14 +5,15 @@ import pl.pielat.heuristicNew.Place;
 import pl.pielat.heuristicNew.Route;
 import pl.pielat.heuristicNew.constructive.ChristofidesAlgorithm;
 import pl.pielat.heuristicNew.constructive.ConstructiveHeuristic;
-import pl.pielat.util.RadialJobComparator;
+import pl.pielat.util.RadialPlaceSweepComparator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class SweepAlgorithm extends ConstructiveHeuristic
 {
     private ChristofidesAlgorithm tspAlgorithm;
-    private RadialJobComparator comparator;
+    private RadialPlaceSweepComparator comparator;
 
     protected SweepAlgorithm(ProblemInfo info)
     {
@@ -22,6 +23,7 @@ public class SweepAlgorithm extends ConstructiveHeuristic
             throw new RuntimeException("This heuristic cannot be used to solve VRPTW.");
 
         tspAlgorithm = new ChristofidesAlgorithm(info.costFunction);
+        comparator = new RadialPlaceSweepComparator(depot.location.getCoordinate());
     }
 
     @Override
