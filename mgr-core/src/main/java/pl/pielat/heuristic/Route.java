@@ -416,6 +416,9 @@ public class Route
     private void ensureCapacity(int minCapacity)
     {
         int oldCapacity = jobs.length;
+        if (oldCapacity >= minCapacity)
+            return;
+
         int newCapacity = oldCapacity + (oldCapacity >> 1);
         if (newCapacity - minCapacity < 0)
             newCapacity = minCapacity;
