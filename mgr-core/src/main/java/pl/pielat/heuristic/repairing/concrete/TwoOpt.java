@@ -67,6 +67,6 @@ public class TwoOpt extends RepairingHeuristic
 
     private void twoOptSwap(Route route, int x, int y)
     {
-        Route.copy(route, x, route, y, y - x, true);
+        Route.copy(route, x, route, x, y - x, true);
     }
 }
