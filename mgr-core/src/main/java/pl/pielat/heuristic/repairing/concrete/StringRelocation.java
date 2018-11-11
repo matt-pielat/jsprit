@@ -85,7 +85,7 @@ public class StringRelocation extends RepairingHeuristic
                 if (timeWindows && !doneeNew.areTimeWindowsValid())
                     continue;
 
-                if (doneeNew.getCost() + donorNewCost > costToBeat + EPSILON)
+                if (doneeNew.getCost() + donorNewCost + EPSILON > costToBeat)
                     continue;
 
                 routes.set(doneeIdx, doneeNew);
