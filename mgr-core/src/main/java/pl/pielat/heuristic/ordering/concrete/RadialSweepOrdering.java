@@ -36,7 +36,7 @@ public class RadialSweepOrdering extends OrderingHeuristic
 
         Coordinate pivot = determinePivot(jobs, _pivotIsFarthestJob);
         RadialJobComparator comparator = new RadialJobComparator(pivot);
-        Collections.sort(jobs, comparator);
+//        Collections.sort(jobs, comparator);
         if (_clockwise)
             Collections.reverse(jobs);
     }
