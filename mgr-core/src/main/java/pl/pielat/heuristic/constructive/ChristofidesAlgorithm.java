@@ -163,6 +163,9 @@ public class ChristofidesAlgorithm
                 }
             }
 
+            if (jBest == -1)
+                continue;
+
             doneVertices[i] = true;
             doneVertices[jBest] = true;
 
