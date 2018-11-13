@@ -365,7 +365,7 @@ public class Route
 
         if (inversely)
         {
-            ArrayUtils.reverseArray(dst.jobs, srcPos, srcPos + length);
+            ArrayUtils.reverseArray(dst.jobs, dstPos, dstPos + length);
             if (src.timeWindows)
             {
                 // Reversing earlyDeparture and lateArrival makes no sense.
@@ -429,5 +429,18 @@ public class Route
             earlyDeparture = Arrays.copyOf(earlyDeparture, newCapacity);
             lateArrival = Arrays.copyOf(lateArrival, newCapacity);
         }
+    }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder s = new StringBuilder("ids: ");
+        for (int i = 0; i < length; i++)
+        {
+            if (i > 0)
+                s.append(" - ");
+            s.append(jobs[i].id);
+        }
+        return s.toString();
     }
 }

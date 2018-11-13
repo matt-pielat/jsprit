@@ -44,4 +44,10 @@ public class Job extends Place
     {
         return Objects.hash(id);
     }
+
+    @Override
+    public String toString()
+    {
+        return "id: " + id;
+    }
 }

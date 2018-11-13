@@ -110,7 +110,11 @@ public class ClarkeWrightHeuristic extends ConstructiveHeuristic
             if (routeA.getDemand() + routeB.getDemand() > vehicleCapacity)
                 continue;
 
-            int routeAOriginalLength = routeA.length();
+            int originalLengthA = routeA.length();
+            int originalLengthB = routeB.length();
+
+            Route routeToKeep = routeA;
+            Route routeToRemove = routeB;
 
             if (timeWindows)
             {
@@ -119,14 +123,23 @@ public class ClarkeWrightHeuristic extends ConstructiveHeuristic
                 if (routeA.getLast().equals(jobA))
                 {
                     merged = routeA.copy();
-                    boolean invert = !routeB.getFirst().equals(jobB);
-                    merged.addAll(routeB, invert);
+                    if (routeB.getFirst().equals(jobB))
+                    {
+                        merged.addAll(routeB, false);
+                    }
+                    else
+                    {
+                        merged.addAll(routeB, true);
+                    }
                 }
                 else if (routeB.getLast().equals(jobB))
                 {
+                    // routeA.getFirst().equals(jobA) is true
                     merged = routeB.copy();
-                    boolean invert = !routeA.getFirst().equals(jobA);
-                    merged.addAll(routeA, invert);
+                    merged.addAll(routeA, false);
+
+                    routeToKeep = routeB;
+                    routeToRemove = routeA;
                 }
                 else
                 {
@@ -140,7 +153,7 @@ public class ClarkeWrightHeuristic extends ConstructiveHeuristic
                         continue;
                 }
 
-                routeA.replaceInternals(merged);
+                routeToKeep.replaceInternals(merged);
             }
             else if (transportAsymmetry)
             {
@@ -153,7 +166,10 @@ public class ClarkeWrightHeuristic extends ConstructiveHeuristic
                 }
                 else if (routeB.getLast().equals(jobB) && routeA.getFirst().equals(jobA))
                 {
-                    routeA.addAll(0, routeB, false);
+                    routeB.addAll(routeA, false);
+
+                    routeToRemove = routeA;
+                    routeToKeep = routeB;
                 }
                 else
                 {
@@ -164,31 +180,43 @@ public class ClarkeWrightHeuristic extends ConstructiveHeuristic
             {
                 if (routeA.getLast().equals(jobA))
                 {
-                    boolean invert = !routeB.getFirst().equals(jobB);
-                    routeA.addAll(routeB, invert);
+                    if (routeB.getFirst().equals(jobB))
+                    {
+                        routeA.addAll(routeB, false);
+                    }
+                    else
+                    {
+                        routeA.addAll(routeB, true);
+                    }
                 }
                 else if (routeB.getLast().equals(jobB))
                 {
-                    boolean invert = !routeA.getFirst().equals(jobA);
-                    routeA.addAll(routeB, invert);
+                    // routeA.getFirst().equals(jobA) is true
+                    routeB.addAll(routeA, false);
+
+                    routeToRemove = routeA;
+                    routeToKeep = routeB;
                 }
                 else
                 {
-                    throw new RuntimeException("Neither route has last node");
+                    // routeA.getFirst().equals(jobA) is true
+                    // routeB.getFirst().equals(jobB) is true
+                    routeA.reverse();
+                    routeA.addAll(routeB, false);
                 }
             }
 
             // Update inner jobs.
-            if (routeAOriginalLength > 1)
+            if (originalLengthA > 1)
                 innerJobIds.add(jobA.id);
-            if (routeB.length() > 1)
+            if (originalLengthB > 1)
                 innerJobIds.add(jobB.id);
 
             // Update job-to-route map.
-            jobIdToRouteMap.put(routeB.getFirst().id, routeA);
-            jobIdToRouteMap.put(routeB.getLast().id, routeA);
+            jobIdToRouteMap.put(routeToRemove.getFirst().id, routeToKeep);
+            jobIdToRouteMap.put(routeToRemove.getLast().id, routeToKeep);
 
-            routes.remove(routeB);
+            routes.remove(routeToRemove);
         }
     }
 }

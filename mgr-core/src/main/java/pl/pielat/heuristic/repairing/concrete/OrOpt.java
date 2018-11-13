@@ -36,6 +36,8 @@ public class OrOpt extends RepairingHeuristic
                     if (from == to)
                         continue;
 
+                    double costBefore = route.getCost();
+
                     double delta = getShiftCostDelta(route, from, to, len);
                     if (delta > -EPSILON)
                         continue;
@@ -54,6 +56,8 @@ public class OrOpt extends RepairingHeuristic
                     {
                         performShift(route, from, to, len);
                     }
+
+                    double costAfter = route.getCost();
 
                     return true;
                 }
@@ -79,14 +83,15 @@ public class OrOpt extends RepairingHeuristic
         int c = fromIndex + segmentLength - 1;
         int d = fromIndex + segmentLength;
 
-        int eP = toIndex - 1;
-        int bP = toIndex;
-        int cP = toIndex + segmentLength - 1;
-        int f = toIndex + segmentLength;
+        if (toIndex > fromIndex)
+            toIndex += segmentLength;
+
+        int e = toIndex - 1;
+        int f = toIndex;
 
         return
             - getCost(route, a, b) - getCost(route, c, d) + getCost(route, a, d)
-            + getCost(route, eP, bP) + getCost(route, cP, f) - getCost(route, eP, f);
+            + getCost(route, e, b) + getCost(route, c, f) - getCost(route, e, f);
     }
 
     @SuppressWarnings("UnnecessaryLocalVariable")
