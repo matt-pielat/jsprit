@@ -23,7 +23,7 @@ public class Route
     private boolean areTimeWindowsOk;
     private boolean recalculateTimeWindows = true;
 
-    Route(ProblemInfo params, int initialCapacity)
+    public Route(ProblemInfo params, int initialCapacity)
     {
         timeWindows = params.timeWindows;
         transportAsymmetry = params.transportAsymmetry;
@@ -249,7 +249,7 @@ public class Route
 
     public void addAll(int index, Route o, boolean inversely)
     {
-        addAll(index, o, 0, length, inversely);
+        addAll(index, o, 0, o.length, inversely);
     }
 
     public void addAll(int index, Route o, int from, int to, boolean inversely)
