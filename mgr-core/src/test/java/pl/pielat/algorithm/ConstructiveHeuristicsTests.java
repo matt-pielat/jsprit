@@ -7,14 +7,18 @@ import pl.pielat.heuristic.Job;
 import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.constructive.ConstructiveHeuristic;
 import pl.pielat.heuristic.constructive.concrete.ClarkeWrightHeuristic;
+import pl.pielat.heuristic.constructive.concrete.KilbyAlgorithm;
+import pl.pielat.heuristic.constructive.concrete.MoleJamesonHeuristic;
+import pl.pielat.heuristic.constructive.concrete.SweepAlgorithm;
 import pl.pielat.util.simpleBuilder.SimpleVrpBuilder;
 
 import java.util.ArrayList;
 
 public class ConstructiveHeuristicsTests extends SimpleTestsBase
 {
-    @Test
-    public void clarkeWrightHeuristicTest()
+    private ProblemInfo problemInfo1;
+
+    public ConstructiveHeuristicsTests()
     {
         VehicleRoutingProblem vrp = new SimpleVrpBuilder()
             .setDepotLocation(0, 0)
@@ -34,10 +38,35 @@ public class ConstructiveHeuristicsTests extends SimpleTestsBase
             .build();
 
         EntityConverter converter = new EntityConverter(vrp);
-        ProblemInfo problemInfo = converter.getProblemInfo(false, false);
+        problemInfo1 = converter.getProblemInfo(false, false);
+    }
 
-        ConstructiveHeuristic clarkeWright = new ClarkeWrightHeuristic(problemInfo);
+    @Test
+    public void clarkeWrightHeuristicTest1()
+    {
+        checkSolutionConsistency(new ClarkeWrightHeuristic(problemInfo1), problemInfo1);
+    }
 
+    @Test
+    public void kilbyAlgorithmTest1()
+    {
+        checkSolutionConsistency(new KilbyAlgorithm(problemInfo1), problemInfo1);
+    }
+
+    @Test
+    public void moleJamesonHeuristicTest1()
+    {
+        checkSolutionConsistency(new MoleJamesonHeuristic(problemInfo1), problemInfo1);
+    }
+
+    @Test
+    public void sweepAlgorithmTest1()
+    {
+        checkSolutionConsistency(new SweepAlgorithm(problemInfo1), problemInfo1);
+    }
+
+    private void checkSolutionConsistency(ConstructiveHeuristic heuristic, ProblemInfo problemInfo)
+    {
         ArrayList<Route> routes = new ArrayList<>();
         ArrayList<Job> jobsToInsert = new ArrayList<>(problemInfo.jobs);
 
@@ -45,7 +74,7 @@ public class ConstructiveHeuristicsTests extends SimpleTestsBase
         int expectedCount = jobsToInsert.size();
         boolean[] markedJobs = new boolean[expectedCount];
 
-        clarkeWright.insertJobs(routes, jobsToInsert);
+        heuristic.insertJobs(routes, jobsToInsert);
 
         for (Route r : routes)
         {
@@ -57,6 +86,7 @@ public class ConstructiveHeuristicsTests extends SimpleTestsBase
                 markedJobs[j.id] = true;
                 counter++;
             }
+            Assert.assertTrue(r.getDemand() <= problemInfo.vehicleCapacity);
         }
         Assert.assertEquals(counter, expectedCount);
     }
