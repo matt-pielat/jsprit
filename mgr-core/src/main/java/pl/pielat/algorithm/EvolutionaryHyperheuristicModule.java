@@ -5,11 +5,9 @@ import com.graphhopper.jsprit.core.algorithm.listener.SearchStrategyModuleListen
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.solution.SolutionCostCalculator;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
-import pl.pielat.heuristic.constructive.ConstructiveHeuristic;
+import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.constructive.ConstructiveHeuristicProvider;
-import pl.pielat.heuristic.ordering.OrderingHeuristic;
 import pl.pielat.heuristic.ordering.OrderingHeuristicProvider;
-import pl.pielat.heuristic.repairing.RepairingHeuristic;
 import pl.pielat.heuristic.repairing.RepairingHeuristicProvider;
 
 import java.util.ArrayList;
@@ -23,17 +21,19 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
     private final int popSize;
     private final int offspringSize;
     private int eliteIdx;
+
+    private int initChromosomeSize;
+    private boolean initialized = false;
+    private final int jobCount;
+
     private VehicleRoutingProblemSolution bestSolution;
-    private int initChromoSize;
-    private boolean initialized;
-    private int customersToInsert;
+    private ArrayList<Route> bestSolutionRoutes;
 
     private Random random;
     private GeneticOperatorManager operatorManager;
     private SolutionCostCalculator costCalculator;
     private int epoch = 0;
 
-    private VehicleRoutingProblem problem;
     private ProblemInfo problemInfo;
 
     private EntityConverter converter;
@@ -43,20 +43,18 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
 
     public EvolutionaryHyperheuristicModule(VehicleRoutingProblem problem,
                                             boolean transportAsymmetry, boolean timeWindows,
-                                            int popSize, int offspringSize, int initChromoSize,
-                                            SolutionCostCalculator costCalculator)
+                                            int popSize, int offspringSize, int initChromosomeSize)
     {
-        this.problem = problem;
-
         converter = new EntityConverter(problem);
         problemInfo = converter.getProblemInfo(transportAsymmetry, timeWindows);
+        jobCount = problemInfo.jobs.size();
+
+        if (initChromosomeSize > jobCount)
+            throw new IllegalArgumentException("Initial chromosome size is greater than job count.");
 
         this.popSize = popSize;
         this.offspringSize = offspringSize;
-        this.initChromoSize = initChromoSize;
-        initialized = false;
-        this.costCalculator = costCalculator;
-        customersToInsert = problem.getJobs().size();
+        this.initChromosomeSize = initChromosomeSize;
 
         random = new Random(); //TODO parametrize?
         operatorManager = new GeneticOperatorManager(problemInfo, random);
@@ -64,19 +62,6 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
 
     private void createRandomPopulation()
     {
-        int jobCount = customersToInsert;
-
-        try
-        {
-            if (initChromoSize > jobCount)
-                throw new Exception("Chromosome size is bigger than job count.");
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            initChromoSize = jobCount;
-        }
-
         ConstructiveHeuristicProvider constructiveHP = new ConstructiveHeuristicProvider(problemInfo, random);
         OrderingHeuristicProvider orderingHP = new OrderingHeuristicProvider(problemInfo, random);
         RepairingHeuristicProvider localImprovementHP = new RepairingHeuristicProvider(problemInfo, random);
@@ -88,51 +73,51 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
 
         for (int i = 0; i < popSize; i++)
         {
-            List<Gene> genes = new ArrayList<>(initChromoSize);
-            jobCount = problem.getJobs().size();
+            List<Gene> genes = new ArrayList<>(initChromosomeSize);
+            int jobsToInsert = jobCount;
 
-            for (int j = 0; j < initChromoSize; j++)
+            for (int j = 0; j < initChromosomeSize; j++)
             {
                 Gene gene = new Gene();
-                gene.customersToInsert = 1;
-                jobCount--;
+                gene.jobsToInsert = 1;
+                jobsToInsert--;
 
                 // Constructive
-                ConstructiveHeuristic ch = constructiveHP.getRandomInstance(false);
-                gene.constructiveHeuristic = ch;
+                gene.constructiveHeuristic = constructiveHP.getRandomInstance(false);
 
                 // Ordering
-                OrderingHeuristic oh = orderingHP.getRandomInstance(false);
-                gene.orderingHeuristic = oh;
+                gene.orderingHeuristic = orderingHP.getRandomInstance(false);
 
                 // Local improvement
-                RepairingHeuristic lih = localImprovementHP.getRandomInstance(false);
-                gene.localImprovementHeuristic = lih;
+                gene.localImprovementHeuristic = localImprovementHP.getRandomInstance(false);
 
                 // Improvement
-                RepairingHeuristic rh = improvementHP.getRandomInstance(false);
-                gene.improvementHeuristic = rh;
+                gene.improvementHeuristic = improvementHP.getRandomInstance(false);
 
                 genes.add(gene);
             }
 
-            while (jobCount > 0)
+            while (jobsToInsert > 0)
             {
-                int geneIdx = random.nextInt(initChromoSize);
-                genes.get(geneIdx).customersToInsert++;
-                jobCount--;
+                int geneIdx = random.nextInt(initChromosomeSize);
+                genes.get(geneIdx).jobsToInsert++;
+                jobsToInsert--;
             }
 
             population[i] = new Chromosome();
             population[i].addAll(genes);
 
-            VehicleRoutingProblemSolution solution = converter.getSolution(population[i].calculateSolution(problemInfo));
-            fitness[i] = 1 / solution.getCost();
+            ArrayList<Route> resultRoutes = population[i].calculateSolution(problemInfo);
+            double routesCost = Route.calculateCost(resultRoutes);
+
+            fitness[i] = 1 / routesCost;
 
             if (eliteIdx == -1 || fitness[i] > fitness[eliteIdx])
             {
                 eliteIdx = i;
-                bestSolution = solution;
+
+                bestSolutionRoutes = resultRoutes;
+                bestSolution = converter.getSolution(bestSolutionRoutes, routesCost);
             }
         }
     }
@@ -151,75 +136,64 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
         for (int i = 0; i < offspringSize; i++)
         {
             boolean[] ignoredPops = new boolean[popSize];
-            try
+
+            int breederIdx = selectRandomIndividualIndex(ignoredPops);
+            Chromosome breeder = population[breederIdx];
+
+            // Don't allow more genes than customers to insert
+            int rMin = breeder.size() == jobCount ? 1 : 0;
+
+            // Don't apply delete & cross operator to one-gene individuals
+            int rMax = breeder.size() == 1 ? 1 : 3;
+
+            int r = random.nextInt(rMax - rMin + 1) + rMin;
+            switch (r)
             {
-                int breederIdx = selectRandomIndividualIndex(ignoredPops);
-                Chromosome breeder = population[breederIdx];
+                case 0: // Add
+                    Chromosome addResult = operatorManager.addRandomGene(breeder);
+                    offspring.add(addResult);
+                    break;
+                case 1: // Replace
+                    Chromosome replaceResult = operatorManager.replaceRandomGene(breeder);
+                    offspring.add(replaceResult);
+                    break;
+                case 2: // Delete
+                    Chromosome deleteResult = operatorManager.deleteRandomGene(breeder);
+                    offspring.add(deleteResult);
+                    break;
+                case 3: // Cross
+                    for (int j = 0; j < popSize; j++)
+                        ignoredPops[j] = population[j].size() == 1;
+                    ignoredPops[breederIdx] = true;
 
-                // Don't allow more genes than customers to insert
-                int rMin = breeder.size() == customersToInsert ? 1 : 0;
-                // Don't apply delete & cross operator to one-gene individuals
-                int rMax = breeder.size() == 1 ? 1 : 3;
-                int r = random.nextInt(rMax - rMin + 1) + rMin;
+                    int mateIdx = selectRandomIndividualIndex(ignoredPops);
+                    if (mateIdx == -1)
+                    {
+                        i--;
+                        continue;
+                    }
+                    Chromosome mate = population[mateIdx];
 
-                switch (r)
-                {
-                    case 0: // Add
-                        Chromosome addResult = operatorManager.addRandomGene(breeder);
-                        offspring.add(addResult);
-                        break;
-                    case 1: // Replace
-                        Chromosome replaceResult = operatorManager.replaceRandomGene(breeder);
-                        offspring.add(replaceResult);
-                        break;
-                    case 2: // Delete
-                        Chromosome deleteResult = operatorManager.deleteRandomGene(breeder);
-                        offspring.add(deleteResult);
-                        break;
-                    case 3: // Cross
-                        for (int j = 0; j < popSize; j++)
-                            ignoredPops[j] = population[j].size() == 1;
-                        ignoredPops[breederIdx] = true;
-
-                        int mateIdx = selectRandomIndividualIndex(ignoredPops);
-                        if (mateIdx == -1)
-                        {
-                            i--;
-                            continue;
-                        }
-                        Chromosome mate = population[mateIdx];
-
-                        Chromosome[] crossResult = operatorManager.crossChromosomes(breeder, mate);
-                        offspring.add(crossResult[0]);
-                        if (offspring.size() < offspringSize)
-                        {
-                            offspring.add(crossResult[1]);
-                            i++;
-                        }
-                        break;
-                }
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
+                    Chromosome[] crossResult = operatorManager.crossChromosomes(breeder, mate);
+                    offspring.add(crossResult[0]);
+                    if (offspring.size() < offspringSize)
+                    {
+                        offspring.add(crossResult[1]);
+                        i++;
+                    }
+                    break;
             }
         }
 
-        // Kill off stochastically least fit individuals
+        // Stochastically kill off least fit individuals
         boolean[] popsToKeepAlive = new boolean[popSize];
         popsToKeepAlive[eliteIdx] = true;
-        try
-        {
+
             for (int i = 0; i < offspringSize; i++)
             {
                 int selectedIdx = selectRandomIndividualIndex(popsToKeepAlive);
                 popsToKeepAlive[selectedIdx] = true;
             }
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
 
         // Replace part of the population individuals with offspring
         for (int i = 0, j = 0; i < popSize; i++)
@@ -230,14 +204,18 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
             population[i] = offspring.get(j);
             j++;
 
-            VehicleRoutingProblemSolution newSolution = converter.getSolution(population[i].calculateSolution(problemInfo));
-            fitness[i] = 1 / newSolution.getCost();
+            ArrayList<Route> resultRoutes = population[i].calculateSolution(problemInfo);
+            double routesCost = Route.calculateCost(resultRoutes);
+
+            fitness[i] = 1 / routesCost;
 
             // Update elite individual
             if (fitness[i] > fitness[eliteIdx])
             {
                 eliteIdx = i;
-                bestSolution = newSolution;
+
+                bestSolutionRoutes = resultRoutes;
+                bestSolution = converter.getSolution(bestSolutionRoutes, routesCost);
             }
         }
 
@@ -257,7 +235,7 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
         return bestSolution;
     }
 
-    private int selectRandomIndividualIndex(boolean[] ignoredPops) throws Exception
+    private int selectRandomIndividualIndex(boolean[] ignoredPops)
     {
         double fitnessSum = 0;
 
@@ -283,7 +261,7 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
             if (acc > threshold)
                 return i;
         }
-        throw new Exception("Could not find any valid individual.");
+        throw new RuntimeException("Could not find any valid individual.");
     }
 
     @Override

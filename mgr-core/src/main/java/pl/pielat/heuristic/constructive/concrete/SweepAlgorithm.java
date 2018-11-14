@@ -21,7 +21,7 @@ public class SweepAlgorithm extends ConstructiveHeuristic
         super(info);
 
         if (timeWindows)
-            throw new RuntimeException("This heuristic cannot be used to solve VRPTW.");
+            throw new IllegalArgumentException("This heuristic cannot be used to solve VRPTW.");
 
         tspAlgorithm = new ChristofidesAlgorithm(info.costFunction);
         comparator = new RadialPlaceSweepComparator(depot.location.getCoordinate());

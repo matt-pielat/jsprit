@@ -9,13 +9,12 @@ public class Gene
     public ConstructiveHeuristic constructiveHeuristic;
     public OrderingHeuristic orderingHeuristic;
     public RepairingHeuristic localImprovementHeuristic;
-    public int customersToInsert = 0;
+    public int jobsToInsert = 0;
 
     public RepairingHeuristic improvementHeuristic;
 
     public Gene()
     {
-
     }
 
     public Gene(Gene other)
@@ -23,7 +22,7 @@ public class Gene
         constructiveHeuristic = other.constructiveHeuristic;
         orderingHeuristic = other.orderingHeuristic;
         localImprovementHeuristic = other.localImprovementHeuristic;
-        customersToInsert = other.customersToInsert;
+        jobsToInsert = other.jobsToInsert;
 
         improvementHeuristic = other.improvementHeuristic;
     }

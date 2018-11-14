@@ -55,18 +55,14 @@ public class EntityConverter
         return new ProblemInfo(costFunction, transportAsymmetry, timeWindows, vehicleCapacity, depot, getJobs());
     }
 
-    public VehicleRoutingProblemSolution getSolution(Collection<Route> routes)
+    public VehicleRoutingProblemSolution getSolution(Collection<Route> routes, double costToSet)
     {
         Collection<VehicleRoute> jspritRoutes = new ArrayList<>(routes.size());
 
-        double solutionCost = 0;
         for (Route r : routes)
-        {
-            solutionCost += r.getCost();
             jspritRoutes.add(getVehicleRoute(r));
-        }
 
-        return new VehicleRoutingProblemSolution(jspritRoutes, solutionCost);
+        return new VehicleRoutingProblemSolution(jspritRoutes, costToSet);
     }
 
     private ArrayList<Job> getJobs()

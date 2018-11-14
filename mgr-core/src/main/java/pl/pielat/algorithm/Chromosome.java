@@ -1,12 +1,5 @@
 package pl.pielat.algorithm;
 
-import com.graphhopper.jsprit.core.problem.Location;
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import com.graphhopper.jsprit.core.problem.job.Delivery;
-import com.graphhopper.jsprit.core.problem.solution.SolutionCostCalculator;
-import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
-import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import pl.pielat.heuristic.Job;
 import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.constructive.ConstructiveHeuristic;
@@ -29,18 +22,17 @@ public class Chromosome extends ArrayList<Gene>
             add(new Gene(otherGene));
     }
 
-    public int getCustomersToInsertCount()
+    public int getJobsToInsertCount()
     {
         int result = 0;
         for (Gene g : this)
-            result += g.customersToInsert;
+            result += g.jobsToInsert;
         return result;
     }
 
-    public void removeRange(int from, int to)
+    public void removeRange(int fromIndex, int toIndex)
     {
-        for (int i = to - 1; i >= from; i--)
-            remove(i);
+        super.removeRange(fromIndex, toIndex);
     }
 
     public ArrayList<Route> calculateSolution(ProblemInfo problemInfo)
@@ -54,7 +46,7 @@ public class Chromosome extends ArrayList<Gene>
             oh.orderJobs(unassignedJobs);
 
             ConstructiveHeuristic ch = gene.constructiveHeuristic;
-            List<Job> jobsToInsert = unassignedJobs.subList(0, gene.customersToInsert);
+            List<Job> jobsToInsert = unassignedJobs.subList(0, gene.jobsToInsert);
             ch.insertJobs(routes, new ArrayList<>(jobsToInsert));
             jobsToInsert.clear();
 
@@ -64,7 +56,4 @@ public class Chromosome extends ArrayList<Gene>
 
         return routes;
     }
-
-
-
 }

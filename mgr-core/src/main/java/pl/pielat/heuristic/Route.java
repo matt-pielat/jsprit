@@ -4,6 +4,7 @@ import pl.pielat.algorithm.ProblemInfo;
 import pl.pielat.util.ArrayUtils;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class Route
@@ -338,6 +339,14 @@ public class Route
             return false;
 
         return true;
+    }
+
+    public static double calculateCost(Collection<Route> routes)
+    {
+        double result = 0;
+        for (Route r : routes)
+            result += r.getCost();
+        return result;
     }
 
     public static void copy(Route src, int srcPos, Route dst, int dstPos, int length, boolean inversely)
