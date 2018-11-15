@@ -2,59 +2,94 @@ package pl.pielat.algorithm;
 
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import pl.pielat.heuristic.Job;
 import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.constructive.ConstructiveHeuristic;
-import pl.pielat.heuristic.constructive.concrete.ClarkeWrightHeuristic;
-import pl.pielat.heuristic.constructive.concrete.KilbyAlgorithm;
-import pl.pielat.heuristic.constructive.concrete.MoleJamesonHeuristic;
-import pl.pielat.heuristic.constructive.concrete.SweepAlgorithm;
+import pl.pielat.heuristic.repairing.RepairingHeuristic;
+import pl.pielat.heuristic.repairing.concrete.*;
+import pl.pielat.util.SimpleConstructiveHeuristic;
 import pl.pielat.util.simpleBuilder.SimpleVrpBuilder;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Stack;
 
 @RunWith(Parameterized.class)
-public class ConstructiveHeuristicsTests extends HeuristicsTestsBase
+public class RepairingHeuristicsTests extends HeuristicsTestsBase
 {
     @Parameterized.Parameters(name = "{0}")
     public static Object[] heuristicNames()
     {
-        return new Object[] { "clarkeWright", "kilby", "moleJameson", "sweep" };
+        return new Object[] { "orOpt", "stringCross", "stringExchange", "stringRelocation", "threeOpt", "twoOpt" };
     }
 
     @Parameterized.Parameter
     public String heuristicName;
 
-    private ConstructiveHeuristic buildHeuristic(ProblemInfo problemInfo)
+    private RepairingHeuristic buildHeuristic(ProblemInfo problemInfo)
     {
         switch (heuristicName)
         {
-            case "clarkeWright":
-                return new ClarkeWrightHeuristic(problemInfo);
-            case "kilby":
-                return new KilbyAlgorithm(problemInfo);
-            case "moleJameson":
-                return new MoleJamesonHeuristic(problemInfo);
-            case "sweep":
-                return new SweepAlgorithm(problemInfo);
+            case "orOpt":
+                return new OrOpt(problemInfo);
+            case "stringCross":
+                return new StringCross(problemInfo);
+            case "stringExchange":
+                return new StringExchange(problemInfo);
+            case "stringRelocation":
+                return new StringRelocation(problemInfo);
+            case "threeOpt":
+                return new ThreeOpt(problemInfo);
+            case "twoOpt":
+                return new TwoOpt(problemInfo);
         }
         throw new RuntimeException();
     }
 
     private void runTest(ProblemInfo problemInfo)
     {
-        Assume.assumeFalse(heuristicName.equals("sweep") && problemInfo.timeWindows);
+        RepairingHeuristic heuristic = buildHeuristic(problemInfo);
 
-        ConstructiveHeuristic heuristic = buildHeuristic(problemInfo);
-        ArrayList<Job> jobsToInsert = new ArrayList<>(problemInfo.jobs);
-        ArrayList<Route> constructedRoutes = new ArrayList<>();
+        ArrayList<Job> jobs = new ArrayList<>(problemInfo.jobs);
+        Collections.shuffle(jobs);
 
-        heuristic.insertJobs(constructedRoutes, jobsToInsert);
-        checkSolutionConsistency(constructedRoutes, problemInfo);
+        for (int i = jobs.size(); i > 0; i--)
+        {
+            System.out.printf("Start (max route length = %d)", i);
+
+            ArrayList<Route> routes = new ArrayList<>();
+            ConstructiveHeuristic constructiveHeuristic = new SimpleConstructiveHeuristic(problemInfo, i);
+            constructiveHeuristic.insertJobs(routes, jobs);
+
+            int countBefore = routes.size();
+            double costBefore = Route.calculateCost(routes);
+
+            heuristic.improveRoutes(routes);
+            checkSolutionConsistency(routes, problemInfo);
+
+            int countAfter = routes.size();
+            double costAfter = Route.calculateCost(routes);
+
+            Assert.assertTrue(countBefore >= countAfter);
+            Assert.assertTrue(costBefore >= costAfter);
+
+            System.out.print(" DONE!");
+
+            if (countBefore != countAfter)
+                System.out.printf(" route count %d->%d", countBefore, countAfter);
+            else
+                System.out.printf(" route count %d", countBefore);
+
+            if (costBefore != costAfter)
+                System.out.printf("; total cost %.0f->%.0f", costBefore, costAfter);
+            else
+                System.out.printf("; total cost %.0f", costBefore);
+
+            System.out.println();
+        }
     }
 
     @Test
