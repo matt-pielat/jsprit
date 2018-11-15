@@ -7,7 +7,7 @@ public class Place
 {
     public final Location location;
     public final double windowStart;
-    public final double windowEnd;
+    public final double windowEnd; // the latest time of arrival (NOT departure)
 
     public Place(Location location, TimeWindow timeWindow)
     {
