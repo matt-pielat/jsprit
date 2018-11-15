@@ -185,7 +185,7 @@ public class Route
     {
         if (recalculateTimeWindows)
         {
-            areTimeWindowsOk = recalculateEarlyDepartures() || recalculateLateArrivals();
+            areTimeWindowsOk = recalculateEarlyDepartures() && recalculateLateArrivals();
             recalculateTimeWindows = false;
         }
         return areTimeWindowsOk;
@@ -312,7 +312,7 @@ public class Route
             double earlyArrival = Math.max(prevEarlyDeparture + getCost(prev, j), j.windowStart);
             double earlyDeparture = earlyArrival + j.serviceTime;
 
-            if (earlyDeparture > j.windowEnd)
+            if (earlyArrival > j.windowEnd)
                 return false;
 
             prev = j;
@@ -329,7 +329,7 @@ public class Route
             double lateDeparture = Math.min(nextLateArrival - getCost(j, next), j.windowEnd);
             double lateArrival = lateDeparture - j.serviceTime;
 
-            if (lateDeparture < j.windowStart)
+            if (lateArrival < j.windowStart)
                 return false;
 
             next = j;
@@ -391,15 +391,16 @@ public class Route
         {
             Job job = jobs[i];
             double earlyArrival = departure + getCost(prev, job);
-            earlyDeparture[i] = Math.max(earlyArrival, job.windowStart) + job.serviceTime;
 
-            if (earlyDeparture[i] > job.windowEnd)
+            if (earlyArrival > job.windowEnd)
                 return false;
+
+            earlyDeparture[i] = Math.max(earlyArrival, job.windowStart) + job.serviceTime;
 
             prev = job;
             departure = earlyDeparture[i];
         }
-        return departure + getCost(prev, depot) > depot.windowEnd;
+        return departure + getCost(prev, depot) <= depot.windowEnd;
     }
 
     private boolean recalculateLateArrivals()
@@ -411,7 +412,7 @@ public class Route
         {
             Job job = jobs[i];
             double lateDeparture = arrival - getCost(job, next);
-            lateArrival[i] = Math.min(lateDeparture, job.windowEnd) - job.serviceTime;
+            lateArrival[i] = Math.min(lateDeparture - job.serviceTime, job.windowEnd);
 
             if (lateArrival[i] < job.windowStart)
                 return false;
@@ -419,7 +420,7 @@ public class Route
             next = job;
             arrival = lateArrival[i];
         }
-        return arrival - getCost(depot, next) < depot.windowStart;
+        return arrival - getCost(depot, next) >= depot.windowStart;
     }
 
     private void ensureCapacity(int minCapacity)
