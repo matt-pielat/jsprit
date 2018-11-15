@@ -143,7 +143,11 @@ public class ClarkeWrightHeuristic extends ConstructiveHeuristic
                 }
                 else
                 {
-                    throw new RuntimeException("Neither route has last node");
+                    // routeA.getFirst().equals(jobA) is true
+                    // routeB.getFirst().equals(jobB) is true
+                    merged = routeA.copy();
+                    merged.reverse();
+                    merged.addAll(routeB, false);
                 }
 
                 if (!merged.areTimeWindowsValid())
