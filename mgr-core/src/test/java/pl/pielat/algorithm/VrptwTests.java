@@ -8,6 +8,8 @@ import pl.pielat.util.simpleBuilder.SimpleVrpBuilder;
 
 public class VrptwTests extends SimpleTestsBase
 {
+    private GarridoRiff garridoRiff = new GarridoRiff();
+
     @Test
     public void moreThanEnoughTimeToServiceAll()
     {
@@ -21,7 +23,7 @@ public class VrptwTests extends SimpleTestsBase
             .addJob(10, 10).setDemand(10).setTimeWindow(700, 800).build()
             .build();
 
-        VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp); //TODO replace Jsprit with GarridoRiff
+        VehicleRoutingAlgorithm vra = garridoRiff.createAlgorithm(vrp, false, true);
         vra.setMaxIterations(100);
 
         runOnce(vra)
@@ -41,7 +43,7 @@ public class VrptwTests extends SimpleTestsBase
             .addJob(0, 400).setDemand(10).setServiceTime(0).build()
             .build();
 
-        VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp); //TODO replace Jsprit with GarridoRiff
+        VehicleRoutingAlgorithm vra = garridoRiff.createAlgorithm(vrp, false, true);
         vra.setMaxIterations(100);
 
         runOnce(vra)
@@ -62,7 +64,7 @@ public class VrptwTests extends SimpleTestsBase
             .addJob(0, 400).setDemand(10).setServiceTime(10).setTimeWindow(0, 400).build()
             .build();
 
-        VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp); //TODO replace Jsprit with GarridoRiff
+        VehicleRoutingAlgorithm vra = garridoRiff.createAlgorithm(vrp, false, true);
         vra.setMaxIterations(100);
 
         runOnce(vra)
