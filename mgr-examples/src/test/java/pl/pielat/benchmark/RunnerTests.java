@@ -3,6 +3,8 @@ package pl.pielat.benchmark;
 
 import org.junit.Assert;
 import org.junit.Test;
+import pl.pielat.algorithm.ExtendedProblemDefinition;
+import pl.pielat.util.logging.DummyLogger;
 import pl.pielat.util.problemParsing.Tsplib95FileReader;
 
 import java.io.IOException;
@@ -23,10 +25,11 @@ public class RunnerTests
             Path solutionDirectory = Files.createTempDirectory("solution");
 
             BenchmarkRunnerArgs args = new BenchmarkRunnerArgs();
-            args.problemParser = new Tsplib95FileReader();
-            args.algorithmFactory = factory;
-            args.solutionDirectory = solutionDirectory.toFile();
-            args.problemParser = new Tsplib95FileReader();
+            args.algorithmFactories = new AlgorithmFactory[] {factory};
+            args.logger = new DummyLogger();
+            args.problemInstances = new ExtendedProblemDefinition[0];
+            args.runsPerProblem = 10;
+            args.solutionProcessor = new DummySolutionProcessor();
 
             BenchmarkRunner runner = new BenchmarkRunner(args);
         }

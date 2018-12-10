@@ -3,6 +3,7 @@ package pl.pielat.benchmark;
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.algorithm.termination.TimeTermination;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
+import pl.pielat.algorithm.ExtendedProblemDefinition;
 
 abstract class AlgorithmFactory
 {
@@ -13,7 +14,7 @@ abstract class AlgorithmFactory
         this.timeThresholdInMs = timeThresholdInMs;
     }
 
-    public VehicleRoutingAlgorithm build(VehicleRoutingProblem vrp)
+    public VehicleRoutingAlgorithm build(ExtendedProblemDefinition vrp)
     {
         assert timeThresholdInMs > 0;
 
@@ -24,5 +25,5 @@ abstract class AlgorithmFactory
         return vra;
     }
 
-    protected abstract VehicleRoutingAlgorithm createAlgorithm(VehicleRoutingProblem vrp);
+    protected abstract VehicleRoutingAlgorithm createAlgorithm(ExtendedProblemDefinition vrp);
 }

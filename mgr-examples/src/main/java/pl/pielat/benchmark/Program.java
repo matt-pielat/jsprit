@@ -2,6 +2,7 @@ package pl.pielat.benchmark;
 
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
+import pl.pielat.algorithm.ExtendedProblemDefinition;
 import pl.pielat.util.logging.ConcreteLogger;
 import pl.pielat.util.logging.Logger;
 import pl.pielat.util.problemParsing.SolomonFileReader;
@@ -49,7 +50,7 @@ public class Program implements BenchmarkSolutionProcessor
 
     private int runsPerProblem;
 
-    private VehicleRoutingProblem problemInstances[];
+    private ExtendedProblemDefinition problemInstances[];
     private File inputFiles[];
 
     private Program(ProgramArgs args)
@@ -107,7 +108,7 @@ public class Program implements BenchmarkSolutionProcessor
         File[] files = problemDirectory.listFiles();
         assert files != null;
 
-        List<VehicleRoutingProblem> problemList = new ArrayList<>(files.length);
+        List<ExtendedProblemDefinition> problemList = new ArrayList<>(files.length);
         List<File> successfullyParsedFiles = new ArrayList<>(files.length);
 
         for (File file : files)
@@ -118,10 +119,13 @@ public class Program implements BenchmarkSolutionProcessor
                 continue;
             }
 
-            VehicleRoutingProblem vrp;
+            ExtendedProblemDefinition instance;
             try
             {
-                vrp = problemParser.parse(file.getAbsolutePath());
+                VehicleRoutingProblem vrp = problemParser.parse(file.getAbsolutePath());
+                boolean timeWindows = problemParser.timeWindowsDetected();
+                boolean transportAsymmetry = problemParser.transportAsymmetryDetected();
+                instance = new ExtendedProblemDefinition(file.getName(), vrp, timeWindows, transportAsymmetry);
             }
             catch (FileNotFoundException e) //Should not happen
             {
@@ -136,11 +140,11 @@ public class Program implements BenchmarkSolutionProcessor
                 continue;
             }
 
-            problemList.add(vrp);
+            problemList.add(instance);
             successfullyParsedFiles.add(file);
         }
 
-        problemInstances = problemList.toArray(new VehicleRoutingProblem[0]);
+        problemInstances = problemList.toArray(new ExtendedProblemDefinition[0]);
         inputFiles = successfullyParsedFiles.toArray(new File[0]);
 
         logger.log("Successfully parsed %d files.", problemInstances.length);

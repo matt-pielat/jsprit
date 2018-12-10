@@ -1,12 +1,13 @@
 package pl.pielat.util.problemParsing;
 
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
+import pl.pielat.algorithm.ExtendedProblemDefinition;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
-public class VrpDirectoryTraverser implements Iterator<VrpDirectoryTraverser.Item>
+public class VrpDirectoryTraverser implements Iterator<ExtendedProblemDefinition>
 {
     public enum FileType
     {
@@ -14,25 +15,9 @@ public class VrpDirectoryTraverser implements Iterator<VrpDirectoryTraverser.Ite
         TSPLIB95
     }
 
-    public class Item
-    {
-        public final String fileName;
-        public final VehicleRoutingProblem vrp;
-        public final boolean timeWindows;
-        public final boolean transportAsymmetry;
-
-        private Item(String fileName, VehicleRoutingProblem vrp, boolean timeWindows, boolean transportAsymmetry)
-        {
-            this.fileName = fileName;
-            this.vrp = vrp;
-            this.timeWindows = timeWindows;
-            this.transportAsymmetry = transportAsymmetry;
-        }
-    }
-
     private VrpFileParser parser;
     private Queue<File> files;
-    private Item nextItem;
+    private ExtendedProblemDefinition nextItem;
 
     public VrpDirectoryTraverser(String problemsDirectory, VrpFileParser parser)
     {
@@ -69,7 +54,7 @@ public class VrpDirectoryTraverser implements Iterator<VrpDirectoryTraverser.Ite
                 throw new RuntimeException(e);
             }
 
-            nextItem = new Item(file.getName(), vrp, timeWindows, transportAsymmetry);
+            nextItem = new ExtendedProblemDefinition(file.getName(), vrp, timeWindows, transportAsymmetry);
             return true;
         }
         return false;
@@ -82,12 +67,12 @@ public class VrpDirectoryTraverser implements Iterator<VrpDirectoryTraverser.Ite
     }
 
     @Override
-    public Item next()
+    public ExtendedProblemDefinition next()
     {
         if (!hasNext())
             throw new NoSuchElementException();
 
-        Item item = nextItem;
+        ExtendedProblemDefinition item = nextItem;
         nextItem = null;
         return item;
     }

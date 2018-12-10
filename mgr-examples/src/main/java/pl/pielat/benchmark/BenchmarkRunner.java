@@ -5,6 +5,7 @@ import com.graphhopper.jsprit.core.algorithm.selector.SelectBest;
 import com.graphhopper.jsprit.core.algorithm.selector.SolutionSelector;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
+import pl.pielat.algorithm.ExtendedProblemDefinition;
 import pl.pielat.util.logging.DummyLogger;
 import pl.pielat.util.logging.Logger;
 
@@ -14,7 +15,7 @@ import java.util.Collection;
 
 class BenchmarkRunner
 {
-    private final VehicleRoutingProblem[] problemInstances;
+    private final ExtendedProblemDefinition[] problemInstances;
     private final BenchmarkSolutionProcessor solutionProcessor;
     private final AlgorithmFactory[] algorithmFactories;
     private final SolutionSelector solutionSelector;
@@ -47,7 +48,7 @@ class BenchmarkRunner
         logger.log("Starting main loop...");
         for (int p = 0; p < problemInstances.length; p++)
         {
-            VehicleRoutingProblem vrp = problemInstances[p];
+            ExtendedProblemDefinition vrp = problemInstances[p];
             logger.log("Problem %d/%d processing start.", p + 1, problemCount);
 
             VehicleRoutingProblemSolution[][] solutions =
