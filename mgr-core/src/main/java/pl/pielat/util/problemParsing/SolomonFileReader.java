@@ -87,6 +87,18 @@ public class SolomonFileReader implements VrpFileParser
         return builder.build();
     }
 
+    @Override
+    public boolean transportAsymmetryDetected()
+    {
+        return false;
+    }
+
+    @Override
+    public boolean timeWindowsDetected()
+    {
+        return true;
+    }
+
     private boolean readNextSection() throws IOException, VrpParseException
     {
         while (true)

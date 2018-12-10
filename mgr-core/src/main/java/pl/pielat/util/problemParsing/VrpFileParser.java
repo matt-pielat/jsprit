@@ -7,4 +7,8 @@ import java.io.FileNotFoundException;
 public interface VrpFileParser
 {
     VehicleRoutingProblem parse(String fileName) throws VrpParseException, FileNotFoundException;
+
+    boolean transportAsymmetryDetected() throws VrpParseException;
+
+    boolean timeWindowsDetected() throws VrpParseException;
 }

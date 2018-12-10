@@ -124,6 +124,23 @@ public class Tsplib95FileReader implements VrpFileParser
         return builder.build();
     }
 
+    @Override
+    public boolean transportAsymmetryDetected() throws VrpParseException
+    {
+        if (edgeWeightType == EdgeWeightType.Explicit && edgeWeightFormat == EdgeWeightFormat.FullMatrix)
+            return true;
+        if (edgeWeightType == EdgeWeightType.Euc_2D)
+            return false;
+
+        throw new VrpParseException();
+    }
+
+    @Override
+    public boolean timeWindowsDetected()
+    {
+        return false;
+    }
+
     private boolean readNextSection() throws IOException, VrpParseException
     {
         String line = reader.readLine();
