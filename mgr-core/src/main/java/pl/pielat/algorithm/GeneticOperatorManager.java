@@ -10,21 +10,24 @@ import java.util.Random;
 
 public class GeneticOperatorManager
 {
-    private Random random;
+    private Random random = new Random();
 
     private ConstructiveHeuristicProvider constructiveHP;
     private OrderingHeuristicProvider orderingHP;
     private RepairingHeuristicProvider localImprovementHP;
     private RepairingHeuristicProvider improvementHP;
 
-    public GeneticOperatorManager(ProblemInfo problemInfo, Random random)
+    public GeneticOperatorManager(ProblemInfo problemInfo)
     {
-        this.random = random;
-
         constructiveHP = new ConstructiveHeuristicProvider(problemInfo, random);
         orderingHP = new OrderingHeuristicProvider(problemInfo, random);
         localImprovementHP = new RepairingHeuristicProvider(problemInfo, random);
         improvementHP = new RepairingHeuristicProvider(problemInfo, random);
+    }
+
+    public void setRandom(Random random)
+    {
+        this.random = random;
     }
 
     public Chromosome[] crossChromosomes(Chromosome parentA, Chromosome parentB)

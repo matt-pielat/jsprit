@@ -29,7 +29,7 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
     private VehicleRoutingProblemSolution bestSolution;
     private ArrayList<Route> bestSolutionRoutes;
 
-    private Random random;
+    private Random random = new Random();
     private GeneticOperatorManager operatorManager;
     private SolutionCostCalculator costCalculator;
     private int epoch = 0;
@@ -56,8 +56,13 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
         this.offspringSize = offspringSize;
         this.initChromosomeSize = initChromosomeSize;
 
-        random = new Random(); //TODO parametrize?
-        operatorManager = new GeneticOperatorManager(problemInfo, random);
+        operatorManager = new GeneticOperatorManager(problemInfo);
+    }
+
+    public void setRandom(Random random)
+    {
+        this.random = random;
+        operatorManager.setRandom(this.random);
     }
 
     private void createRandomPopulation()

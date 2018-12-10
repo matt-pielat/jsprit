@@ -20,7 +20,7 @@ public class GarridoRiff
     private int offspringSize;
     private int chromosomeSize;
 
-    private Random random;
+    private Random random = new Random();
 
     public GarridoRiff()
     {
@@ -29,8 +29,6 @@ public class GarridoRiff
         populationSize = 10;
         offspringSize = 5;
         chromosomeSize = 4;
-
-        random = new Random();
     }
 
     public void setPopulationSize(int populationSize)
@@ -63,8 +61,9 @@ public class GarridoRiff
             }
         };
 
-        SearchStrategyModule searchStrategyModule = new EvolutionaryHyperheuristicModule(
+        EvolutionaryHyperheuristicModule searchStrategyModule = new EvolutionaryHyperheuristicModule(
             vrp, transportAsymmetry, timeWindows, populationSize, offspringSize, chromosomeSize);
+        searchStrategyModule.setRandom(random);
 
         SearchStrategy searchStrategy = new SearchStrategy(
             "evolutionaryHyperheuristic",
