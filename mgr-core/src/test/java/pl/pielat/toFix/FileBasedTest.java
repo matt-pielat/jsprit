@@ -32,48 +32,6 @@ public abstract class FileBasedTest
         }
     }
 
-    private void plotSolution(String outputPath, VehicleRoutingProblem vrp, VehicleRoutingProblemSolution solution)
-    {
-        Plotter plotter = new Plotter(vrp,solution);
-
-        double minX, minY, maxX, maxY;
-        minX = minY = Double.POSITIVE_INFINITY;
-        maxX = maxY = Double.NEGATIVE_INFINITY;
-        for (Location location : vrp.getAllLocations())
-        {
-            double x = location.getCoordinate().getX();
-            double y = location.getCoordinate().getY();
-
-            if (x < minX)
-                minX = x;
-            if (x > maxX)
-                maxX = x;
-            if (y < minY)
-                minY = y;
-            if (y > maxY)
-                maxY = y;
-        }
-
-        double width = maxX - minX;
-        double height = maxY - minY;
-
-        if (width > height)
-        {
-            double midY = minY + (maxY - minY) / 2;
-            minY = midY - width / 2;
-            maxY = midY + width / 2;
-        }
-        else
-        {
-            double midX = minX + (maxX - minX) / 2;
-            minX = midX - height / 2;
-            maxX = midX + height / 2;
-        }
-
-        plotter.setBoundingBox(minX, minY, maxX, maxY);
-        plotter.plot(outputPath,"");
-    }
-
     protected double runTestFromFile(String inputDir, String fileName, String solutionDir, int iterations)
     {
         VehicleRoutingProblem vrp = null;
@@ -91,7 +49,6 @@ public abstract class FileBasedTest
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
         VehicleRoutingProblemSolution solution = new SelectBest().selectSolution(solutions);
         serializeSolution(solutionDir + fileName + ".vrp", solution);
-        plotSolution(solutionDir + fileName + ".png", vrp, solution);
 
         vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(iterations);
@@ -99,7 +56,6 @@ public abstract class FileBasedTest
         solutions = vra.searchSolutions();
         solution = new SelectBest().selectSolution(solutions);
         serializeSolution(solutionDir + fileName + "_jsprit.vrp", solution);
-        plotSolution(solutionDir + fileName + "_jsprit.png", vrp, solution);
 
         return solution.getCost();
     }
