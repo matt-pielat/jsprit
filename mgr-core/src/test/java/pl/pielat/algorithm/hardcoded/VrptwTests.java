@@ -1,9 +1,9 @@
-package pl.pielat.algorithm;
+package pl.pielat.algorithm.hardcoded;
 
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
-import com.graphhopper.jsprit.core.algorithm.box.Jsprit;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import org.junit.Test;
+import pl.pielat.algorithm.GarridoRiff;
 import pl.pielat.util.simpleBuilder.SimpleVrpBuilder;
 
 public class VrptwTests extends SimpleTestsBase

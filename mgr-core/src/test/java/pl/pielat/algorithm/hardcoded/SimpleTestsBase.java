@@ -1,4 +1,4 @@
-package pl.pielat.algorithm;
+package pl.pielat.algorithm.hardcoded;
 
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.algorithm.selector.SelectBest;
@@ -7,9 +7,7 @@ import org.junit.Assert;
 import pl.pielat.util.solutionSerialization.SimpleSolutionSerializer;
 import pl.pielat.util.solutionSerialization.VrpSolutionSerializer;
 
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Writer;
 import java.util.Collection;
 
 public class SimpleTestsBase
