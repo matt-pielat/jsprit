@@ -31,9 +31,11 @@ public class SolomonFileReader implements VrpFileParser
     private List<Double> serviceTimes;
 
     private BufferedReader reader;
+    private boolean lastParseSucceeded = false;
 
     public VehicleRoutingProblem parse(String filename) throws VrpParseException, FileNotFoundException
     {
+        lastParseSucceeded = false;
         reader = new BufferedReader(new FileReader(filename));
 
         try
@@ -84,18 +86,23 @@ public class SolomonFileReader implements VrpFileParser
             builder.addJob(delivery);
         }
 
+        lastParseSucceeded = true;
         return builder.build();
     }
 
     @Override
-    public boolean transportAsymmetryDetected()
+    public boolean transportAsymmetryDetected() throws VrpParseException
     {
+        if (!lastParseSucceeded)
+            throw new VrpParseException();
         return false;
     }
 
     @Override
-    public boolean timeWindowsDetected()
+    public boolean timeWindowsDetected() throws VrpParseException
     {
+        if (!lastParseSucceeded)
+            throw new VrpParseException();
         return true;
     }
 
@@ -126,9 +133,7 @@ public class SolomonFileReader implements VrpFileParser
                 default:
                     throw new VrpParseException();
             }
-
         }
-
     }
 
     private boolean validateVehicleSectionHeader() throws IOException

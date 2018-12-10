@@ -7,7 +7,6 @@ import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
 import com.graphhopper.jsprit.core.util.Coordinate;
 import com.graphhopper.jsprit.core.util.FastVehicleRoutingTransportCostsMatrix;
-import com.graphhopper.jsprit.core.util.VehicleRoutingTransportCostsMatrix;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -49,8 +48,13 @@ public class Tsplib95FileReader implements VrpFileParser
     private int[] demands = null;
     private int depotIndex = -1;
 
+    private boolean lastParseSucceeded = false;
+    private boolean transportAsymmetryDetected;
+
     public VehicleRoutingProblem parse(String filename) throws FileNotFoundException, VrpParseException
     {
+        lastParseSucceeded = false;
+
         reader = new BufferedReader(new FileReader(filename));
         try
         {
@@ -89,6 +93,8 @@ public class Tsplib95FileReader implements VrpFileParser
             .build();
         builder.addVehicle(vehicle);
 
+        transportAsymmetryDetected = false;
+
         if (edgeWeightType == EdgeWeightType.Explicit)
         {
             FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder =
@@ -100,6 +106,9 @@ public class Tsplib95FileReader implements VrpFileParser
                 {
                     double weight = edgeWeightMatrix[i][j];
                     matrixBuilder.addTransportDistance(i, j, weight);
+
+                    if (weight != edgeWeightMatrix[j][i])
+                        transportAsymmetryDetected = true;
                 }
             }
             builder.setRoutingCost(matrixBuilder.build());
@@ -121,23 +130,23 @@ public class Tsplib95FileReader implements VrpFileParser
             builder.addJob(delivery);
         }
 
+        lastParseSucceeded = true;
         return builder.build();
     }
 
     @Override
     public boolean transportAsymmetryDetected() throws VrpParseException
     {
-        if (edgeWeightType == EdgeWeightType.Explicit && edgeWeightFormat == EdgeWeightFormat.FullMatrix)
-            return true;
-        if (edgeWeightType == EdgeWeightType.Euc_2D)
-            return false;
-
-        throw new VrpParseException();
+        if (!lastParseSucceeded)
+            throw new VrpParseException();
+        return transportAsymmetryDetected;
     }
 
     @Override
-    public boolean timeWindowsDetected()
+    public boolean timeWindowsDetected() throws VrpParseException
     {
+        if (!lastParseSucceeded)
+            throw new VrpParseException();
         return false;
     }
 
