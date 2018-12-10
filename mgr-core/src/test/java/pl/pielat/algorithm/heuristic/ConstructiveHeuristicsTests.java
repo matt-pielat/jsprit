@@ -1,11 +1,12 @@
-package pl.pielat.algorithm;
+package pl.pielat.algorithm.heuristic;
 
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import pl.pielat.algorithm.EntityConverter;
+import pl.pielat.algorithm.ProblemInfo;
 import pl.pielat.heuristic.Job;
 import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.constructive.ConstructiveHeuristic;

@@ -1,6 +1,7 @@
-package pl.pielat.algorithm;
+package pl.pielat.algorithm.heuristic;
 
 import org.junit.Assert;
+import pl.pielat.algorithm.ProblemInfo;
 import pl.pielat.heuristic.Job;
 import pl.pielat.heuristic.Route;
 
