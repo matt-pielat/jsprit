@@ -34,7 +34,7 @@ public class VrpDirectoryTraverser implements Iterator<VrpDirectoryTraverser.Ite
     private Queue<File> files;
     private Item nextItem;
 
-    public VrpDirectoryTraverser(String problemsDirectory, FileType fileType)
+    public VrpDirectoryTraverser(String problemsDirectory, VrpFileParser parser)
     {
         File directory = new File(problemsDirectory);
 
@@ -42,19 +42,8 @@ public class VrpDirectoryTraverser implements Iterator<VrpDirectoryTraverser.Ite
         if (fileArray == null)
             throw new IllegalArgumentException("Path does not denote a directory.");
 
-        switch (fileType)
-        {
-            case SOLOMON:
-                parser = new SolomonFileReader();
-                break;
-            case TSPLIB95:
-                parser = new Tsplib95FileReader();
-                break;
-            default:
-                throw new IllegalArgumentException("File type is not supported.");
-        }
-
         files = new LinkedList<>(Arrays.asList(fileArray));
+        this.parser = parser;
     }
 
     private boolean readNext()
