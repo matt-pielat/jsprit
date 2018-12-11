@@ -1,15 +1,15 @@
-package pl.pielat.benchmark;
+package pl.pielat.benchmark.algorithmCreation;
 
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.algorithm.termination.TimeTermination;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import pl.pielat.algorithm.ExtendedProblemDefinition;
 
-abstract class AlgorithmFactory
+public abstract class AlgorithmFactory
 {
     private long timeThresholdInMs = -1;
 
-    void setTimeThreshold(long timeThresholdInMs)
+    public void setTimeThreshold(long timeThresholdInMs)
     {
         this.timeThresholdInMs = timeThresholdInMs;
     }

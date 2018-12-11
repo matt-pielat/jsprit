@@ -1,8 +1,7 @@
-package pl.pielat.benchmark;
+package pl.pielat.benchmark.algorithmCreation;
 
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.algorithm.box.Jsprit;
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import pl.pielat.algorithm.ExtendedProblemDefinition;
 
 public class JspritAlgorithmFactory extends AlgorithmFactory

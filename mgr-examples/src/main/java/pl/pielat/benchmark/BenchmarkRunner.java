@@ -5,6 +5,7 @@ import com.graphhopper.jsprit.core.algorithm.selector.SelectBest;
 import com.graphhopper.jsprit.core.algorithm.selector.SolutionSelector;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import pl.pielat.algorithm.ExtendedProblemDefinition;
+import pl.pielat.benchmark.algorithmCreation.AlgorithmFactory;
 import pl.pielat.benchmark.solutionProcessing.BenchmarkSolutionProcessor;
 import pl.pielat.util.logging.DummyLogger;
 import pl.pielat.util.logging.Logger;
@@ -60,7 +61,7 @@ class BenchmarkRunner
                 {
                     logger.log("Algorithm %d start (run %d/%d).", a + 1, r + 1, runsPerProblem);
 
-                    VehicleRoutingAlgorithm vra = algorithmFactories[a].createAlgorithm(vrp);
+                    VehicleRoutingAlgorithm vra = algorithmFactories[a].build(vrp);
                     Collection<VehicleRoutingProblemSolution> foundSolutions = vra.searchSolutions();
 
                     if (foundSolutions.isEmpty())
