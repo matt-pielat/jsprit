@@ -1,7 +1,6 @@
 package pl.pielat.benchmark;
 
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import pl.pielat.algorithm.ExtendedProblemDefinition;
 import pl.pielat.benchmark.algorithmCreation.AlgorithmFactory;
 import pl.pielat.benchmark.algorithmCreation.GarridoRiffAlgorithmFactory;
@@ -52,7 +51,7 @@ public class Program
     private VrpSolutionSerializer solutionSerializer;
 
     private File problemDirectory;
-    private File solutionDirectory;
+    private File[] outputDirectories;
     private File logDirectory;
 
     private int runsPerProblem;
@@ -63,10 +62,19 @@ public class Program
     private Program(ProgramArgs args)
     {
         List<AlgorithmFactory> factoryList = new ArrayList<>(2);
-        if (args.useGarridoRiff)
+        List<File> outputDirectoryList = new ArrayList<>(2);
+
+        if (args.garridoRiffOutputDirectory != null)
+        {
             factoryList.add(new GarridoRiffAlgorithmFactory());
-        if (args.useJsprit)
+            outputDirectoryList.add(args.garridoRiffOutputDirectory);
+        }
+        if (args.jspritOutputDirectory != null)
+        {
             factoryList.add(new JspritAlgorithmFactory());
+            outputDirectoryList.add(args.jspritOutputDirectory);
+        }
+
         for (AlgorithmFactory factory : factoryList)
             factory.setTimeThreshold(args.timeThresholdInMs);
         algorithmFactories = factoryList.toArray(new AlgorithmFactory[0]);
@@ -77,7 +85,7 @@ public class Program
         solutionSerializer = new AugeratFormatSolutionSerializer();
 
         problemDirectory = args.problemDirectory;
-        solutionDirectory = args.solutionDirectory;
+        outputDirectories = outputDirectoryList.toArray(new File[0]);
         logDirectory = args.logDirectory;
 
         runsPerProblem = args.runsPerProblem;
@@ -88,7 +96,8 @@ public class Program
         logDirectory.mkdirs();
         Logger logger = createLogger(logDirectory);
 
-        solutionDirectory.mkdirs();
+        for (File outputDirectory : outputDirectories)
+            outputDirectory.mkdirs();
 
         parseProblemInstances(logger);
 
@@ -192,10 +201,7 @@ public class Program
         {
             String algorithmId = algorithmFactories[i].getSerializableAlgorithmId();
 
-            File algorithmSolutionDir = new File(solutionDirectory, algorithmId);
-            algorithmSolutionDir.mkdir();
-
-            File resultsFile = new File(algorithmSolutionDir, "results.csv");
+            File resultsFile = new File(outputDirectories[i], "results.csv");
             resultsFilePaths[i] = resultsFile.getAbsolutePath();
         }
 

@@ -54,21 +54,6 @@ public class ProgramArgs
     }
 
     @Parameter(
-        names = {"--jsprit", "-j"},
-        description = "Use default jsprit algoritm")
-    public boolean useJsprit;
-
-    @Parameter(
-        names = {"--garridoRiff", "-gr"},
-        description = "Use Garrido-Riff algorithm")
-    public boolean useGarridoRiff;
-
-    @Parameter(
-        names = {"--timeWindows", "-tw"},
-        description = "Input directory contains VRPTW problem files")
-    public boolean timeWindows;
-
-    @Parameter(
         names = {"--inputDir", "-i"},
         description = "Input (problem) directory",
         converter = FileConverter.class,
@@ -77,12 +62,23 @@ public class ProgramArgs
     public File problemDirectory;
 
     @Parameter(
-        names = {"--outputDir", "-o"},
-        description = "Output (solution) directory",
+        names = {"--timeWindows", "-tw"},
+        description = "Input directory contains VRPTW problem files")
+    public boolean timeWindows;
+
+    @Parameter(
+        names = {"--jsprit", "-j"},
+        description = "jsprit output directory",
         converter = FileConverter.class,
-        validateWith = NotRegularFileValidator.class,
-        required = true)
-    public File solutionDirectory;
+        validateWith = NotRegularFileValidator.class)
+    public File jspritOutputDirectory;
+
+    @Parameter(
+        names = {"--garridoRiff", "-gr"},
+        description = "Garrido-Riff output directory",
+        converter = FileConverter.class,
+        validateWith = NotRegularFileValidator.class)
+    public File garridoRiffOutputDirectory;
 
     @Parameter(
         names = {"--logDir", "-l"},
@@ -115,7 +111,7 @@ public class ProgramArgs
             .build()
             .parse(rawArgs);
 
-        if (!args.useJsprit && !args.useGarridoRiff)
+        if (args.jspritOutputDirectory == null && args.garridoRiffOutputDirectory == null)
             throw new ParameterException("No algorithm was chosen");
 
         return args;
