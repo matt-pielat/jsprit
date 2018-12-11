@@ -25,5 +25,7 @@ public abstract class AlgorithmFactory
         return vra;
     }
 
+    public abstract String getSerializableAlgorithmId();
+
     protected abstract VehicleRoutingAlgorithm createAlgorithm(ExtendedProblemDefinition vrp);
 }

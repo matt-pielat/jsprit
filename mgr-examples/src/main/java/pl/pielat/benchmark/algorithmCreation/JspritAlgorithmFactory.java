@@ -7,6 +7,12 @@ import pl.pielat.algorithm.ExtendedProblemDefinition;
 public class JspritAlgorithmFactory extends AlgorithmFactory
 {
     @Override
+    public String getSerializableAlgorithmId()
+    {
+        return "Jsprit";
+    }
+
+    @Override
     public VehicleRoutingAlgorithm createAlgorithm(ExtendedProblemDefinition vrp)
     {
         return Jsprit.Builder.newInstance(vrp.vrp).buildAlgorithm();

@@ -9,6 +9,7 @@ import pl.pielat.benchmark.algorithmCreation.JspritAlgorithmFactory;
 import pl.pielat.benchmark.runnerEngine.BenchmarkRunner;
 import pl.pielat.benchmark.runnerEngine.BenchmarkRunnerArgs;
 import pl.pielat.benchmark.solutionProcessing.BenchmarkSolutionProcessor;
+import pl.pielat.benchmark.solutionProcessing.CsvResultsSerializer;
 import pl.pielat.util.logging.ConcreteLogger;
 import pl.pielat.util.logging.Logger;
 import pl.pielat.util.problemParsing.SolomonFileReader;
@@ -28,7 +29,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class Program implements BenchmarkSolutionProcessor
+public class Program
 {
     public static void main(String[] rawArgs)
     {
@@ -96,7 +97,7 @@ public class Program implements BenchmarkSolutionProcessor
         benchmarkArgs.algorithmFactories = algorithmFactories;
         benchmarkArgs.logger = logger;
         benchmarkArgs.runsPerProblem = runsPerProblem;
-        benchmarkArgs.solutionProcessor = this;
+        benchmarkArgs.solutionProcessor = createSolutionProcessor(logger);
 
         new BenchmarkRunner(benchmarkArgs).run();
     }
@@ -184,15 +185,26 @@ public class Program implements BenchmarkSolutionProcessor
         return new ConcreteLogger(new PrintWriter(logFile));
     }
 
-    @Override
-    public void processSingleRun(VehicleRoutingProblemSolution solution, int runIdx, int problemIdx, int algorithmIdx)
+    private BenchmarkSolutionProcessor createSolutionProcessor(Logger logger)
     {
+        String[] resultsFilePaths = new String[algorithmFactories.length];
+        for (int i = 0; i < algorithmFactories.length; i++)
+        {
+            String algorithmId = algorithmFactories[i].getSerializableAlgorithmId();
 
-    }
+            File algorithmSolutionDir = new File(solutionDirectory, algorithmId);
+            algorithmSolutionDir.mkdir();
 
-    @Override
-    public void aggregateAllRuns(VehicleRoutingProblemSolution[] solutions, int problemIdx, int algorithmIndex)
-    {
+            File resultsFile = new File(algorithmSolutionDir, "results.csv");
+            resultsFilePaths[i] = resultsFile.getAbsolutePath();
+        }
 
+        String[] problemIds = new String[problemInstances.length];
+        for (int i = 0; i < problemInstances.length; i++)
+        {
+            problemIds[i] = problemInstances[i].id;
+        }
+
+       return new CsvResultsSerializer(resultsFilePaths, problemIds, logger);
     }
 }
