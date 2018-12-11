@@ -6,6 +6,8 @@ import org.junit.Test;
 import pl.pielat.algorithm.ExtendedProblemDefinition;
 import pl.pielat.benchmark.algorithmCreation.AlgorithmFactory;
 import pl.pielat.benchmark.algorithmCreation.JspritAlgorithmFactory;
+import pl.pielat.benchmark.runnerEngine.BenchmarkRunner;
+import pl.pielat.benchmark.runnerEngine.BenchmarkRunnerArgs;
 import pl.pielat.util.logging.DummyLogger;
 
 import java.io.IOException;

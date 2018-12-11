@@ -1,4 +1,4 @@
-package pl.pielat.benchmark;
+package pl.pielat.benchmark.runnerEngine;
 
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.algorithm.selector.SelectBest;
@@ -11,10 +11,9 @@ import pl.pielat.util.logging.DummyLogger;
 import pl.pielat.util.logging.Logger;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.Collection;
 
-class BenchmarkRunner
+public class BenchmarkRunner
 {
     private final ExtendedProblemDefinition[] problemInstances;
     private final BenchmarkSolutionProcessor solutionProcessor;
