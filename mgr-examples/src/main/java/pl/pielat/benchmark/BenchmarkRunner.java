@@ -26,7 +26,7 @@ class BenchmarkRunner
 
     private File currentlyProcessedFile;
 
-    public BenchmarkRunner(BenchmarkRunnerArgs args) throws FileNotFoundException
+    public BenchmarkRunner(BenchmarkRunnerArgs args)
     {
         problemInstances = args.problemInstances;
         solutionProcessor = args.solutionProcessor;
