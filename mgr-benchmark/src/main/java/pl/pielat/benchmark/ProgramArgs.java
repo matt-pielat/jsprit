@@ -9,7 +9,7 @@ import java.nio.file.Paths;
 
 public class ProgramArgs
 {
-    private class FileConverter implements IStringConverter<File>
+    public static class FileConverter implements IStringConverter<File>
     {
         @Override
         public File convert(String s)
@@ -18,7 +18,7 @@ public class ProgramArgs
         }
     }
 
-    private class ExistingDirectoryValidator implements IParameterValidator
+    public static class ExistingDirectoryValidator implements IParameterValidator
     {
         @Override
         public void validate(String name, String value) throws ParameterException
@@ -30,7 +30,7 @@ public class ProgramArgs
         }
     }
 
-    private class NotRegularFileValidator implements IParameterValidator
+    public static class NotRegularFileValidator implements IParameterValidator
     {
         @Override
         public void validate(String name, String value) throws ParameterException
@@ -42,7 +42,7 @@ public class ProgramArgs
         }
     }
 
-    private class PositiveNumberValidator implements IParameterValidator
+    public static class PositiveNumberValidator implements IParameterValidator
     {
         @Override
         public void validate(String name, String value) throws ParameterException
