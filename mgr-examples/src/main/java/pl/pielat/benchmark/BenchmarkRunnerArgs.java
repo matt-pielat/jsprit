@@ -1,6 +1,7 @@
 package pl.pielat.benchmark;
 
 import pl.pielat.algorithm.ExtendedProblemDefinition;
+import pl.pielat.benchmark.solutionProcessing.BenchmarkSolutionProcessor;
 import pl.pielat.util.logging.Logger;
 
 class BenchmarkRunnerArgs

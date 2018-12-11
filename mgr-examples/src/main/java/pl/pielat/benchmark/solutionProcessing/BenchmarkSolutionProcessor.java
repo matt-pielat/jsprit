@@ -1,4 +1,4 @@
-package pl.pielat.benchmark;
+package pl.pielat.benchmark.solutionProcessing;
 
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 

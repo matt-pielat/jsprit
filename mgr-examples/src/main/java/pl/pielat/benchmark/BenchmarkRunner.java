@@ -3,9 +3,9 @@ package pl.pielat.benchmark;
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.algorithm.selector.SelectBest;
 import com.graphhopper.jsprit.core.algorithm.selector.SolutionSelector;
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import pl.pielat.algorithm.ExtendedProblemDefinition;
+import pl.pielat.benchmark.solutionProcessing.BenchmarkSolutionProcessor;
 import pl.pielat.util.logging.DummyLogger;
 import pl.pielat.util.logging.Logger;
 

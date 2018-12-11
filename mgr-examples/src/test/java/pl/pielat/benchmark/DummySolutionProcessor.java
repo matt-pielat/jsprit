@@ -1,6 +1,7 @@
 package pl.pielat.benchmark;
 
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
+import pl.pielat.benchmark.solutionProcessing.BenchmarkSolutionProcessor;
 
 public class DummySolutionProcessor implements BenchmarkSolutionProcessor
 {
