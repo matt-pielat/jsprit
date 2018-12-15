@@ -11,6 +11,7 @@ import pl.pielat.benchmark.solutionProcessing.BenchmarkSolutionProcessor;
 import pl.pielat.benchmark.solutionProcessing.CsvResultsSerializer;
 import pl.pielat.util.logging.ConcreteLogger;
 import pl.pielat.util.logging.Logger;
+import pl.pielat.util.logging.Multilogger;
 import pl.pielat.util.problemParsing.SolomonFileReader;
 import pl.pielat.util.problemParsing.Tsplib95FileReader;
 import pl.pielat.util.problemParsing.VrpFileParser;
@@ -20,6 +21,7 @@ import pl.pielat.util.solutionSerialization.VrpSolutionSerializer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -176,22 +178,29 @@ public class Program
 
         File logFile;
 
+        Logger stdoutLogger = new ConcreteLogger(new PrintWriter(new OutputStreamWriter(System.out)));
+        Logger fileLogger;
+
         for (int i = 2; ; i++)
         {
             if (i == 100)
-                throw new Exception("Could not create a log file");
+            {
+                stdoutLogger.log("Failed to create file logger.");
+                return stdoutLogger;
+            }
 
             String suffixedFileName = String.format("%s%s.%s", fileName, suffix, extension);
             Path filePath = Paths.get(directory.getAbsolutePath(), suffixedFileName);
             logFile = new File(filePath.toUri());
 
             if (logFile.createNewFile())
-                break;
+            {
+                fileLogger = new ConcreteLogger(new PrintWriter(logFile));
+                return new Multilogger(fileLogger, stdoutLogger);
+            }
 
             suffix = String.format("_%d", i);
         }
-
-        return new ConcreteLogger(new PrintWriter(logFile));
     }
 
     private BenchmarkSolutionProcessor createSolutionProcessor(Logger logger)

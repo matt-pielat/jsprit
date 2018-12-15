@@ -19,4 +19,4 @@ if ($TimeWindows)
     $timeWindowsArg = "-tw"
 }
 
-Start-Process java -ArgumentList "-jar ""$jarPath"" -i ""$InputDir"" $timeWindowsArg -j ""$JspritOutputDir"" -gr ""$GarridoRiffOutputDir"" -l ""$LogDir"" -t $TimeLimitInMs -r $RunsPerProblem" -NoNewWindow -Wait
+& java -jar "$jarPath" -i "$InputDir" $timeWindowsArg -j "$JspritOutputDir" -gr "$GarridoRiffOutputDir" -l "$LogDir" -t $TimeLimitInMs -r $RunsPerProblem
