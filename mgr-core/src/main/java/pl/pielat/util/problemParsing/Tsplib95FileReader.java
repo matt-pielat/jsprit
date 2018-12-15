@@ -30,30 +30,49 @@ public class Tsplib95FileReader implements VrpFileParser
 
     enum EdgeWeightFormat{
         FullMatrix,
+        LowerRow,
         Unsupported,
         Unknown,
     }
 
     private BufferedReader reader;
 
-    private String name = null;
-    private String comment = null;
-    private int dimension = -1;
-    private int capacity = -1;
-    private ProblemType problemType = ProblemType.Unknown;
-    private EdgeWeightType edgeWeightType = EdgeWeightType.Unknown;
-    private EdgeWeightFormat edgeWeightFormat = EdgeWeightFormat.Unknown;
-    private Coordinate[] nodeCoords = null;
-    private double[][] edgeWeightMatrix = null;
-    private int[] demands = null;
-    private int depotIndex = -1;
+    private String name;
+    private String comment;
+    private int dimension;
+    private int capacity;
+    private ProblemType problemType;
+    private EdgeWeightType edgeWeightType;
+    private EdgeWeightFormat edgeWeightFormat;
+    private Coordinate[] nodeCoords;
+    private double[][] edgeWeightMatrix;
+    private int[] demands;
+    private int depotIndex;
 
     private boolean lastParseSucceeded = false;
     private boolean transportAsymmetryDetected;
 
+    private void resetInternalState()
+    {
+        name = null;
+        comment = null;
+        dimension = -1;
+        capacity = -1;
+        problemType = ProblemType.Unknown;
+        edgeWeightType = EdgeWeightType.Unknown;
+        edgeWeightFormat = EdgeWeightFormat.Unknown;
+        nodeCoords = null;
+        edgeWeightMatrix = null;
+        demands = null;
+        depotIndex = -1;
+
+        lastParseSucceeded = false;
+        transportAsymmetryDetected = false;
+    }
+
     public VehicleRoutingProblem parse(String filename) throws FileNotFoundException, VrpParseException
     {
-        lastParseSucceeded = false;
+        resetInternalState();
 
         reader = new BufferedReader(new FileReader(filename));
         try
@@ -72,6 +91,8 @@ public class Tsplib95FileReader implements VrpFileParser
             throw new VrpParseException("Problem type is unknown/unsupported");
         if (edgeWeightType == EdgeWeightType.Unsupported)
             throw new VrpParseException("Edge weight type is unsupported");
+        if (edgeWeightType == EdgeWeightType.Unknown)
+            throw new VrpParseException("Edge weight type is unknown");
         if (dimension == -1)
             throw new VrpParseException("Dimension is unknown");
         if (capacity == -1)
@@ -79,21 +100,19 @@ public class Tsplib95FileReader implements VrpFileParser
         if (depotIndex == -1)
             throw new VrpParseException("Depot index is unknown");
 
-        Location depotLocation = Location.Builder.newInstance()
-            .setCoordinate(nodeCoords[depotIndex])
-            .setIndex(depotIndex)
-            .build();
+        Location.Builder depotLocationBuilder = Location.Builder.newInstance()
+            .setIndex(depotIndex);
+        if (nodeCoords != null)
+            depotLocationBuilder.setCoordinate(nodeCoords[depotIndex]);
         VehicleTypeImpl vehicleType = VehicleTypeImpl.Builder.newInstance("vehicleType")
             .addCapacityDimension(0, capacity)
             .build();
         VehicleImpl vehicle = VehicleImpl.Builder.newInstance("vehicle")
             .setType(vehicleType)
-            .setStartLocation(depotLocation)
+            .setStartLocation(depotLocationBuilder.build())
             .setReturnToDepot(true)
             .build();
         builder.addVehicle(vehicle);
-
-        transportAsymmetryDetected = false;
 
         if (edgeWeightType == EdgeWeightType.Explicit)
         {
@@ -119,12 +138,13 @@ public class Tsplib95FileReader implements VrpFileParser
             if (i == depotIndex)
                 continue;
 
-            Location deliveryLocation = Location.Builder.newInstance()
-                .setCoordinate(nodeCoords[i])
-                .setIndex(i)
-                .build();
+            Location.Builder deliveryLocationBuilder = Location.Builder.newInstance()
+                .setIndex(i);
+            if (nodeCoords != null)
+                deliveryLocationBuilder.setCoordinate(nodeCoords[i]);
+
             Delivery delivery = Delivery.Builder.newInstance(Integer.toString(i + 1))
-                .setLocation(deliveryLocation)
+                .setLocation(deliveryLocationBuilder.build())
                 .addSizeDimension(0, demands[i])
                 .build();
             builder.addJob(delivery);
@@ -204,6 +224,9 @@ public class Tsplib95FileReader implements VrpFileParser
                     case "FULL_MATRIX":
                         edgeWeightFormat = EdgeWeightFormat.FullMatrix;
                         break;
+                    case "LOWER_ROW":
+                        edgeWeightFormat = EdgeWeightFormat.LowerRow;
+                        break;
                     default:
                         edgeWeightFormat = EdgeWeightFormat.Unsupported;
                         break;
@@ -213,7 +236,7 @@ public class Tsplib95FileReader implements VrpFileParser
                 readNodeCoordSection();
                 break;
             case "EDGE_WEIGHT_SECTION":
-                readEdgeWeightSection();
+                readEdgeWeightSection(edgeWeightFormat);
                 break;
             case "DEMAND_SECTION":
                 readDemandSection();
@@ -267,27 +290,84 @@ public class Tsplib95FileReader implements VrpFileParser
         }
     }
 
-    private void readEdgeWeightSection() throws IOException, VrpParseException
+    private void readEdgeWeightSection(EdgeWeightFormat edgeWeightFormat) throws VrpParseException, IOException
     {
         if (dimension == -1)
             throw new VrpParseException("Problem dimension is unknown");
         if (edgeWeightType != EdgeWeightType.Explicit)
             throw new VrpParseException("Edge weight type is not explicit");
-        if (edgeWeightFormat != EdgeWeightFormat.FullMatrix)
-            throw new VrpParseException("Edge weight format is unknown/unsupported");
+
+        switch (edgeWeightFormat)
+        {
+            case FullMatrix:
+                readFullMatrix();
+                break;
+            case LowerRow:
+                readLowerRow();
+                break;
+            default:
+                throw new VrpParseException("Unsupported edge weight format.");
+        }
+    }
+
+    private void readFullMatrix() throws IOException, VrpParseException
+    {
+        int i = 0;
+        int j = 0;
 
         edgeWeightMatrix = new double[dimension][dimension];
-        for (int i = 0; i < dimension; i++)
+
+        while (i < dimension)
         {
             String line = reader.readLine();
             String[] tokens = line.trim().split("\\s+");
 
-            for (int j = 0; j < dimension; j++)
+            for (String token : tokens)
             {
-                double weight = Double.parseDouble(tokens[j]);
+                double weight = Double.parseDouble(token);
                 edgeWeightMatrix[i][j] = weight;
+
+                j++;
+                if (j == dimension)
+                {
+                    i++;
+                    j = 0;
+                }
             }
         }
+
+        if (j > 0)
+            throw new VrpParseException("More values than expected.");
+    }
+
+    private void readLowerRow() throws IOException, VrpParseException
+    {
+        int i = 1;
+        int j = 0;
+
+        edgeWeightMatrix = new double[dimension][dimension];
+
+        while (i < dimension)
+        {
+            String line = reader.readLine();
+            String[] tokens = line.trim().split("\\s+");
+
+            for (String token : tokens)
+            {
+                double weight = Double.parseDouble(token);
+                edgeWeightMatrix[i][j] = edgeWeightMatrix[j][i] = weight;
+
+                j++;
+                if (j == i)
+                {
+                    i++;
+                    j = 0;
+                }
+            }
+        }
+
+        if (j > 0)
+            throw new VrpParseException("More values than expected.");
     }
 
     private void readDemandSection() throws IOException, VrpParseException

@@ -18,8 +18,8 @@ import java.util.List;
 
 public class SolomonFileReader implements VrpFileParser
 {
-    private int vehicleCount = -1;
-    private int vehicleCapacity = -1;
+    private int vehicleCount;
+    private int vehicleCapacity;
 
     private Coordinate depotLocation;
     private double operationStartTime;
@@ -31,11 +31,21 @@ public class SolomonFileReader implements VrpFileParser
     private List<Double> serviceTimes;
 
     private BufferedReader reader;
-    private boolean lastParseSucceeded = false;
+    private boolean lastParseSucceeded;
+
+    private void resetInternalState()
+    {
+        vehicleCount = -1;
+        vehicleCapacity = -1;
+        depotLocation = null;
+
+        lastParseSucceeded = false;
+    }
 
     public VehicleRoutingProblem parse(String filename) throws VrpParseException, FileNotFoundException
     {
-        lastParseSucceeded = false;
+        resetInternalState();
+
         reader = new BufferedReader(new FileReader(filename));
 
         try
