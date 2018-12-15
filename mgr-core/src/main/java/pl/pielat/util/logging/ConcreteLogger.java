@@ -16,6 +16,7 @@ public class ConcreteLogger extends Logger
         //TODO log date
 
         writer.format(format, args);
+        writer.println();
         writer.flush();
     }
 
