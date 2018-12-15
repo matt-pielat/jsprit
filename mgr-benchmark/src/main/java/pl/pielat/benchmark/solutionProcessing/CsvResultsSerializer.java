@@ -52,11 +52,14 @@ public class CsvResultsSerializer implements BenchmarkSolutionProcessor
     public void aggregateAllRuns(VehicleRoutingProblemSolution[] solutions, int problemIdx, int algorithmIndex)
     {
         if (algorithmIndex >= resultFiles.length)
+        {
+            logger.log("Algorithm index greater than expected, %d>=%d.", algorithmIndex, resultFiles.length);
             return;
+        }
 
         File file = resultFiles[algorithmIndex];
 
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(file))))
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(file, true))))
         {
             if (!headerCreated[algorithmIndex])
             {
@@ -68,13 +71,10 @@ public class CsvResultsSerializer implements BenchmarkSolutionProcessor
                 headerCreated[algorithmIndex] = true;
             }
 
-            for (int i = 0; i < solutions.length; i++)
-            {
-                writer.print(problemIds[problemIdx]);
-                for (int j = 0; j < solutions.length; j++)
-                    writer.printf(";%f", solutions[j].getCost());
-                writer.println();
-            }
+            writer.print(problemIds[problemIdx]);
+            for (int j = 0; j < solutions.length; j++)
+                writer.printf(";%f", solutions[j].getCost());
+            writer.println();
         }
         catch (IOException e)
         {
