@@ -1,6 +1,7 @@
 package pl.pielat.benchmark;
 
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
+import org.apache.commons.io.FilenameUtils;
 import pl.pielat.algorithm.ExtendedProblemDefinition;
 import pl.pielat.benchmark.algorithmCreation.AlgorithmFactory;
 import pl.pielat.benchmark.algorithmCreation.GarridoRiffAlgorithmFactory;
@@ -140,7 +141,8 @@ public class Program
                 VehicleRoutingProblem vrp = problemParser.parse(file.getAbsolutePath());
                 boolean timeWindows = problemParser.timeWindowsDetected();
                 boolean transportAsymmetry = problemParser.transportAsymmetryDetected();
-                instance = new ExtendedProblemDefinition(file.getName(), vrp, timeWindows, transportAsymmetry);
+                String id = FilenameUtils.getBaseName(file.getName());
+                instance = new ExtendedProblemDefinition(id, vrp, timeWindows, transportAsymmetry);
             }
             catch (FileNotFoundException e) //Should not happen
             {
