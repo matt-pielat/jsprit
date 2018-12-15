@@ -35,11 +35,7 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
     private int epoch = 0;
 
     private ProblemInfo problemInfo;
-
     private EntityConverter converter;
-
-    private static boolean DEBUG = false;
-
 
     public EvolutionaryHyperheuristicModule(VehicleRoutingProblem problem,
                                             boolean transportAsymmetry, boolean timeWindows,
@@ -50,7 +46,9 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
         jobCount = problemInfo.jobs.size();
 
         if (initChromosomeSize > jobCount)
-            throw new IllegalArgumentException("Initial chromosome size is greater than job count.");
+        {
+            initChromosomeSize = jobCount;
+        }
 
         this.popSize = popSize;
         this.offspringSize = offspringSize;
@@ -222,19 +220,6 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
                 bestSolutionRoutes = resultRoutes;
                 bestSolution = converter.getSolution(bestSolutionRoutes, routesCost);
             }
-        }
-
-        if (DEBUG)
-        {
-            System.out.print("Best solution cost: " + bestSolution.getCost() + "\n");
-            for (int i = 0; i < popSize; i++)
-            {
-                if (i == eliteIdx)
-                    System.out.print("(" + population[i].size() + ") ");
-                else
-                    System.out.print(population[i].size() + " ");
-            }
-            System.out.println();
         }
 
         return bestSolution;
