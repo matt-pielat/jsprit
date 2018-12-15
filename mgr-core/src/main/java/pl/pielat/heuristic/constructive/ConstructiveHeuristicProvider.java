@@ -25,7 +25,7 @@ public class ConstructiveHeuristicProvider extends TabuRandomizer<ConstructiveHe
             new KilbyAlgorithm(problemInfo),
             new MoleJamesonHeuristic(problemInfo)));
 
-        if (!problemInfo.timeWindows)
+        if (!problemInfo.timeWindows && !problemInfo.noCoordinates)
             heuristics.add( new SweepAlgorithm(problemInfo));
     }
 

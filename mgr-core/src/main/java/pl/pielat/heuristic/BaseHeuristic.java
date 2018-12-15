@@ -14,6 +14,8 @@ public abstract class BaseHeuristic
 
     protected final boolean transportAsymmetry;
     protected final boolean timeWindows;
+    protected final boolean noCoordinates;
+
     protected final int vehicleCapacity;
     protected final Place depot;
     private final ProblemInfo.TransportCostFunction costFunction;
@@ -30,6 +32,8 @@ public abstract class BaseHeuristic
 
         transportAsymmetry = info.transportAsymmetry;
         timeWindows = info.timeWindows;
+        noCoordinates = info.noCoordinates;
+
         vehicleCapacity = info.vehicleCapacity;
         depot = info.depot;
         costFunction = info.costFunction;

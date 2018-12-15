@@ -34,6 +34,9 @@ public class OrderingByRadialSweep extends OrderingHeuristic
     {
         super(info, order == RadialOrder.CLOCKWISE ? Order.ASCENDING : Order.DESCENDING);
 
+        if (noCoordinates)
+            throw new IllegalArgumentException("This heuristic cannot be used when jobs or depots have no coordinates.");
+
         Coordinate depotCoordinate = depot.location.getCoordinate();
         depotX = depotCoordinate.getX();
         depotY = depotCoordinate.getY();

@@ -40,11 +40,7 @@ public class OrderingHeuristicProvider extends TabuRandomizer<OrderingHeuristic>
             new OrderingByCost(problemInfo, ascending, fromDepot),
             new OrderingByCost(problemInfo, descending, fromDepot),
             new OrderingByDemand(problemInfo, ascending),
-            new OrderingByDemand(problemInfo, descending),
-            new OrderingByRadialSweep(problemInfo, clockwise, closestJob),
-            new OrderingByRadialSweep(problemInfo, counterclockwise, closestJob),
-            new OrderingByRadialSweep(problemInfo, clockwise, farthestJob),
-            new OrderingByRadialSweep(problemInfo, counterclockwise, farthestJob)
+            new OrderingByDemand(problemInfo, descending)
         ));
 
         if (problemInfo.transportAsymmetry)
@@ -64,6 +60,16 @@ public class OrderingHeuristicProvider extends TabuRandomizer<OrderingHeuristic>
                 new OrderingByTimeWindow(problemInfo, descending, windowEnd),
                 new OrderingByTimeWindow(problemInfo, ascending, windowSize),
                 new OrderingByTimeWindow(problemInfo, descending, windowSize)
+            ));
+        }
+
+        if (!problemInfo.noCoordinates)
+        {
+            heuristics.addAll(Arrays.asList(
+                new OrderingByRadialSweep(problemInfo, clockwise, closestJob),
+                new OrderingByRadialSweep(problemInfo, counterclockwise, closestJob),
+                new OrderingByRadialSweep(problemInfo, clockwise, farthestJob),
+                new OrderingByRadialSweep(problemInfo, counterclockwise, farthestJob)
             ));
         }
     }
