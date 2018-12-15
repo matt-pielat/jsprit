@@ -10,6 +10,8 @@ import pl.pielat.benchmark.runnerEngine.BenchmarkRunner;
 import pl.pielat.benchmark.runnerEngine.BenchmarkRunnerArgs;
 import pl.pielat.benchmark.solutionProcessing.BenchmarkSolutionProcessor;
 import pl.pielat.benchmark.solutionProcessing.CsvResultsSerializer;
+import pl.pielat.benchmark.solutionProcessing.EachRunToFileSerializer;
+import pl.pielat.benchmark.solutionProcessing.SolutionMultiprocessor;
 import pl.pielat.util.logging.ConcreteLogger;
 import pl.pielat.util.logging.Logger;
 import pl.pielat.util.logging.Multilogger;
@@ -219,6 +221,13 @@ public class Program
             problemIds[i] = problemInstances[i].id;
         }
 
-        return new CsvResultsSerializer(resultsFilePaths, problemIds, logger);
+        VrpSolutionSerializer runSerializer = new AugeratFormatSolutionSerializer();
+
+        BenchmarkSolutionProcessor csvSerializer = new CsvResultsSerializer(
+            resultsFilePaths, problemIds, logger);
+        BenchmarkSolutionProcessor routeSerializer = new EachRunToFileSerializer(
+            runSerializer, problemIds, outputDirectories, logger);
+
+        return new SolutionMultiprocessor(csvSerializer, routeSerializer);
     }
 }
