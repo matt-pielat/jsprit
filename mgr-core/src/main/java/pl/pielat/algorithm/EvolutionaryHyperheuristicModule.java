@@ -192,11 +192,11 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
         boolean[] popsToKeepAlive = new boolean[popSize];
         popsToKeepAlive[eliteIdx] = true;
 
-            for (int i = 0; i < offspringSize; i++)
-            {
-                int selectedIdx = selectRandomIndividualIndex(popsToKeepAlive);
-                popsToKeepAlive[selectedIdx] = true;
-            }
+        for (int i = 0; i < popSize - offspringSize - 1; i++)
+        {
+            int selectedIdx = selectRandomIndividualIndex(popsToKeepAlive);
+            popsToKeepAlive[selectedIdx] = true;
+        }
 
         // Replace part of the population individuals with offspring
         for (int i = 0, j = 0; i < popSize; i++)
