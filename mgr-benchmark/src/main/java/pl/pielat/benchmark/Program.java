@@ -148,9 +148,9 @@ public class Program
                 logger.log(e);
                 continue;
             }
-            catch (VrpParseException e)
+            catch (Exception e)
             {
-                logger.log("Skipping - problem parse failure.");
+                logger.log("Skipping - problem parse failure. (%s)", file.getAbsolutePath());
                 logger.log(e);
                 continue;
             }
