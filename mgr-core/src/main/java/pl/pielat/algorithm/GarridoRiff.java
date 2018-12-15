@@ -2,7 +2,6 @@ package pl.pielat.algorithm;
 
 import com.graphhopper.jsprit.core.algorithm.SearchStrategy;
 import com.graphhopper.jsprit.core.algorithm.SearchStrategyManager;
-import com.graphhopper.jsprit.core.algorithm.SearchStrategyModule;
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.algorithm.acceptor.GreedyAcceptance;
 import com.graphhopper.jsprit.core.algorithm.selector.SelectBest;
@@ -16,6 +15,11 @@ import java.util.Stack;
 
 public class GarridoRiff
 {
+    //TODO tune defaults
+    public static final int DEFAULT_POPULATION_SIZE = 10;
+    public static final int DEFAULT_OFFSPRING_SIZE = 5;
+    public static final int DEFAULT_CHROMOSOME_SIZE = 4;
+
     private int populationSize;
     private int offspringSize;
     private int chromosomeSize;
@@ -24,11 +28,9 @@ public class GarridoRiff
 
     public GarridoRiff()
     {
-        //TODO tune
-        // Defaults
-        populationSize = 10;
-        offspringSize = 5;
-        chromosomeSize = 4;
+        populationSize = DEFAULT_POPULATION_SIZE;
+        offspringSize = DEFAULT_OFFSPRING_SIZE;
+        chromosomeSize = DEFAULT_CHROMOSOME_SIZE;
     }
 
     public void setPopulationSize(int populationSize)

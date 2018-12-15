@@ -21,7 +21,7 @@ public class RunnerTests
         args.problemDirectory = new File(rootDirectory, "Problems");
         args.runsPerProblem = 3;
         args.timeWindows = false;
-        args.timeThresholdInMs = 100;
+        args.timePerRunInMs = 100;
 
         Program program = new Program(args);
         try
@@ -46,7 +46,7 @@ public class RunnerTests
         args.problemDirectory = new File(rootDirectory, "Problems");
         args.runsPerProblem = 3;
         args.timeWindows = false;
-        args.timeThresholdInMs = 100;
+        args.timePerRunInMs = 100;
 
         Program program = new Program(args);
         try
@@ -71,7 +71,7 @@ public class RunnerTests
         args.problemDirectory = new File(rootDirectory, "Problems");
         args.runsPerProblem = 3;
         args.timeWindows = true;
-        args.timeThresholdInMs = 100;
+        args.timePerRunInMs = 100;
 
         Program program = new Program(args);
         try

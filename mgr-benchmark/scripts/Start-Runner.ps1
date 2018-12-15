@@ -1,22 +1,38 @@
 param(
     [string]$InputDir,
     [bool]$TimeWindows,
-    [string]$JspritOutputDir,
-    [string]$GarridoRiffOutputDir,
+    [string]$JspritOutDir,
+    [string]$GarridoRiffOutDir,
     [string]$LogDir,
-    [long]$TimeLimitInMs,
-    [int]$RunsPerProblem
+    [long]$TimePerRun,
+    [int]$RunsPerProblem,
+    [int]$PopulationSize,
+    [int]$OffspringSize,
+    [int]$ChromosomeSize
 )
-
-# Example usage:
-# .\Start-Runner.ps1 -InputDir "D:\VRP Benchmarks\Set A - Augerat\Problems" -TimeWindows $false -JspritOutputDir "D:\VRP Benchmarks\Set A - Augerat\Solutions jsprit" -GarridoRiffOutputDir "D:\VRP Benchmarks\Set A - Augerat\Solutions algorithm" -LogDir "D:\VRP Benchmarks\Set A - Augerat\Logs" -TimeLimitInMs 5000 -RunsPerProblem 10
 
 $jarPath = "$PSScriptRoot\..\output\mgr-benchmark.jar"
 
 $timeWindowsArg = ""
-if ($TimeWindows)
-{
-    $timeWindowsArg = "-tw"
-}
+if ($TimeWindows) { $timeWindowsArg = "--timeWindows" }
 
-& java -jar "$jarPath" -i "$InputDir" $timeWindowsArg -j "$JspritOutputDir" -gr "$GarridoRiffOutputDir" -l "$LogDir" -t $TimeLimitInMs -r $RunsPerProblem
+$populationSizeArg = ""
+if ($PopulationSize) { $populationSizeArg = "--populationSize $PopulationSize" }
+
+$offspringSizeArg = ""
+if ($OffspringSize) { $offspringSizeArg = "--offspringSize $OffspringSize" }
+
+$chromosomeSizeArg = ""
+if ($ChromosomeSize) { $chromosomeSizeArg = "--chromosomeSize $ChromosomeSize" }
+
+& java -jar "$jarPath" `
+    --inputDir "$InputDir" `
+    $timeWindowsArg `
+    --jspritOutDir "$JspritOutDir" `
+    --garridoRiffOutDir "$GarridoRiffOutDir" `
+    --logDir "$LogDir" `
+    --timePerRun $TimePerRun `
+    --runsPerProblem $RunsPerProblem `
+    $populationSizeArg `
+    $offspringSizeArg `
+    $chromosomeSizeArg

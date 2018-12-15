@@ -3,6 +3,7 @@ package pl.pielat.benchmark;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import org.apache.commons.io.FilenameUtils;
 import pl.pielat.algorithm.ExtendedProblemDefinition;
+import pl.pielat.algorithm.GarridoRiff;
 import pl.pielat.benchmark.algorithmCreation.AlgorithmFactory;
 import pl.pielat.benchmark.algorithmCreation.GarridoRiffAlgorithmFactory;
 import pl.pielat.benchmark.algorithmCreation.JspritAlgorithmFactory;
@@ -18,7 +19,6 @@ import pl.pielat.util.logging.Multilogger;
 import pl.pielat.util.problemParsing.SolomonFileReader;
 import pl.pielat.util.problemParsing.Tsplib95FileReader;
 import pl.pielat.util.problemParsing.VrpFileParser;
-import pl.pielat.util.problemParsing.VrpParseException;
 import pl.pielat.util.solutionSerialization.AugeratFormatSolutionSerializer;
 import pl.pielat.util.solutionSerialization.VrpSolutionSerializer;
 
@@ -68,7 +68,13 @@ public class Program
 
         if (args.garridoRiffOutputDirectory != null)
         {
-            factoryList.add(new GarridoRiffAlgorithmFactory());
+            int populationSize = args.populationSize > 0 ? args.populationSize : GarridoRiff.DEFAULT_POPULATION_SIZE;
+            int offspringSize = args.offspringSize > 0 ? args.offspringSize : GarridoRiff.DEFAULT_OFFSPRING_SIZE;
+            int chromosomeSize = args.chromosomeSize > 0 ? args.chromosomeSize : GarridoRiff.DEFAULT_CHROMOSOME_SIZE;
+
+            GarridoRiffAlgorithmFactory factory = new GarridoRiffAlgorithmFactory(
+                populationSize, offspringSize, chromosomeSize);
+            factoryList.add(factory);
             outputDirectoryList.add(args.garridoRiffOutputDirectory);
         }
         if (args.jspritOutputDirectory != null)
@@ -78,7 +84,7 @@ public class Program
         }
 
         for (AlgorithmFactory factory : factoryList)
-            factory.setTimeThreshold(args.timeThresholdInMs);
+            factory.setTimeThreshold(args.timePerRunInMs);
         algorithmFactories = factoryList.toArray(new AlgorithmFactory[0]);
 
         problemParser = args.timeWindows

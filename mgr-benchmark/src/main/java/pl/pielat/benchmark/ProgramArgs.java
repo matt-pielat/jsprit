@@ -67,14 +67,14 @@ public class ProgramArgs
     public boolean timeWindows;
 
     @Parameter(
-        names = {"--jsprit", "-j"},
+        names = {"--jspritOutDir", "-j"},
         description = "jsprit output directory",
         converter = FileConverter.class,
         validateWith = NotRegularFileValidator.class)
     public File jspritOutputDirectory;
 
     @Parameter(
-        names = {"--garridoRiff", "-gr"},
+        names = {"--garridoRiffOutDir", "-gr"},
         description = "Garrido-Riff output directory",
         converter = FileConverter.class,
         validateWith = NotRegularFileValidator.class)
@@ -89,18 +89,36 @@ public class ProgramArgs
     public File logDirectory;
 
     @Parameter(
-        names = {"--timeLimit", "-t"},
+        names = {"--timePerRun", "-t"},
         description = "Time limit per problem run in milliseconds",
         validateWith = PositiveNumberValidator.class,
         required = true)
-    public long timeThresholdInMs;
+    public long timePerRunInMs;
 
     @Parameter(
-        names = {"--runs", "-r"},
+        names = {"--runsPerProblem", "-r"},
         description = "Runs per problem instance",
         validateWith = PositiveNumberValidator.class,
         required = true)
     public int runsPerProblem;
+
+    @Parameter(
+        names = {"--populationSize", "-pops"},
+        description = "Population size in Garrido-Riff algorithm",
+        validateWith = PositiveNumberValidator.class)
+    public int populationSize;
+
+    @Parameter(
+        names = {"--offspringSize", "-offs"},
+        description = "Offspring size in Garrido-Riff algorithm",
+        validateWith = PositiveNumberValidator.class)
+    public int offspringSize;
+
+    @Parameter(
+        names = {"--chromosomeSize", "-chrs"},
+        description = "Starting chromosome size in Garrido-Riff algorithm",
+        validateWith = PositiveNumberValidator.class)
+    public int chromosomeSize;
 
     public static ProgramArgs parse(String[] rawArgs) throws ParameterException
     {
@@ -113,6 +131,9 @@ public class ProgramArgs
 
         if (args.jspritOutputDirectory == null && args.garridoRiffOutputDirectory == null)
             throw new ParameterException("No algorithm was chosen");
+
+        if (args.offspringSize > args.populationSize)
+            throw new ParameterException("Offspring size can not be greater than population size");
 
         return args;
     }
