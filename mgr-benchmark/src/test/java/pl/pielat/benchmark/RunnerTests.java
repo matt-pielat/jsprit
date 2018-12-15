@@ -58,4 +58,29 @@ public class RunnerTests
             Assert.fail();
         }
     }
+
+    @Test
+    public void solomonC50()
+    {
+        ProgramArgs args = new ProgramArgs();
+        File rootDirectory = new File("D:\\VRP Benchmarks\\Solomon C50");
+        File solutionsDirectory = new File(rootDirectory, "Solutions");
+        args.garridoRiffOutputDirectory = new File(solutionsDirectory, "Pielat");
+        args.jspritOutputDirectory = new File(solutionsDirectory, "jsprit");
+        args.logDirectory = new File(rootDirectory, "Logs");
+        args.problemDirectory = new File(rootDirectory, "Problems");
+        args.runsPerProblem = 3;
+        args.timeWindows = true;
+        args.timeThresholdInMs = 100;
+
+        Program program = new Program(args);
+        try
+        {
+            program.start();
+        }
+        catch (IOException e)
+        {
+            Assert.fail();
+        }
+    }
 }
