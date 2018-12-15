@@ -3,43 +3,34 @@ package pl.pielat.benchmark;
 
 import org.junit.Assert;
 import org.junit.Test;
-import pl.pielat.algorithm.ExtendedProblemDefinition;
-import pl.pielat.benchmark.algorithmCreation.AlgorithmFactory;
-import pl.pielat.benchmark.algorithmCreation.JspritAlgorithmFactory;
-import pl.pielat.benchmark.runnerEngine.BenchmarkRunner;
-import pl.pielat.benchmark.runnerEngine.BenchmarkRunnerArgs;
-import pl.pielat.util.logging.DummyLogger;
 
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 public class RunnerTests
 {
     @Test
-    public void jspritCvrpBenchmarkRun()
+    public void augeratSetA()
     {
-        AlgorithmFactory factory = new JspritAlgorithmFactory();
-        factory.setTimeThreshold(100);
+        ProgramArgs args = new ProgramArgs();
+        File rootDirectory = new File("D:\\VRP Benchmarks\\Set A (Augerat, 1995)");
+        File solutionsDirectory = new File(rootDirectory, "Solutions");
+        args.garridoRiffOutputDirectory = new File(solutionsDirectory, "Pielat");
+        args.jspritOutputDirectory = new File(solutionsDirectory, "jsprit");
+        args.logDirectory = new File(rootDirectory, "Logs");
+        args.problemDirectory = new File(rootDirectory, "Problems");
+        args.runsPerProblem = 10;
+        args.timeWindows = false;
+        args.timeThresholdInMs = 100;
 
+        Program program = new Program(args);
         try
         {
-            Path problemDirectory = Files.createTempDirectory("problem");
-            Path solutionDirectory = Files.createTempDirectory("solution");
-
-            BenchmarkRunnerArgs args = new BenchmarkRunnerArgs();
-            args.algorithmFactories = new AlgorithmFactory[] {factory};
-            args.logger = new DummyLogger();
-            args.problemInstances = new ExtendedProblemDefinition[0];
-            args.runsPerProblem = 10;
-            args.solutionProcessor = new DummySolutionProcessor();
-
-            BenchmarkRunner runner = new BenchmarkRunner(args);
+            program.start();
         }
         catch (IOException e)
         {
-            e.printStackTrace();
-            Assert.fail(e.getMessage());
+            Assert.fail();
         }
     }
 }

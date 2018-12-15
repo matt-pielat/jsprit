@@ -19,10 +19,7 @@ import pl.pielat.util.problemParsing.VrpParseException;
 import pl.pielat.util.solutionSerialization.AugeratFormatSolutionSerializer;
 import pl.pielat.util.solutionSerialization.VrpSolutionSerializer;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -61,7 +58,7 @@ public class Program
     private ExtendedProblemDefinition problemInstances[];
     private File inputFiles[];
 
-    private Program(ProgramArgs args)
+    Program(ProgramArgs args)
     {
         List<AlgorithmFactory> factoryList = new ArrayList<>(2);
         List<File> outputDirectoryList = new ArrayList<>(2);
@@ -93,7 +90,7 @@ public class Program
         runsPerProblem = args.runsPerProblem;
     }
 
-    private void start() throws Exception
+    void start() throws IOException
     {
         logDirectory.mkdirs();
         Logger logger = createLogger(logDirectory);
@@ -168,7 +165,7 @@ public class Program
         logger.log("Successfully parsed %d files.", problemInstances.length);
     }
 
-    private Logger createLogger(File directory) throws Exception
+    private Logger createLogger(File directory) throws IOException
     {
         String date = new SimpleDateFormat("yyMMdd-HHmmss").format(Calendar.getInstance().getTime());
 
@@ -220,6 +217,6 @@ public class Program
             problemIds[i] = problemInstances[i].id;
         }
 
-       return new CsvResultsSerializer(resultsFilePaths, problemIds, logger);
+        return new CsvResultsSerializer(resultsFilePaths, problemIds, logger);
     }
 }
