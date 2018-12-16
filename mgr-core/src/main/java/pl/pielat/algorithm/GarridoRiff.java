@@ -15,10 +15,9 @@ import java.util.Stack;
 
 public class GarridoRiff
 {
-    //TODO tune defaults
     public static final int DEFAULT_POPULATION_SIZE = 10;
     public static final int DEFAULT_OFFSPRING_SIZE = 5;
-    public static final int DEFAULT_CHROMOSOME_SIZE = 4;
+    public static final int DEFAULT_CHROMOSOME_SIZE = 5;
 
     private int populationSize;
     private int offspringSize;
