@@ -58,17 +58,27 @@ public class BenchmarkRunner
             {
                 for (int a = 0; a < algorithmCount; a++)
                 {
+                    VehicleRoutingProblemSolution bestSolution;
                     logger.log("Algorithm %d start (run %d/%d).", a + 1, r + 1, runsPerProblem);
 
-                    VehicleRoutingAlgorithm vra = algorithmFactories[a].build(vrp);
-                    Collection<VehicleRoutingProblemSolution> foundSolutions = vra.searchSolutions();
-
-                    if (foundSolutions.isEmpty())
+                    try
                     {
-                        logger.log("Algorithm finished - solution not found.");
+                        VehicleRoutingAlgorithm vra = algorithmFactories[a].build(vrp);
+                        Collection<VehicleRoutingProblemSolution> foundSolutions = vra.searchSolutions();
+
+                        if (foundSolutions.isEmpty())
+                        {
+                            logger.log("Algorithm finished - solution not found.");
+                            continue;
+                        }
+                        bestSolution = solutionSelector.selectSolution(foundSolutions);
+                    }
+                    catch (Exception e)
+                    {
+                        logger.log(e);
                         continue;
                     }
-                    VehicleRoutingProblemSolution bestSolution = solutionSelector.selectSolution(foundSolutions);
+
                     logger.log("Algorithm finished - solution found.");
 
                     solutions[a][r] = bestSolution;
