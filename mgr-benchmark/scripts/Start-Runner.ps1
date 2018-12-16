@@ -13,26 +13,22 @@ param(
 
 $jarPath = "$PSScriptRoot\..\output\mgr-benchmark.jar"
 
-$timeWindowsArg = ""
 if ($TimeWindows) { $timeWindowsArg = "--timeWindows" }
+if ($JspritOutDir) { $jspritOutDirArg = "--jspritOutDir" }
+if ($GarridoRiffOutDir) { $garridoRiffOutDirArg = "--garridoRiffOutDir" }
+if ($PopulationSize) { $populationSizeArg = "--populationSize" }
+if ($OffspringSize) { $offspringSizeArg = "--offspringSize" }
+if ($ChromosomeSize) { $chromosomeSizeArg = "--chromosomeSize" }
 
-$populationSizeArg = ""
-if ($PopulationSize) { $populationSizeArg = "--populationSize $PopulationSize" }
 
-$offspringSizeArg = ""
-if ($OffspringSize) { $offspringSizeArg = "--offspringSize $OffspringSize" }
-
-$chromosomeSizeArg = ""
-if ($ChromosomeSize) { $chromosomeSizeArg = "--chromosomeSize $ChromosomeSize" }
-
-& java -jar "$jarPath" `
+java -jar "$jarPath" `
     --inputDir "$InputDir" `
     $timeWindowsArg `
-    --jspritOutDir "$JspritOutDir" `
-    --garridoRiffOutDir "$GarridoRiffOutDir" `
+    $jspritOutDirArg "$JspritOutDir" `
+    $garridoRiffOutDirArg "$GarridoRiffOutDir" `
     --logDir "$LogDir" `
     --timePerRun $TimePerRun `
     --runsPerProblem $RunsPerProblem `
-    $populationSizeArg `
-    $offspringSizeArg `
-    $chromosomeSizeArg
+    $populationSizeArg $PopulationSize `
+    $offspringSizeArg $OffspringSize `
+    $chromosomeSizeArg $ChromosomeSize
