@@ -4,6 +4,8 @@ import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.algorithm.box.Jsprit;
 import pl.pielat.algorithm.ExtendedProblemDefinition;
 
+import java.util.Random;
+
 public class JspritAlgorithmFactory extends AlgorithmFactory
 {
     @Override
@@ -15,6 +17,9 @@ public class JspritAlgorithmFactory extends AlgorithmFactory
     @Override
     public VehicleRoutingAlgorithm createAlgorithm(ExtendedProblemDefinition vrp)
     {
-        return Jsprit.Builder.newInstance(vrp.vrp).buildAlgorithm();
+        Jsprit.Builder builder = Jsprit.Builder.newInstance(vrp.vrp);
+        builder.setRandom(new Random());
+
+        return builder.buildAlgorithm();
     }
 }
