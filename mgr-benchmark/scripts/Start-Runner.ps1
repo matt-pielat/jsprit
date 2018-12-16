@@ -4,22 +4,31 @@ param(
     [string]$JspritOutDir,
     [string]$GarridoRiffOutDir,
     [string]$LogDir,
-    [long]$TimePerRun,
-    [int]$RunsPerProblem,
-    [int]$PopulationSize,
-    [int]$OffspringSize,
-    [int]$ChromosomeSize
+    [long]$TimePerRun = 999999999,
+    [int]$IterationsPerRun = 2000000000,
+    [int]$RunsPerProblem = 10,
+    [int]$PopulationSize = 10,
+    [int]$OffspringSize = 5,
+    [int]$ChromosomeSize = 5
 )
+
+"InputDir: " + $InputDir
+"TimeWindows: " + $TimeWindows
+"JspritOutDir: " + $JspritOutDir
+"GarridoRiffOutDir: " + $GarridoRiffOutDir
+"LogDir: " + $LogDir
+"TimePerRun: " + $TimePerRun
+"IterationsPerRun: " + $IterationsPerRun
+"RunsPerProblem: " + $RunsPerProblem
+"PopulationSize: " + $PopulationSize
+"OffspringSize: " + $OffspringSize
+"ChromosomeSize: " + $ChromosomeSize
 
 $jarPath = "$PSScriptRoot\..\output\mgr-benchmark.jar"
 
 if ($TimeWindows) { $timeWindowsArg = "--timeWindows" }
 if ($JspritOutDir) { $jspritOutDirArg = "--jspritOutDir" }
 if ($GarridoRiffOutDir) { $garridoRiffOutDirArg = "--garridoRiffOutDir" }
-if ($PopulationSize) { $populationSizeArg = "--populationSize" }
-if ($OffspringSize) { $offspringSizeArg = "--offspringSize" }
-if ($ChromosomeSize) { $chromosomeSizeArg = "--chromosomeSize" }
-
 
 java -jar "$jarPath" `
     --inputDir "$InputDir" `
@@ -28,7 +37,8 @@ java -jar "$jarPath" `
     $garridoRiffOutDirArg "$GarridoRiffOutDir" `
     --logDir "$LogDir" `
     --timePerRun $TimePerRun `
+    --iterationsPerRun $IterationsPerRun `
     --runsPerProblem $RunsPerProblem `
-    $populationSizeArg $PopulationSize `
-    $offspringSizeArg $OffspringSize `
-    $chromosomeSizeArg $ChromosomeSize
+    --populationSize $PopulationSize `
+    --offspringSize $OffspringSize `
+    --chromosomeSize $ChromosomeSize

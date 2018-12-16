@@ -91,9 +91,14 @@ public class ProgramArgs
     @Parameter(
         names = {"--timePerRun", "-t"},
         description = "Time limit per problem run in milliseconds",
-        validateWith = PositiveNumberValidator.class,
-        required = true)
+        validateWith = PositiveNumberValidator.class)
     public long timePerRunInMs;
+
+    @Parameter(
+        names = {"--iterationsPerRun", "-it"},
+        description = "Time limit per problem run in milliseconds",
+        validateWith = PositiveNumberValidator.class)
+    public int iterationsPerRunInMs;
 
     @Parameter(
         names = {"--runsPerProblem", "-r"},
@@ -134,6 +139,9 @@ public class ProgramArgs
 
         if (args.offspringSize > args.populationSize)
             throw new ParameterException("Offspring size can not be greater than population size");
+
+        if (args.timePerRunInMs == 0 && args.iterationsPerRunInMs == 0)
+            throw new ParameterException("Either time limit or iteration limit has to be provided");
 
         return args;
     }

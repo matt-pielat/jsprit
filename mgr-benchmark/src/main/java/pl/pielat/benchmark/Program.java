@@ -84,7 +84,12 @@ public class Program
         }
 
         for (AlgorithmFactory factory : factoryList)
-            factory.setTimeThreshold(args.timePerRunInMs);
+        {
+            if (args.timePerRunInMs > 0)
+                factory.setTimeThreshold(args.timePerRunInMs);
+            if (args.iterationsPerRunInMs > 0)
+                factory.setMaxIterations(args.iterationsPerRunInMs);
+        }
         algorithmFactories = factoryList.toArray(new AlgorithmFactory[0]);
 
         problemParser = args.timeWindows
