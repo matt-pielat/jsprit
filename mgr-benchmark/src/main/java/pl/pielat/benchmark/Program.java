@@ -9,10 +9,8 @@ import pl.pielat.benchmark.algorithmCreation.GarridoRiffAlgorithmFactory;
 import pl.pielat.benchmark.algorithmCreation.JspritAlgorithmFactory;
 import pl.pielat.benchmark.runnerEngine.BenchmarkRunner;
 import pl.pielat.benchmark.runnerEngine.BenchmarkRunnerArgs;
-import pl.pielat.benchmark.solutionProcessing.BenchmarkSolutionProcessor;
-import pl.pielat.benchmark.solutionProcessing.CsvResultsSerializer;
-import pl.pielat.benchmark.solutionProcessing.EachRunToFileSerializer;
-import pl.pielat.benchmark.solutionProcessing.SolutionMultiprocessor;
+import pl.pielat.benchmark.solutionProcessing.ProcessingArgs;
+import pl.pielat.benchmark.solutionProcessing.RunProcessor;
 import pl.pielat.util.logging.ConcreteLogger;
 import pl.pielat.util.logging.Logger;
 import pl.pielat.util.logging.Multilogger;
@@ -55,6 +53,7 @@ public class Program
     private File problemDirectory;
     private File[] outputDirectories;
     private File logDirectory;
+    private boolean serializeIterations;
 
     private int runsPerProblem;
 
@@ -63,6 +62,8 @@ public class Program
 
     Program(ProgramArgs args)
     {
+        serializeIterations = args.serializeIterations;
+
         List<AlgorithmFactory> factoryList = new ArrayList<>(2);
         List<File> outputDirectoryList = new ArrayList<>(2);
 
@@ -119,9 +120,10 @@ public class Program
         benchmarkArgs.algorithmFactories = algorithmFactories;
         benchmarkArgs.logger = logger;
         benchmarkArgs.runsPerProblem = runsPerProblem;
-        benchmarkArgs.solutionProcessor = createSolutionProcessor(logger);
 
-        new BenchmarkRunner(benchmarkArgs).run();
+        BenchmarkRunner runner = new BenchmarkRunner(benchmarkArgs);
+        runner.setRunProcessor(createSolutionProcessor(logger));
+        runner.run();
     }
 
     private void parseProblemInstances(Logger logger) throws FileNotFoundException, IllegalArgumentException
@@ -215,30 +217,51 @@ public class Program
         }
     }
 
-    private BenchmarkSolutionProcessor createSolutionProcessor(Logger logger)
+    private RunProcessor createSolutionProcessor(final Logger logger)
     {
-        String[] resultsFilePaths = new String[algorithmFactories.length];
-        for (int i = 0; i < algorithmFactories.length; i++)
-        {
-            String algorithmId = algorithmFactories[i].getSerializableAlgorithmId();
+        final VrpSolutionSerializer serializer = new AugeratFormatSolutionSerializer();
 
-            File resultsFile = new File(outputDirectories[i], "results.csv");
-            resultsFilePaths[i] = resultsFile.getAbsolutePath();
-        }
+        return new RunProcessor() {
+            @Override
+            public void processIteration(ProcessingArgs args, int iterationIdx)
+            {
+                if (!serializeIterations)
+                    return;
 
-        String[] problemIds = new String[problemInstances.length];
-        for (int i = 0; i < problemInstances.length; i++)
-        {
-            problemIds[i] = problemInstances[i].id;
-        }
+                ExtendedProblemDefinition problemInstance = problemInstances[args.problemIndex];
 
-        VrpSolutionSerializer runSerializer = new AugeratFormatSolutionSerializer();
+                String filename = String.format("%s_r%d_i%d", problemInstance.id, args.runIndex, iterationIdx);
+                File outputFile = new File(outputDirectories[args.algorithmIndex], filename);
 
-        BenchmarkSolutionProcessor csvSerializer = new CsvResultsSerializer(
-            resultsFilePaths, problemIds, logger);
-        BenchmarkSolutionProcessor routeSerializer = new EachRunToFileSerializer(
-            runSerializer, problemIds, outputDirectories, logger);
+                try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputFile, false))))
+                {
+                    serializer.serialize(args.bestSolution, writer);
+                }
+                catch (IOException e)
+                {
+                    logger.log("Failed to serialize iteration solution to file %s.", outputFile.getAbsolutePath());
+                    logger.log(e);
+                }
+            }
 
-        return new SolutionMultiprocessor(csvSerializer, routeSerializer);
+            @Override
+            public void processRun(ProcessingArgs args)
+            {
+                ExtendedProblemDefinition problemInstance = problemInstances[args.problemIndex];
+
+                String filename = String.format("%s_r%d", problemInstance.id, args.runIndex);
+                File outputFile = new File(outputDirectories[args.algorithmIndex], filename);
+
+                try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputFile, false))))
+                {
+                    serializer.serialize(args.bestSolution, writer);
+                }
+                catch (IOException e)
+                {
+                    logger.log("Failed to serialize run solution to file %s.", outputFile.getAbsolutePath());
+                    logger.log(e);
+                }
+            }
+        };
     }
 }

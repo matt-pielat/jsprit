@@ -125,6 +125,12 @@ public class ProgramArgs
         validateWith = PositiveNumberValidator.class)
     public int chromosomeSize;
 
+    @Parameter(
+        names = {"--serializeIterations", "-si"},
+        description = "Serialize iterations")
+    public boolean serializeIterations;
+
+
     public static ProgramArgs parse(String[] rawArgs) throws ParameterException
     {
         ProgramArgs args = new ProgramArgs();

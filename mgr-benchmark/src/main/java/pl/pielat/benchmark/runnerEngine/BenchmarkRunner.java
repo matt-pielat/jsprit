@@ -1,12 +1,18 @@
 package pl.pielat.benchmark.runnerEngine;
 
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
+import com.graphhopper.jsprit.core.algorithm.listener.AlgorithmEndsListener;
+import com.graphhopper.jsprit.core.algorithm.listener.AlgorithmStartsListener;
+import com.graphhopper.jsprit.core.algorithm.listener.IterationEndsListener;
+import com.graphhopper.jsprit.core.algorithm.listener.IterationStartsListener;
 import com.graphhopper.jsprit.core.algorithm.selector.SelectBest;
 import com.graphhopper.jsprit.core.algorithm.selector.SolutionSelector;
+import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import pl.pielat.algorithm.ExtendedProblemDefinition;
 import pl.pielat.benchmark.algorithmCreation.AlgorithmFactory;
-import pl.pielat.benchmark.solutionProcessing.BenchmarkSolutionProcessor;
+import pl.pielat.benchmark.solutionProcessing.ProcessingArgs;
+import pl.pielat.benchmark.solutionProcessing.RunProcessor;
 import pl.pielat.util.logging.DummyLogger;
 import pl.pielat.util.logging.Logger;
 
@@ -16,7 +22,7 @@ import java.util.Collection;
 public class BenchmarkRunner
 {
     private final ExtendedProblemDefinition[] problemInstances;
-    private final BenchmarkSolutionProcessor solutionProcessor;
+    private RunProcessor runProcessor;
     private final AlgorithmFactory[] algorithmFactories;
     private final SolutionSelector solutionSelector;
     private final Logger logger;
@@ -28,7 +34,6 @@ public class BenchmarkRunner
     public BenchmarkRunner(BenchmarkRunnerArgs args)
     {
         problemInstances = args.problemInstances;
-        solutionProcessor = args.solutionProcessor;
         algorithmFactories = args.algorithmFactories;
         solutionSelector = new SelectBest();
 
@@ -38,6 +43,11 @@ public class BenchmarkRunner
             logger = args.logger;
 
         runsPerProblem = args.runsPerProblem;
+    }
+
+    public void setRunProcessor(RunProcessor processor)
+    {
+        runProcessor = processor;
     }
 
     public void run()
@@ -56,6 +66,8 @@ public class BenchmarkRunner
 
             for (int r = 0; r < runsPerProblem; r++)
             {
+                final long[] runStartTimes = new long[algorithmCount];
+
                 for (int a = 0; a < algorithmCount; a++)
                 {
                     VehicleRoutingProblemSolution bestSolution;
@@ -64,33 +76,87 @@ public class BenchmarkRunner
                     try
                     {
                         VehicleRoutingAlgorithm vra = algorithmFactories[a].build(vrp);
-                        Collection<VehicleRoutingProblemSolution> foundSolutions = vra.searchSolutions();
 
-                        if (foundSolutions.isEmpty())
-                        {
-                            logger.log("Algorithm finished - solution not found.");
-                            continue;
-                        }
-                        bestSolution = solutionSelector.selectSolution(foundSolutions);
+                        final int finalR = r;
+                        final int finalP = p;
+                        final int finalA = a;
+
+                        vra.addListener(new IterationStartsListener() {
+                            @Override
+                            public void informIterationStarts(
+                                int iterationIdx,
+                                VehicleRoutingProblem problem,
+                                Collection<VehicleRoutingProblemSolution> solutions)
+                            {
+                                iterationIdx--; // make iterations indices start at 0
+
+                                if (iterationIdx == 0)
+                                    runStartTimes[finalA] = System.nanoTime();
+                            }
+                        });
+
+                        vra.addListener(new IterationEndsListener() {
+                            @Override
+                            public void informIterationEnds(
+                                int iterationIdx,
+                                VehicleRoutingProblem problem,
+                                Collection<VehicleRoutingProblemSolution> solutions)
+                            {
+                                iterationIdx--; // make iterations indices start at 0
+
+                                long msSinceStart = (System.nanoTime() - runStartTimes[finalA]) / 1000000;
+
+                                VehicleRoutingProblemSolution bestSolution;
+                                if (solutions.isEmpty())
+                                {
+                                    logger.log("Iteration finished - solution not found.");
+                                    bestSolution = null;
+                                }
+                                else
+                                {
+                                    bestSolution = solutionSelector.selectSolution(solutions);
+                                }
+
+                                ProcessingArgs args = new ProcessingArgs(finalR, finalP, finalA, msSinceStart, bestSolution);
+                                runProcessor.processIteration(args, iterationIdx);
+                            }
+                        });
+
+                        vra.addListener(new AlgorithmEndsListener() {
+                            @Override
+                            public void informAlgorithmEnds(
+                                VehicleRoutingProblem problem,
+                                Collection<VehicleRoutingProblemSolution> solutions)
+                            {
+                                long msSinceStart = (System.nanoTime() - runStartTimes[finalA]) / 1000000;
+
+                                VehicleRoutingProblemSolution bestSolution;
+                                if (solutions.isEmpty())
+                                {
+                                    logger.log("Algorithm finished - solution not found.");
+                                    bestSolution = null;
+                                }
+                                else
+                                {
+                                    bestSolution = solutionSelector.selectSolution(solutions);
+                                }
+
+                                ProcessingArgs args = new ProcessingArgs(finalR, finalP, finalA, msSinceStart, bestSolution);
+                                runProcessor.processRun(args);
+                            }
+                        });
                     }
                     catch (Exception e)
                     {
                         logger.log(e);
                         continue;
                     }
-
-                    logger.log("Algorithm finished - solution found.");
-
-                    solutions[a][r] = bestSolution;
-                    solutionProcessor.processSingleRun(bestSolution, r, p, a);
                 }
             }
 
             logger.log("Problem processing finished.");
-
-            for (int a = 0; a < algorithmCount; a++)
-                solutionProcessor.aggregateAllRuns(solutions[a], p, a);
         }
+
         logger.log("Main loop finished.");
     }
 }

@@ -1,19 +1,18 @@
 package pl.pielat.benchmark;
 
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
-import pl.pielat.benchmark.solutionProcessing.BenchmarkSolutionProcessor;
+import pl.pielat.benchmark.solutionProcessing.ProcessingArgs;
+import pl.pielat.benchmark.solutionProcessing.RunProcessor;
 
-public class DummySolutionProcessor implements BenchmarkSolutionProcessor
+public class DummySolutionProcessor implements RunProcessor
 {
     @Override
-    public void processSingleRun(VehicleRoutingProblemSolution solution, int runIdx, int problemIdx, int algorithmIdx)
+    public void processIteration(ProcessingArgs args, int iterationIdx)
     {
-
     }
 
     @Override
-    public void aggregateAllRuns(VehicleRoutingProblemSolution[] solutions, int problemIdx, int algorithmIndex)
+    public void processRun(ProcessingArgs args)
     {
-
     }
 }
