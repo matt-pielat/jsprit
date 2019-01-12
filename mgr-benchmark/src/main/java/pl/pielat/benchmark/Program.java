@@ -9,6 +9,7 @@ import pl.pielat.benchmark.algorithmCreation.GarridoRiffAlgorithmFactory;
 import pl.pielat.benchmark.algorithmCreation.JspritAlgorithmFactory;
 import pl.pielat.benchmark.runnerEngine.BenchmarkRunner;
 import pl.pielat.benchmark.runnerEngine.BenchmarkRunnerArgs;
+import pl.pielat.benchmark.solutionProcessing.IterationProcessor;
 import pl.pielat.benchmark.solutionProcessing.ProcessingArgs;
 import pl.pielat.benchmark.solutionProcessing.RunProcessor;
 import pl.pielat.util.logging.ConcreteLogger;
@@ -122,7 +123,8 @@ public class Program
         benchmarkArgs.runsPerProblem = runsPerProblem;
 
         BenchmarkRunner runner = new BenchmarkRunner(benchmarkArgs);
-        runner.setRunProcessor(createSolutionProcessor(logger));
+        runner.setRunProcessor(createRunProcessor(logger));
+        runner.setIterationProcessor(createIterationProcessor(logger));
         runner.run();
     }
 
@@ -217,11 +219,55 @@ public class Program
         }
     }
 
-    private RunProcessor createSolutionProcessor(final Logger logger)
+    private RunProcessor createRunProcessor(final Logger logger)
     {
         final VrpSolutionSerializer serializer = new AugeratFormatSolutionSerializer();
 
+        if (serializeIterations)
+        {
+            return new RunProcessor() {
+                @Override
+                public void processRun(ProcessingArgs args)
+                { }
+            };
+        }
+
         return new RunProcessor() {
+            @Override
+            public void processRun(ProcessingArgs args)
+            {
+                ExtendedProblemDefinition problemInstance = problemInstances[args.problemIndex];
+
+                String filename = String.format("%s_r%d", problemInstance.id, args.runIndex);
+                File outputFile = new File(outputDirectories[args.algorithmIndex], filename);
+
+                try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputFile, false))))
+                {
+                    serializer.serialize(args.bestSolution, writer);
+                }
+                catch (IOException e)
+                {
+                    logger.log("Failed to serialize run solution to file %s.", outputFile.getAbsolutePath());
+                    logger.log(e);
+                }
+            }
+        };
+    }
+
+    private IterationProcessor createIterationProcessor(final Logger logger)
+    {
+        final VrpSolutionSerializer serializer = new AugeratFormatSolutionSerializer();
+
+        if (!serializeIterations)
+        {
+            return new IterationProcessor() {
+                @Override
+                public void processIteration(ProcessingArgs args, int iterationIdx)
+                { }
+            };
+        }
+
+        return new IterationProcessor() {
             @Override
             public void processIteration(ProcessingArgs args, int iterationIdx)
             {
@@ -240,25 +286,6 @@ public class Program
                 catch (IOException e)
                 {
                     logger.log("Failed to serialize iteration solution to file %s.", outputFile.getAbsolutePath());
-                    logger.log(e);
-                }
-            }
-
-            @Override
-            public void processRun(ProcessingArgs args)
-            {
-                ExtendedProblemDefinition problemInstance = problemInstances[args.problemIndex];
-
-                String filename = String.format("%s_r%d", problemInstance.id, args.runIndex);
-                File outputFile = new File(outputDirectories[args.algorithmIndex], filename);
-
-                try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputFile, false))))
-                {
-                    serializer.serialize(args.bestSolution, writer);
-                }
-                catch (IOException e)
-                {
-                    logger.log("Failed to serialize run solution to file %s.", outputFile.getAbsolutePath());
                     logger.log(e);
                 }
             }

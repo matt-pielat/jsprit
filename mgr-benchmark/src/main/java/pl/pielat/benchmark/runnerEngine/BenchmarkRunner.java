@@ -11,6 +11,7 @@ import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import pl.pielat.algorithm.ExtendedProblemDefinition;
 import pl.pielat.benchmark.algorithmCreation.AlgorithmFactory;
+import pl.pielat.benchmark.solutionProcessing.IterationProcessor;
 import pl.pielat.benchmark.solutionProcessing.ProcessingArgs;
 import pl.pielat.benchmark.solutionProcessing.RunProcessor;
 import pl.pielat.util.logging.DummyLogger;
@@ -23,6 +24,7 @@ public class BenchmarkRunner
 {
     private final ExtendedProblemDefinition[] problemInstances;
     private RunProcessor runProcessor;
+    private IterationProcessor iterationProcessor;
     private final AlgorithmFactory[] algorithmFactories;
     private final SolutionSelector solutionSelector;
     private final Logger logger;
@@ -50,6 +52,11 @@ public class BenchmarkRunner
         runProcessor = processor;
     }
 
+    public void setIterationProcessor(IterationProcessor processor)
+    {
+        iterationProcessor = processor;
+    }
+
     public void run()
     {
         int algorithmCount = algorithmFactories.length;
@@ -73,6 +80,12 @@ public class BenchmarkRunner
                     VehicleRoutingProblemSolution bestSolution;
                     logger.log("Algorithm %d start (run %d/%d).", a + 1, r + 1, runsPerProblem);
 
+                    final int[] iterationStarted = new int[1];
+                    iterationStarted[0] = -1;
+
+                    final int[] iterationProcessed = new int[1];
+                    iterationProcessed[0] = -1;
+
                     try
                     {
                         VehicleRoutingAlgorithm vra = algorithmFactories[a].build(vrp);
@@ -92,6 +105,8 @@ public class BenchmarkRunner
 
                                 if (iterationIdx == 0)
                                     runStartTimes[finalA] = System.nanoTime();
+
+                                iterationStarted[0] = iterationIdx;
                             }
                         });
 
@@ -118,7 +133,9 @@ public class BenchmarkRunner
                                 }
 
                                 ProcessingArgs args = new ProcessingArgs(finalR, finalP, finalA, msSinceStart, bestSolution);
-                                runProcessor.processIteration(args, iterationIdx);
+                                iterationProcessor.processIteration(args, iterationIdx);
+
+                                iterationProcessed[0] = iterationIdx;
                             }
                         });
 
@@ -142,6 +159,9 @@ public class BenchmarkRunner
                                 }
 
                                 ProcessingArgs args = new ProcessingArgs(finalR, finalP, finalA, msSinceStart, bestSolution);
+
+                                if (iterationStarted[0] > iterationProcessed[0])
+                                    iterationProcessor.processIteration(args, iterationStarted[0]);
                                 runProcessor.processRun(args);
                             }
                         });
