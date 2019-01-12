@@ -165,6 +165,8 @@ public class BenchmarkRunner
                                 runProcessor.processRun(args);
                             }
                         });
+
+                        vra.searchSolutions();
                     }
                     catch (Exception e)
                     {
