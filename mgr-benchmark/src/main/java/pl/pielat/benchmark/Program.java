@@ -12,6 +12,7 @@ import pl.pielat.benchmark.runnerEngine.BenchmarkRunnerArgs;
 import pl.pielat.benchmark.solutionProcessing.IterationProcessor;
 import pl.pielat.benchmark.solutionProcessing.ProcessingArgs;
 import pl.pielat.benchmark.solutionProcessing.RunProcessor;
+import pl.pielat.benchmark.solutionProcessing.XmlSolutionSerializer;
 import pl.pielat.util.logging.ConcreteLogger;
 import pl.pielat.util.logging.Logger;
 import pl.pielat.util.logging.Multilogger;
@@ -97,7 +98,6 @@ public class Program
         problemParser = args.timeWindows
             ? new SolomonFileReader()
             : new Tsplib95FileReader();
-        solutionSerializer = new AugeratFormatSolutionSerializer();
 
         problemDirectory = args.problemDirectory;
         outputDirectories = outputDirectoryList.toArray(new File[0]);
@@ -221,7 +221,7 @@ public class Program
 
     private RunProcessor createRunProcessor(final Logger logger)
     {
-        final VrpSolutionSerializer serializer = new AugeratFormatSolutionSerializer();
+        final XmlSolutionSerializer serializer = new XmlSolutionSerializer();
 
         if (serializeIterations)
         {
@@ -238,12 +238,12 @@ public class Program
             {
                 ExtendedProblemDefinition problemInstance = problemInstances[args.problemIndex];
 
-                String filename = String.format("%s_r%d", problemInstance.id, args.runIndex);
+                String filename = String.format("%s_r%d.sol", problemInstance.id, args.runIndex);
                 File outputFile = new File(outputDirectories[args.algorithmIndex], filename);
 
                 try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputFile, false))))
                 {
-                    serializer.serialize(args.bestSolution, writer);
+                    serializer.serialize(args.bestSolution, args.millisecondsSinceRunStart, writer);
                 }
                 catch (IOException e)
                 {
@@ -256,7 +256,7 @@ public class Program
 
     private IterationProcessor createIterationProcessor(final Logger logger)
     {
-        final VrpSolutionSerializer serializer = new AugeratFormatSolutionSerializer();
+        final XmlSolutionSerializer serializer = new XmlSolutionSerializer();
 
         if (!serializeIterations)
         {
@@ -276,12 +276,12 @@ public class Program
 
                 ExtendedProblemDefinition problemInstance = problemInstances[args.problemIndex];
 
-                String filename = String.format("%s_r%d_i%d", problemInstance.id, args.runIndex, iterationIdx);
+                String filename = String.format("%s_r%d_i%d.sol", problemInstance.id, args.runIndex, iterationIdx);
                 File outputFile = new File(outputDirectories[args.algorithmIndex], filename);
 
                 try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputFile, false))))
                 {
-                    serializer.serialize(args.bestSolution, writer);
+                    serializer.serialize(args.bestSolution, args.millisecondsSinceRunStart, writer);
                 }
                 catch (IOException e)
                 {
