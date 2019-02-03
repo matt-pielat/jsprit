@@ -3,6 +3,9 @@ package pl.pielat.benchmark.solutionProcessing;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.DeliverService;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivities;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.thoughtworks.xstream.XStream;
 
 import java.io.PrintWriter;
@@ -47,12 +50,17 @@ public class XmlSolutionSerializer
         {
             Route route = new Route();
 
-            Collection<Job> jobs = routes[i].getTourActivities().getJobs();
+            List<TourActivity> jobs = routes[i].getTourActivities().getActivities();
+
             route.nodes = new ArrayList(jobs.size());
 
-            for (Job job : jobs)
-                route.nodes.add(job.getId());
-
+            for (TourActivity job : jobs)
+            {
+                if (job instanceof DeliverService)
+                {
+                    route.nodes.add(job.getLocation().getId());
+                }
+            }
             s.routes.add(route);
         }
 
