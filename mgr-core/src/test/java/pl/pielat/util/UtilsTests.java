@@ -1,12 +1,10 @@
 package pl.pielat.util;
 
 import com.graphhopper.jsprit.core.problem.Location;
-import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.util.Coordinate;
 import org.junit.Assert;
 import org.junit.Test;
 import pl.pielat.heuristic.Place;
-import pl.pielat.toFix.FileBasedTest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
