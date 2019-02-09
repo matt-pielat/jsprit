@@ -152,7 +152,7 @@ public class BenchmarkRunnerArgs
             FileFormatType type = converter.convert(value);
 
             if (type == FileFormatType.Unknown)
-                throw new ParameterException("Parameter " + name + " has incorrect VRP file format type");
+                throw new ParameterException("Parameter " + name + " has incorrect VRP file format type " + value);
         }
     }
 
@@ -165,7 +165,7 @@ public class BenchmarkRunnerArgs
             AlgorithmType type = converter.convert(value);
 
             if (type == AlgorithmType.Unknown)
-                throw new ParameterException("Parameter " + name + " has incorrect algorithm type");
+                throw new ParameterException("Parameter " + name + " has incorrect algorithm type " + value);
         }
     }
 
@@ -177,9 +177,9 @@ public class BenchmarkRunnerArgs
             Path path = Paths.get(value);
 
             if (!Files.exists(path))
-                throw new ParameterException("Parameter " + name + " points to a non-existing file");
+                throw new ParameterException("Parameter " + name + " points to a non-existing file " + value);
             if (!Files.isRegularFile(path))
-                throw new ParameterException("Parameter " + name + " points to a non-regular file");
+                throw new ParameterException("Parameter " + name + " points to a non-regular file " + value);
         }
     }
 
@@ -193,7 +193,7 @@ public class BenchmarkRunnerArgs
             if (!Files.exists(path))
                 return;
             if (!Files.isRegularFile(path))
-                throw new ParameterException("Parameter " + name + " points to a non-regular file");
+                throw new ParameterException("Parameter " + name + " points to a non-regular file " + value);
         }
     }
 
