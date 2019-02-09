@@ -1,16 +1,13 @@
 package pl.pielat.benchmark.solutionProcessing;
 
-import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.DeliverService;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivities;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.thoughtworks.xstream.XStream;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class XmlSolutionSerializer
@@ -19,6 +16,7 @@ public class XmlSolutionSerializer
     {
         public double cost;
         public long millisecondsElapsed;
+        public int routeCount;
         public List routes;
     }
 
@@ -44,6 +42,7 @@ public class XmlSolutionSerializer
         s.millisecondsElapsed = millisecondsElapsed;
 
         VehicleRoute[] routes = solution.getRoutes().toArray(new VehicleRoute[0]);
+        s.routeCount = routes.length;
         s.routes = new ArrayList(routes.length);
 
         for (int i = 0; i < routes.length; i++)

@@ -8,7 +8,10 @@ import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import org.junit.Assert;
 import org.junit.Test;
+import pl.pielat.algorithm.ExtendedProblemDefinition;
 import pl.pielat.algorithm.GarridoRiff;
+import pl.pielat.benchmark.algorithmCreation.AlgorithmFactory;
+import pl.pielat.benchmark.algorithmCreation.GarridoRiffAlgorithmFactory;
 import pl.pielat.benchmark.solutionProcessing.XmlSolutionSerializer;
 import pl.pielat.util.problemParsing.SolomonFileReader;
 import pl.pielat.util.problemParsing.VrpFileParser;
@@ -36,16 +39,19 @@ public class SingleInstanceTests
             return;
         }
 
-//        VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(vrp, false, true);
-        VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
-        vra.setMaxIterations(500);
+        ExtendedProblemDefinition epd = new ExtendedProblemDefinition("1", vrp, true, false);
+        VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(epd);
+
+//        VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
+
+        vra.setMaxIterations(1000);
 
         SolutionSelector solutionSelector = new SelectBest();
         VehicleRoutingProblemSolution bestSolution = solutionSelector.selectSolution(vra.searchSolutions());
 
         XmlSolutionSerializer serializer = new XmlSolutionSerializer();
 
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter("D:\\solomon_R103.xml", false))))
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter("D:\\solomon_R103_jsprit.xml", false))))
         {
             serializer.serialize(bestSolution , -1, writer);
         }
