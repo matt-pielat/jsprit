@@ -1,44 +1,50 @@
 param(
-    [string]$InputDir,
-    [bool]$TimeWindows,
-    [string]$JspritOutDir,
-    [string]$GarridoRiffOutDir,
-    [string]$LogDir,
-    [long]$TimePerRun = 999999999,
-    [int]$IterationsPerRun = 2000000000,
-    [int]$RunsPerProblem = 10,
-    [int]$PopulationSize = 10,
-    [int]$OffspringSize = 5,
-    [int]$ChromosomeSize = 5
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [string]$ProblemPath,
+
+    [ValidateNotNullOrEmpty()]
+    [string]$LogPath,
+
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [string]$SolutionPath,
+
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [ValidateSet('Solomon','Tsplib95')]
+    [string]$ProblemFormat,
+    
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [ValidateSet('jsprit','GarridoRiff')]
+    [string]$Algorithm,
+
+    [int]$PopulationSize,
+
+    [int]$OffspringSize,
+
+    [int]$ChromosomeSize,
+
+    [long]$TimeLimit,
+
+    [int]$IterationLimit
 )
 
-"InputDir: " + $InputDir
-"TimeWindows: " + $TimeWindows
-"JspritOutDir: " + $JspritOutDir
-"GarridoRiffOutDir: " + $GarridoRiffOutDir
-"LogDir: " + $LogDir
-"TimePerRun: " + $TimePerRun
-"IterationsPerRun: " + $IterationsPerRun
-"RunsPerProblem: " + $RunsPerProblem
-"PopulationSize: " + $PopulationSize
-"OffspringSize: " + $OffspringSize
-"ChromosomeSize: " + $ChromosomeSize
+# .\Start-Runner -ProblemPath "D:\Repos\jsprit\mgr-benchmark\data\Uchoa et al. (2014)\Problems\X-n101-k25.vrp" -SolutionPath "D:\X-n101-k25.sol" -LogPath "D:\X-n101-k25.log" -ProblemFormat Tsplib95 -Algorithm jsprit -IterationLimit 10
 
-$jarPath = "$PSScriptRoot\..\output\mgr-benchmark.jar"
+$jarPath = Resolve-Path "$PSScriptRoot\..\output\mgr-core.jar"
 
-if ($TimeWindows) { $timeWindowsArg = "--timeWindows" }
-if ($JspritOutDir) { $jspritOutDirArg = "--jspritOutDir" }
-if ($GarridoRiffOutDir) { $garridoRiffOutDirArg = "--garridoRiffOutDir" }
+$jarArgs = @()
+$jarArgs += "--problemPath", "`"$ProblemPath`""
+if ($LogPath) { $jarArgs += "--logPath", "`"$LogPath`"" }
+$jarArgs += "--solutionPath", "`"$SolutionPath`""
+$jarArgs += "--problemFormat", "$ProblemFormat"
+$jarArgs += "--algorithm", "$Algorithm"
+if ($PopulationSize) { $jarArgs += "--populationSize", $PopulationSize }
+if ($OffspringSize) { $jarArgs += "--offspringSize", $OffspringSize }
+if ($ChromosomeSize) { $jarArgs += "--chromosomeSize", $ChromosomeSize }
+if ($TimeLimit) { $jarArgs += "--timeLimit", $TimeLimit }
+if ($IterationLimit) { $jarArgs += "--iterationLimit", $IterationLimit }
 
-java -jar "$jarPath" `
-    --inputDir "$InputDir" `
-    $timeWindowsArg `
-    $jspritOutDirArg "$JspritOutDir" `
-    $garridoRiffOutDirArg "$GarridoRiffOutDir" `
-    --logDir "$LogDir" `
-    --timePerRun $TimePerRun `
-    --iterationsPerRun $IterationsPerRun `
-    --runsPerProblem $RunsPerProblem `
-    --populationSize $PopulationSize `
-    --offspringSize $OffspringSize `
-    --chromosomeSize $ChromosomeSize
+Invoke-Expression "java -jar $jarPath $jarArgs"
