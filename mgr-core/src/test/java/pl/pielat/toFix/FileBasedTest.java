@@ -7,6 +7,7 @@ import com.graphhopper.jsprit.core.algorithm.selector.SelectBest;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
+import pl.pielat.algorithm.ExtendedProblemDefinition;
 import pl.pielat.algorithm.GarridoRiff;
 import pl.pielat.util.solutionSerialization.AugeratFormatSolutionSerializer;
 import pl.pielat.util.problemParsing.Tsplib95FileReader;
@@ -43,7 +44,8 @@ public abstract class FileBasedTest
         {
             e.printStackTrace();
         }
-        VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(vrp, false, false);
+        ExtendedProblemDefinition epd = new ExtendedProblemDefinition("1", vrp, false, false);
+        VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(epd);
         vra.setMaxIterations(iterations);
 
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
@@ -75,7 +77,8 @@ public abstract class FileBasedTest
 
                 VehicleRoutingProblem vrp = new Tsplib95FileReader().parse(f.getPath());
 
-                VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(vrp, false, false);
+                ExtendedProblemDefinition epd = new ExtendedProblemDefinition("1", vrp, false, false);
+                VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(epd);
                 vra.setMaxIterations(iterations);
 
                 Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
@@ -116,7 +119,8 @@ public abstract class FileBasedTest
                 writer.print(";mgr");
                 for (int i = 0; i < runsPerProblem; i++)
                 {
-                    VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(vrp, false, false);
+                    ExtendedProblemDefinition epd = new ExtendedProblemDefinition("1", vrp, false, false);
+                    VehicleRoutingAlgorithm vra = new GarridoRiff().createAlgorithm(epd);
                     vra.setMaxIterations(algorithmIters);
                     Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
                     VehicleRoutingProblemSolution solution = new SelectBest().selectSolution(solutions);

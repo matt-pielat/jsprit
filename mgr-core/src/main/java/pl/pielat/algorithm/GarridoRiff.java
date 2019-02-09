@@ -52,8 +52,9 @@ public class GarridoRiff
         this.random = random;
     }
 
-    public VehicleRoutingAlgorithm createAlgorithm(final VehicleRoutingProblem vrp, boolean transportAsymmetry, boolean timeWindows)
+    public VehicleRoutingAlgorithm createAlgorithm(final ExtendedProblemDefinition epd)
     {
+        VehicleRoutingProblem vrp = epd.vrp;
         SolutionCostCalculator dummyCostCalculator = new SolutionCostCalculator() {
             @Override
             public double getCosts(VehicleRoutingProblemSolution solution)
@@ -63,7 +64,7 @@ public class GarridoRiff
         };
 
         EvolutionaryHyperheuristicModule searchStrategyModule = new EvolutionaryHyperheuristicModule(
-            vrp, transportAsymmetry, timeWindows, populationSize, offspringSize, chromosomeSize);
+            epd, populationSize, offspringSize, chromosomeSize);
         searchStrategyModule.setRandom(random);
 
         SearchStrategy searchStrategy = new SearchStrategy(

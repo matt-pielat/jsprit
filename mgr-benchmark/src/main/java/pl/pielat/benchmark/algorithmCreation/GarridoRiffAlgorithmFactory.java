@@ -31,6 +31,6 @@ public class GarridoRiffAlgorithmFactory extends AlgorithmFactory
         gr.setOffspringSize(offspringSize);
         gr.setChromosomeSize(chromosomeSize);
 
-        return gr.createAlgorithm(vrp.vrp, vrp.transportAsymmetry, vrp.timeWindows);
+        return gr.createAlgorithm(vrp);
     }
 }

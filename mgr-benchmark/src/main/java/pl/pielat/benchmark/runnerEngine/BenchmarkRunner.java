@@ -10,6 +10,7 @@ import com.graphhopper.jsprit.core.algorithm.selector.SolutionSelector;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import pl.pielat.algorithm.ExtendedProblemDefinition;
+import pl.pielat.algorithm.ObjectiveFunction;
 import pl.pielat.benchmark.algorithmCreation.AlgorithmFactory;
 import pl.pielat.benchmark.solutionProcessing.IterationProcessor;
 import pl.pielat.benchmark.solutionProcessing.ProcessingArgs;
@@ -67,6 +68,8 @@ public class BenchmarkRunner
         {
             ExtendedProblemDefinition vrp = problemInstances[p];
             logger.log("Problem %d/%d processing start.", p + 1, problemCount);
+
+            final ObjectiveFunction finalCostFunction = new ObjectiveFunction(vrp, false);
 
             VehicleRoutingProblemSolution[][] solutions =
                 new VehicleRoutingProblemSolution[algorithmCount][runsPerProblem];
@@ -130,6 +133,7 @@ public class BenchmarkRunner
                                 else
                                 {
                                     bestSolution = solutionSelector.selectSolution(solutions);
+                                    bestSolution.setCost(finalCostFunction.getCosts(bestSolution));
                                 }
 
                                 ProcessingArgs args = new ProcessingArgs(finalR, finalP, finalA, msSinceStart, bestSolution);
@@ -156,6 +160,7 @@ public class BenchmarkRunner
                                 else
                                 {
                                     bestSolution = solutionSelector.selectSolution(solutions);
+                                    bestSolution.setCost(finalCostFunction.getCosts(bestSolution));
                                 }
 
                                 ProcessingArgs args = new ProcessingArgs(finalR, finalP, finalA, msSinceStart, bestSolution);

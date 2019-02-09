@@ -66,13 +66,13 @@ public class RepairingHeuristicsTests extends HeuristicsTestsBase
             constructiveHeuristic.insertJobs(routes, jobs);
 
             int countBefore = routes.size();
-            double costBefore = Route.calculateCost(routes);
+            double costBefore = Route.calculateCost(routes); //TODO objective function
 
             heuristic.improveRoutes(routes);
             checkSolutionConsistency(routes, problemInfo);
 
             int countAfter = routes.size();
-            double costAfter = Route.calculateCost(routes);
+            double costAfter = Route.calculateCost(routes); //TODO objective function
 
             Assert.assertTrue(countBefore >= countAfter);
             Assert.assertTrue(costBefore >= costAfter);

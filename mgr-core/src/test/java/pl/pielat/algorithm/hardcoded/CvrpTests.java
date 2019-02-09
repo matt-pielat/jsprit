@@ -3,6 +3,7 @@ package pl.pielat.algorithm.hardcoded;
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import org.junit.Test;
+import pl.pielat.algorithm.ExtendedProblemDefinition;
 import pl.pielat.algorithm.GarridoRiff;
 import pl.pielat.util.simpleBuilder.SimpleVrpBuilder;
 
@@ -23,7 +24,8 @@ public class CvrpTests extends SimpleTestsBase
             .addJob(0, -100).setDemand(500).build()
             .build();
 
-        VehicleRoutingAlgorithm vra = garridoRiff.createAlgorithm(vrp, false, false);
+        ExtendedProblemDefinition epd = new ExtendedProblemDefinition("1", vrp, false, false);
+        VehicleRoutingAlgorithm vra = garridoRiff.createAlgorithm(epd);
         vra.setMaxIterations(100);
 
         runOnce(vra)
@@ -51,7 +53,8 @@ public class CvrpTests extends SimpleTestsBase
             .addJob(0, -300).setDemand(50).build()
             .build();
 
-        VehicleRoutingAlgorithm vra = garridoRiff.createAlgorithm(vrp, false, false);
+        ExtendedProblemDefinition epd = new ExtendedProblemDefinition("1", vrp, false, false);
+        VehicleRoutingAlgorithm vra = garridoRiff.createAlgorithm(epd);
         vra.setMaxIterations(100);
 
         runOnce(vra)
@@ -72,7 +75,8 @@ public class CvrpTests extends SimpleTestsBase
             .addJob(100, 100).setDemand(10).build()
             .build();
 
-        VehicleRoutingAlgorithm vra = garridoRiff.createAlgorithm(vrp, false, false);
+        ExtendedProblemDefinition epd = new ExtendedProblemDefinition("1", vrp, false, false);
+        VehicleRoutingAlgorithm vra = garridoRiff.createAlgorithm(epd);
         vra.setMaxIterations(100);
 
         double expectedCost = 3 * 200 + 2 * Math.sqrt(100 * 100 + 100 * 100);

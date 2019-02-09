@@ -31,18 +31,17 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
 
     private Random random = new Random();
     private GeneticOperatorManager operatorManager;
-    private SolutionCostCalculator costCalculator;
     private int epoch = 0;
 
     private ProblemInfo problemInfo;
     private EntityConverter converter;
+    private ObjectiveFunction objectiveFunction;
 
-    public EvolutionaryHyperheuristicModule(VehicleRoutingProblem problem,
-                                            boolean transportAsymmetry, boolean timeWindows,
+    public EvolutionaryHyperheuristicModule(ExtendedProblemDefinition problemDefinition,
                                             int popSize, int offspringSize, int initChromosomeSize)
     {
-        converter = new EntityConverter(problem);
-        problemInfo = converter.getProblemInfo(transportAsymmetry, timeWindows);
+        converter = new EntityConverter(problemDefinition.vrp);
+        problemInfo = converter.getProblemInfo(problemDefinition.transportAsymmetry, problemDefinition.timeWindows);
         jobCount = problemInfo.jobs.size();
 
         if (initChromosomeSize > jobCount)
@@ -53,6 +52,7 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
         this.popSize = popSize;
         this.offspringSize = offspringSize;
         this.initChromosomeSize = initChromosomeSize;
+        this.objectiveFunction = new ObjectiveFunction(problemDefinition, problemDefinition.timeWindows);
 
         operatorManager = new GeneticOperatorManager(problemInfo);
     }
@@ -111,7 +111,7 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
             population[i].addAll(genes);
 
             ArrayList<Route> resultRoutes = population[i].calculateSolution(problemInfo);
-            double routesCost = Route.calculateCost(resultRoutes);
+            double routesCost = objectiveFunction.getCosts(resultRoutes);
 
             fitness[i] = 1 / routesCost;
 
@@ -208,7 +208,7 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
             j++;
 
             ArrayList<Route> resultRoutes = population[i].calculateSolution(problemInfo);
-            double routesCost = Route.calculateCost(resultRoutes);
+            double routesCost = objectiveFunction.getCosts(resultRoutes);
 
             fitness[i] = 1 / routesCost;
 
