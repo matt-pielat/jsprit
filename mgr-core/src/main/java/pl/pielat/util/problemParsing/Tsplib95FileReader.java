@@ -7,6 +7,7 @@ import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
 import com.graphhopper.jsprit.core.util.Coordinate;
 import com.graphhopper.jsprit.core.util.FastVehicleRoutingTransportCostsMatrix;
+import scala.Int;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -101,6 +102,7 @@ public class Tsplib95FileReader implements VrpFileParser
             throw new VrpParseException("Depot index is unknown");
 
         Location.Builder depotLocationBuilder = Location.Builder.newInstance()
+            .setId(Integer.toString(depotIndex))
             .setIndex(depotIndex);
         if (nodeCoords != null)
             depotLocationBuilder.setCoordinate(nodeCoords[depotIndex]);
@@ -139,11 +141,12 @@ public class Tsplib95FileReader implements VrpFileParser
                 continue;
 
             Location.Builder deliveryLocationBuilder = Location.Builder.newInstance()
+                .setId(Integer.toString(i))
                 .setIndex(i);
             if (nodeCoords != null)
                 deliveryLocationBuilder.setCoordinate(nodeCoords[i]);
 
-            Delivery delivery = Delivery.Builder.newInstance(Integer.toString(i + 1))
+            Delivery delivery = Delivery.Builder.newInstance(Integer.toString(i))
                 .setLocation(deliveryLocationBuilder.build())
                 .addSizeDimension(0, demands[i])
                 .build();
