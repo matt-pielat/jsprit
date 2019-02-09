@@ -81,4 +81,65 @@ public class BenchmarkRunnerTests
         args.solutionFile.delete();
         args.logFile.delete();
     }
+
+    @Test
+    public void rawBenchmarkRunnerTest()
+    {
+        File problemFile, solutionFile, logFile;
+        try
+        {
+            problemFile = File.createTempFile("problemFile", ".tmp");
+            solutionFile = File.createTempFile("solutionFile", ".tmp");
+            logFile = File.createTempFile("logFile", ".tmp");
+        }
+        catch (IOException e)
+        {
+            Assert.fail();
+            e.printStackTrace();
+            return;
+        }
+
+        solutionFile.delete();
+        logFile.delete();
+
+        try (FileWriter fw = new FileWriter(problemFile, false))
+        {
+            fw.write(simpleProblemFileContent);
+        }
+        catch (IOException e)
+        {
+            Assert.fail();
+            e.printStackTrace();
+            return;
+        }
+
+        String[] args = new String[]
+            {
+                "--problemPath", problemFile.getAbsolutePath(),
+                "--solutionPath", solutionFile.getAbsolutePath(),
+                "--logPath", logFile.getAbsolutePath(),
+                "--problemFormat", "tsplib95",
+                "--algorithm", "GarridoRiff",
+                "--timeLimit", "1000",
+            };
+        BenchmarkRunner.main(args);
+
+        String solutionContent;
+        try
+        {
+            byte[] encoded = Files.readAllBytes(solutionFile.toPath());
+            solutionContent = new String(encoded, Charset.defaultCharset());
+        }
+        catch (IOException e)
+        {
+            Assert.fail();
+            e.printStackTrace();
+            return;
+        }
+
+        Assert.assertTrue(!solutionContent.isEmpty());
+
+        solutionFile.delete();
+        logFile.delete();
+    }
 }
