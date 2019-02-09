@@ -13,7 +13,7 @@ import java.util.Locale;
 public class AugeratFormatSolutionSerializer implements VrpSolutionSerializer
 {
     @Override
-    public void serialize(VehicleRoutingProblemSolution solution, PrintWriter writer)
+    public void serialize(VehicleRoutingProblemSolution solution, long millisecondsElapsed, PrintWriter writer)
     {
         VehicleRoute[] routes = solution.getRoutes().toArray(new VehicleRoute[0]);
 

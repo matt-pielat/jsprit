@@ -72,13 +72,13 @@ public class BenchmarkRunnerArgs
         names = {"--timeLimit"},
         description = "Algorithm runtime limit in milliseconds",
         validateWith = PositiveNumberValidator.class)
-    public long timePerRunInMs;
+    public long timeLimitInMs;
 
     @Parameter(
         names = {"--iterationLimit"},
         description = "Algorithm iteration limit",
         validateWith = PositiveNumberValidator.class)
-    public int iterationsPerRunInMs;
+    public int iterationLimit;
 
     public static BenchmarkRunnerArgs parse(String[] rawArgs) throws ParameterException
     {
@@ -92,10 +92,10 @@ public class BenchmarkRunnerArgs
         if (args.offspringSize > args.populationSize)
             throw new ParameterException("Offspring size can not be greater than population size");
 
-        if (args.timePerRunInMs == 0 && args.iterationsPerRunInMs == 0)
+        if (args.timeLimitInMs == 0 && args.iterationLimit == 0)
             throw new ParameterException("Either time limit or iteration limit has to be provided");
 
-        return null;
+        return args;
     }
 
     public static class FileConverter implements IStringConverter<File>
