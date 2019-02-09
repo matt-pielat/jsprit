@@ -143,6 +143,7 @@ public class BenchmarkRunner
         long startTime = System.nanoTime();
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
         long endTime = System.nanoTime();
+        long millisecondsElapsed = (endTime - startTime) / 1000000;
 
         if (solutions.isEmpty())
         {
@@ -153,7 +154,7 @@ public class BenchmarkRunner
 
         try (PrintWriter writer = new PrintWriter(new FileOutputStream(solutionFile, false)))
         {
-            solutionSerializer.serialize(bestSolution, endTime - startTime, writer);
+            solutionSerializer.serialize(bestSolution, millisecondsElapsed, writer);
         }
         catch (FileNotFoundException e)
         {
