@@ -117,6 +117,7 @@ public class BenchmarkRunner
         {
             if (solutionFile.exists())
                 solutionFile.delete();
+            solutionFile.getParentFile().mkdirs();
             solutionFile.createNewFile();
         }
         catch (IOException e)
@@ -173,6 +174,7 @@ public class BenchmarkRunner
 
         if (logFile != null)
         {
+            logFile.getParentFile().mkdirs();
             logFile.createNewFile();
 
             Logger fileLogger = new ConcreteLogger(
