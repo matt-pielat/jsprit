@@ -27,6 +27,13 @@ public class BenchmarkRunnerArgs
     public File logFile;
 
     @Parameter(
+        names = {"--diagnosticLogPath"},
+        description = "Path of the file to write diagnostic data to",
+        converter = FileConverter.class,
+        validateWith = NotDirectoryValidator.class)
+    public File diagnosticLogFile;
+
+    @Parameter(
         names = {"--solutionPath"},
         description = "Path of the output solution file",
         converter = FileConverter.class,

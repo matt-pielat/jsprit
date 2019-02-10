@@ -1,22 +1,19 @@
 param(
     [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
     [string]$ProblemPath,
 
-    [ValidateNotNullOrEmpty()]
     [string]$LogPath,
 
+    [string]$DiagnosticLogPath,
+
     [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
     [string]$SolutionPath,
 
     [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
     [ValidateSet('Solomon','Tsplib95')]
     [string]$ProblemFormat,
     
     [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
     [ValidateSet('jsprit','GarridoRiff')]
     [string]$Algorithm,
 
@@ -38,6 +35,7 @@ $jarPath = Resolve-Path "$PSScriptRoot\..\output\mgr-core.jar"
 $jarArgs = @()
 $jarArgs += "--problemPath", "`"$ProblemPath`""
 if ($LogPath) { $jarArgs += "--logPath", "`"$LogPath`"" }
+if ($DiagnosticLogPath) { $jarArgs += "--diagnosticLogPath", "`"$DiagnosticLogPath`"" }
 $jarArgs += "--solutionPath", "`"$SolutionPath`""
 $jarArgs += "--problemFormat", "$ProblemFormat"
 $jarArgs += "--algorithm", "$Algorithm"

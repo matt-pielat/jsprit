@@ -10,9 +10,8 @@ import pl.pielat.algorithm.ObjectiveFunction;
 import pl.pielat.algorithm.factory.AlgorithmFactory;
 import pl.pielat.algorithm.factory.GarridoRiffFactory;
 import pl.pielat.algorithm.factory.JspritFactory;
-import pl.pielat.util.logging.ConcreteLogger;
-import pl.pielat.util.logging.Logger;
-import pl.pielat.util.logging.Multilogger;
+import pl.pielat.util.Diagnostics;
+import pl.pielat.util.logging.*;
 import pl.pielat.util.problemParsing.FileFormatType;
 import pl.pielat.util.problemParsing.SolomonFileReader;
 import pl.pielat.util.problemParsing.Tsplib95FileReader;
@@ -33,6 +32,7 @@ public class BenchmarkRunner
     }
 
     private Logger logger;
+    private Logger diagnosticLogger;
 
     private ExtendedProblemDefinition epd;
     private AlgorithmFactory algorithmFactory;
@@ -46,11 +46,29 @@ public class BenchmarkRunner
     {
         try
         {
-            logger = createLogger(args.logFile);
+            logger = createLogger(args.logFile, true);
         }
         catch (IOException e)
         {
             e.printStackTrace();
+            return;
+        }
+
+        try
+        {
+            if (args.diagnosticLogFile != null)
+            {
+                logger.log("Creating diagnostic log file \"%s\".", args.diagnosticLogFile.getAbsolutePath());
+                Diagnostics.Logger = createLogger(args.diagnosticLogFile, false);
+                Diagnostics.Enabled = true;
+                Diagnostics.Logger.log("Initialized.");
+            }
+        }
+        catch (IOException e)
+        {
+            logger.log("Failed to create diagnostic logger.");
+            logger.log(e);
+            errorEncountered = true;
             return;
         }
 
@@ -152,25 +170,35 @@ public class BenchmarkRunner
         logger.log("Successfully serialized at \"%s\".", solutionFile.getAbsolutePath());
     }
 
-    private Logger createLogger(File logFile) throws IOException
+    private Logger createLogger(File logFile, boolean logToStdout) throws IOException
     {
-        Logger stdoutLogger = new ConcreteLogger(
-            new PrintWriter(
-                new OutputStreamWriter(System.out)));
+        Logger stdoutLogger = null;
+        Logger fileLogger = null;
+
+        if (logToStdout)
+        {
+            stdoutLogger = new ConcreteLogger(
+                new PrintWriter(
+                    new OutputStreamWriter(System.out)));
+        }
 
         if (logFile != null)
         {
             logFile.getParentFile().mkdirs();
             logFile.createNewFile();
 
-            Logger fileLogger = new ConcreteLogger(
+            fileLogger = new ConcreteLogger(
                 new PrintWriter(
                     new FileOutputStream(logFile, true)));
-
-            return new Multilogger(stdoutLogger, fileLogger);
         }
 
-        return stdoutLogger;
+        if (stdoutLogger == null && fileLogger == null)
+            return new DummyLogger();
+        if (stdoutLogger == null)
+            return fileLogger;
+        if (fileLogger == null)
+            return stdoutLogger;
+        return new Multilogger(fileLogger, stdoutLogger);
     }
 
     private VrpFileParser getParserForFileType(FileFormatType formatType)
