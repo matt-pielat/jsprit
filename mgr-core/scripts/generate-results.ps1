@@ -1,37 +1,58 @@
 $scriptPath = ".\Start-Runner.ps1"
 
-$iterationsPerRun = 2000000000
-$timePerRunInMs = 30000
+$timeLimit = 30000
 $runsPerProblem = 10
-
-# $iterationsPerRun = 2000
-# $timePerRunInMs = 999999999
-# $runsPerProblem = 10
 
 function Run-Benchmark
 {
-    param([string]$Directory, [bool]$TimeWindows)
+    param(
+        [string]$Directory, 
+        [string]$ProblemFormat
+    )
 
-    $problemsDir = ".\$Directory\Problems"
+    $problemsDir = "$Directory\Problems"
+    $solutionsDir = "$Directory\Solutions"
+    $logDir = "$Directory\Logs"
 
-    $solutionsDir = ".\$Directory\Solutions"
-    $jspritSolutionsDir = "$solutionsDir\jsprit"
-    $garridoRiffSolutionsDir = "$solutionsDir\Pielat"
+    $serializableDate = (Get-Date).ToString('yyMMdd-hhmmss');
+    $logFilePath = "${logDir}\${serializableDate}.log"
 
-    $logDir = ".\$Directory\Logs"
+    $problemFiles = Get-ChildItem $problemsDir
+    foreach ($problemFile in $problemFiles)
+    {
+        for ($i = 0; $i -lt $runsPerProblem; $i++)
+        {
+            $problemId = $problemFile | Select-Object -ExpandProperty BaseName
+            $problemFilePath = $problemFile | Select-Object -ExpandProperty FullName
 
-    & "$scriptPath" `
-        -InputDir "$problemsDir" `
-        -TimeWindows $TimeWindows `
-        -JspritOutDir "$jspritSolutionsDir" `
-        -GarridoRiffOutDir "$garridoRiffSolutionsDir" `
-        -LogDir "$logDir" `
-        -TimePerRun $timePerRunInMs `
-        -IterationsPerRun $iterationsPerRun `
-        -RunsPerProblem $runsPerProblem
+            $solutionFilePath = "$solutionsDir\jsprit\${problemId}_r${i}.sol"
+            if (-not (Test-Path -Path $solutionFilePath))
+            {
+                & "$scriptPath" `
+                    -ProblemPath "$problemFilePath" `
+                    -LogPath "$logFilePath" `
+                    -SolutionPath "$solutionFilePath" `
+                    -ProblemFormat $ProblemFormat `
+                    -Algorithm jsprit `
+                    -TimeLimit $timeLimit `
+            }
+    
+            $solutionFilePath = "$solutionsDir\GarridoRiff\${problemId}_r${i}.sol"
+            if (-not (Test-Path -Path $solutionFilePath))
+            {
+                & "$scriptPath" `
+                    -ProblemPath "$problemFilePath" `
+                    -LogPath "$logFilePath" `
+                    -SolutionPath "$solutionFilePath" `
+                    -ProblemFormat $ProblemFormat `
+                    -Algorithm GarridoRiff `
+                    -TimeLimit $timeLimit `
+            }
+        }
+    }
 }
 
-# Run-Benchmark -Directory "Set E (Christofides and Eilon, 1969)" -TimeWindows $false
-# Run-Benchmark -Directory "Uchoa et al. (2014)" -TimeWindows $false
-Run-Benchmark -Directory "VrpTestCasesGenerator" -TimeWindows $false
-Run-Benchmark -Directory "Solomon" -TimeWindows $true
+# Run-Benchmark -Directory "Set E (Christofides and Eilon, 1969)" -ProblemFormat Tsplib95
+# Run-Benchmark -Directory "Uchoa et al. (2014)" -ProblemFormat Tsplib95
+# Run-Benchmark -Directory "VrpTestCasesGenerator" -ProblemFormat Tsplib95
+# Run-Benchmark -Directory "Solomon" -ProblemFormat Solomon
