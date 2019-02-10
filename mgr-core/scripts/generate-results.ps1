@@ -52,7 +52,7 @@ function Run-Benchmark
     }
 }
 
-# Run-Benchmark -Directory "Set E (Christofides and Eilon, 1969)" -ProblemFormat Tsplib95
-# Run-Benchmark -Directory "Uchoa et al. (2014)" -ProblemFormat Tsplib95
-# Run-Benchmark -Directory "VrpTestCasesGenerator" -ProblemFormat Tsplib95
-# Run-Benchmark -Directory "Solomon" -ProblemFormat Solomon
+Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Set E (Christofides and Eilon, 1969)" -ProblemFormat Tsplib95
+Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Solomon" -ProblemFormat Tsplib95
+Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Uchoa et al. (2014)" -ProblemFormat Tsplib95
+Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\VrpTestCasesGenerator" -ProblemFormat Solomon
