@@ -113,21 +113,6 @@ public class BenchmarkRunner
             algorithmFactory.setTimeLimit(args.iterationLimit);
 
         solutionFile = args.solutionFile;
-        try
-        {
-            if (solutionFile.exists())
-                solutionFile.delete();
-            solutionFile.getParentFile().mkdirs();
-            solutionFile.createNewFile();
-        }
-        catch (IOException e)
-        {
-            logger.log("Could not create solution file.");
-            logger.log(e);
-            errorEncountered = true;
-            return;
-        }
-
         solutionSerializer = new XmlSolutionSerializer();
     }
 
@@ -153,6 +138,7 @@ public class BenchmarkRunner
         }
         VehicleRoutingProblemSolution bestSolution = getBestSolution(solutions);
 
+        createOrOverwriteSolutionFile(solutionFile);
         try (PrintWriter writer = new PrintWriter(new FileOutputStream(solutionFile, false)))
         {
             solutionSerializer.serialize(bestSolution, millisecondsElapsed, writer);
@@ -163,7 +149,7 @@ public class BenchmarkRunner
             logger.log(e);
         }
 
-        logger.log("Terminated successfully.");
+        logger.log("Successfully serialized at \"%s\".", solutionFile.getAbsolutePath());
     }
 
     private Logger createLogger(File logFile) throws IOException
@@ -208,5 +194,23 @@ public class BenchmarkRunner
         bestSolution.setCost(costFunction.getCosts(bestSolution));
 
         return bestSolution;
+    }
+
+    private void createOrOverwriteSolutionFile(File file)
+    {
+        try
+        {
+            if (file.exists())
+                file.delete();
+            file.getParentFile().mkdirs();
+            file.createNewFile();
+        }
+        catch (IOException e)
+        {
+            logger.log("Could not create solution file.");
+            logger.log(e);
+            errorEncountered = true;
+            return;
+        }
     }
 }
