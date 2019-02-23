@@ -4,7 +4,7 @@ import pl.pielat.algorithm.ProblemInfo;
 import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.repairing.RepairingHeuristic;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class StringCross extends RepairingHeuristic
 {
@@ -14,12 +14,12 @@ public class StringCross extends RepairingHeuristic
     }
 
     @Override
-    public void improveRoutes(ArrayList<Route> routes)
+    public void improveRoutes(List<Route> routes)
     {
         while (findAnyImprovementCross(routes));
     }
 
-    public boolean findAnyImprovementCross(ArrayList<Route> routes)
+    public boolean findAnyImprovementCross(List<Route> routes)
     {
         for (int i = 1; i < routes.size(); i++)
         {
@@ -46,7 +46,7 @@ public class StringCross extends RepairingHeuristic
         return false;
     }
 
-    public boolean findImprovementCross(ArrayList<Route> routes, int alphaIdx, int betaIdx, double costToBeat)
+    public boolean findImprovementCross(List<Route> routes, int alphaIdx, int betaIdx, double costToBeat)
     {
         Route alpha = routes.get(alphaIdx);
         Route beta = routes.get(betaIdx);

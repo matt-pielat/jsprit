@@ -4,7 +4,7 @@ import pl.pielat.algorithm.ProblemInfo;
 import pl.pielat.heuristic.BaseHeuristic;
 import pl.pielat.heuristic.Route;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public abstract class RepairingHeuristic extends BaseHeuristic
 {
@@ -13,5 +13,5 @@ public abstract class RepairingHeuristic extends BaseHeuristic
         super(info);
     }
 
-    public abstract void improveRoutes(ArrayList<Route> routes);
+    public abstract void improveRoutes(List<Route> routes);
 }

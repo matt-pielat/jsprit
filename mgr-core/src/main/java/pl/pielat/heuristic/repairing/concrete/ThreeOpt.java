@@ -5,7 +5,7 @@ import pl.pielat.heuristic.Place;
 import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.repairing.RepairingHeuristic;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class ThreeOpt extends RepairingHeuristic
 {
@@ -17,7 +17,7 @@ public class ThreeOpt extends RepairingHeuristic
     }
 
     @Override
-    public void improveRoutes(ArrayList<Route> routes)
+    public void improveRoutes(List<Route> routes)
     {
         for (int i = 0; i < routes.size(); i++)
         {
@@ -27,7 +27,7 @@ public class ThreeOpt extends RepairingHeuristic
         }
     }
 
-    private double improveRouteOnce(ArrayList<Route> allRoutes, int routeIndex, double oldCost)
+    private double improveRouteOnce(List<Route> allRoutes, int routeIndex, double oldCost)
     {
         Route oldRoute = allRoutes.get(routeIndex);
 

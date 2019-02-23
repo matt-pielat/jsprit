@@ -4,7 +4,7 @@ import pl.pielat.algorithm.ProblemInfo;
 import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.repairing.RepairingHeuristic;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class StringExchange extends RepairingHeuristic
 {
@@ -14,12 +14,12 @@ public class StringExchange extends RepairingHeuristic
     }
 
     @Override
-    public void improveRoutes(ArrayList<Route> routes)
+    public void improveRoutes(List<Route> routes)
     {
         while (findAnyImprovement(routes));
     }
 
-    public boolean findAnyImprovement(ArrayList<Route> routes)
+    public boolean findAnyImprovement(List<Route> routes)
     {
         for (int a = 1; a < routes.size(); a++)
         {
@@ -45,7 +45,7 @@ public class StringExchange extends RepairingHeuristic
         return false;
     }
 
-    public boolean performExchange(ArrayList<Route> routes, int alphaIdx, int betaIdx, int kA, int kB, double costToBeat)
+    public boolean performExchange(List<Route> routes, int alphaIdx, int betaIdx, int kA, int kB, double costToBeat)
     {
         Route alpha = routes.get(alphaIdx);
         Route beta = routes.get(betaIdx);
