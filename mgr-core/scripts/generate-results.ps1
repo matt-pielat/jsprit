@@ -2,7 +2,7 @@ $scriptPath = ".\Start-Runner.ps1"
 
 $timeLimit = 30000
 $runsPerProblem = 10
-$diagnosticMode = $true
+$diagnosticMode = $false
 
 function Run-Benchmark
 {
@@ -60,6 +60,6 @@ function Run-Benchmark
 }
 
 Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Set E (Christofides and Eilon, 1969)" -ProblemFormat Tsplib95
-Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Uchoa et al. (2014)" -ProblemFormat Tsplib95
+# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Uchoa et al. (2014)" -ProblemFormat Tsplib95
 Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\VrpTestCasesGenerator" -ProblemFormat Tsplib95
 # Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Solomon" -ProblemFormat Solomon

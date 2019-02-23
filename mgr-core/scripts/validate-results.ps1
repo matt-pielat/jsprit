@@ -1,193 +1,98 @@
-$benchmarks = @(
-    # @{ path = "..\data\Set E (Christofides and Eilon, 1969)" }
-    @{ path = "..\data\Solomon" }
-    # @{ path = "..\data\Uchoa et al. (2014)" },
-    # @{ path = "..\data\VrpTestCasesGenerator" }
-)
+using module ".\commons.psm1"
 
-$solutionTypes = @(
-    "jsprit",
-    "Pielat"
-)
-
-class Node {
-    [int]$Id
-    [double]$CoordX
-    [double]$CoordY
-    [double]$WindowStart
-    [double]$WindowEnd
-    [double]$ServiceTime
-    [int]$Demand
-
-    [double]GetDepartureTime([double]$ArrivalTime) {
-        $actualArrivalTime = $this.WindowStart, $ArrivalTime | Measure-Object -Maximum | Select-Object -ExpandProperty Maximum
-        return $actualArrivalTime + $this.ServiceTime
-    }
-}
-
-class VrpDefinition {
-    [Node]$Depot
-    [hashtable]$CustomersById = @{}
-    [int]$Capacity
-
-    [double]GetDistance([Node]$A, [Node]$B) {
-        $distanceSquared = ($A.CoordX - $B.CoordX) * ($A.CoordX - $B.CoordX) + `
-            ($A.CoordY - $B.CoordY) * ($A.CoordY - $B.CoordY)
-        return [System.Math]::Sqrt($distanceSquared)
-    }
-}
-
-function Read-SolomonFormat {
-    # Parameter help description
-    param (
-        [Parameter(ValueFromPipeline)]
-        [string]
-        $FilePath
+function Validate-Benchmark
+{
+    param(
+        [string]$Directory, 
+        [string]$ProblemFormat
     )
 
-    $readVehicleInfo = $false
-    $readCustomerInfo = $false
-    $linesToSkip = 0
+    $problemsDir = "$Directory\Problems"
+    $solutionsDir = "$Directory\Solutions"
 
-    $vrp = New-Object VrpDefinition
-
-    foreach ($line in Get-Content $FilePath) {
-        if ($linesToSkip -gt 0) {
-            $linesToSkip--
-            continue
-        }
-        if ($readVehicleInfo) {
-            $tokens = $line.Split(" ", [System.StringSplitOptions]::RemoveEmptyEntries)
-
-            $vrp.Capacity = [int]$tokens[1]
-
-            $readVehicleInfo = $false
-            continue
-        }
-        if ($readCustomerInfo) {
-            if ($line -notmatch "^ *[0-9]+( +[0-9]+){6} *$") {
-                $readCustomerInfo = $false
-                continue
-            }
-
-            $tokens = $line.Split(" ", [System.StringSplitOptions]::RemoveEmptyEntries)
-
-            $node = New-Object Node
-            $node.Id = [int]$tokens[0]
-            $node.CoordX = [int]$tokens[1]
-            $node.CoordY = [int]$tokens[2]
-            $node.Demand = [int]$tokens[3]
-            $node.WindowStart = [int]$tokens[4]
-            $node.WindowEnd = [int]$tokens[5]
-            $node.ServiceTime = [int]$tokens[6]
-
-            if ($node.Id -eq 0) {
-                $vrp.Depot = $node
-            }
-            else {
-                $vrp.CustomersById.Add($node.Id, $node)
-            }
-
-            continue
-        }
-        if ($line -match "^ *VEHICLE *$") {
-            $readVehicleInfo = $true
-            $linesToSkip = 1
-            continue
-        }
-        if ($line -match "^ *CUSTOMER *$") {
-            $readCustomerInfo = $true
-            $linesToSkip = 2
-            continue
-        }
-    }
-
-    return $vrp
-}
-
-foreach ($benchmark in $benchmarks) 
-{
-    $problemDirectory = "$($benchmark.path)\Problems"
-
-    $problemFiles = Get-ChildItem $problemDirectory
+    $problemFiles = Get-ChildItem $problemsDir
     foreach ($problemFile in $problemFiles)
     {
+        if ($ProblemFormat -eq "Tsplib95") {
+            $vrp = $problemFile | Select-Object -ExpandProperty FullName | Read-AugeratFormat
+        }
+        elseif ($ProblemFormat -eq "Solomon") {
+            $vrp = $problemFile | Select-Object -ExpandProperty FullName | Read-SolomonFormat
+        }
+        
         $problemId = $problemFile | Select-Object -ExpandProperty BaseName
-        $vrp = $problemFile | Select-Object -ExpandProperty FullName | Read-SolomonFormat
+        
+        $jspritSolutions = Get-ChildItem "$solutionsDir\jsprit" | Where-Object { $_.Name.StartsWith(($problemId)) }
+        $garridoRiffSolutions = Get-ChildItem "$solutionsDir\GarridoRiff" | Where-Object { $_.Name.StartsWith(($problemId)) }
+        $allSolutions = $jspritSolutions + $garridoRiffSolutions | Sort-Object
 
-        foreach ($solutionType in $solutionTypes)
+        #TODO minimal cost
+
+        foreach ($solutionFile in $allSolutions)
         {
-            $solutionDirectory = "$($benchmark.path)\Solutions\${solutionType}"
-    
-            if (-not (Test-Path $solutionDirectory))
-            {
-                Write-Output "Skipping $solutionDirectory because it does not exist."
-                continue
-            }
-
-            $solutions = Get-ChildItem $solutionDirectory | Where-Object { $_.Name.StartsWith(($problemId)) } | Sort-Object
-            foreach ($solution in $solutions)
-            {
-                $xmlDoc = New-Object System.Xml.XmlDocument
-                $xmlDoc.Load($solution.FullName)
-
-                $solutionCost = 0
-                $routeIsValid = $true
-
-                $routes = $xmlDoc.solution.routes
-                foreach ($route in $routes.route)
-                {
-                    $satisfiedDemand = 0
-                    $prevNode = $vrp.Depot
-                    $prevDepartureTime = $vrp.Depot.WindowStart
-
-                    foreach ($nodeId in $route.node)
-                    {
-                        $node = $vrp.CustomersById[[int]$nodeId]
-                        $arrivalTime = $prevDepartureTime + $vrp.GetDistance($prevNode, $node)
-                        $departureTime = $node.GetDepartureTime($arrivalTime)
-                        if ($arrivalTime -gt $node.WindowEnd)
-                        {
-                            Write-Error "$($solution.Name) ($solutionType): arrived too late ($departureTime) at $($node.Id)"
-                            $routeIsValid = $false
-                            break
-                        }
-                        $satisfiedDemand += $node.Demand
-
-                        $prevNode = $node
-                        $prevDepartureTime = $departureTime
-                    }
-
-                    if (-not $routeIsValid)
-                    {
-                        break                        
-                    }
-
-                    $arrivalTime = $prevDepartureTime + $vrp.GetDistance($prevNode, $vrp.Depot)
-                    if ($arrivalTime -gt $vrp.Depot.WindowEnd)
-                    {
-                        Write-Error "$($solution.Name) ($solutionType): arrived too late ($arrivalTime) at the depot from $($prevNode.Id)"
-                        $routeIsValid = $false
-                        break
-                    }
-
-                    if ($satisfiedDemand -gt $vrp.Capacity)
-                    {
-                        Write-Error "$($solution.Name) ($solutionType): capacity exceeded ($satisfiedDemand) on route $($route.node[0].Id) - $($prevNode.Id)"
-                        $routeIsValid = $false
-                        break
-                    }
-                }
-
-                
-
-				# #TODO
-                # $key = $solution.BaseName.Replace($problemId, $solutionType)
-                # $value = $xmlDoc.solution.cost
-
-                # # $xmlDoc.solution.routes.route[0]
-                # $dataItem | Add-Member $key $value
-            }
+            $solution = $solutionFile | Select-Object -ExpandProperty FullName | Read-XmlSolutionFile
+            Validate-Solution -Vrp $vrp -Solution $solution -MinSolutionCost 0.0
         }
     }
 }
+
+function Validate-Solution {
+    param (
+        [VrpDefinition]$Vrp,
+        [VrpSolution]$Solution,
+        [double]$MinSolutionCost
+    )
+
+    $solutionCost = 0
+
+    foreach ($route in $Solution.Routes)
+    {
+        $satisfiedDemand = 0
+        $prevNode = $Vrp.Depot
+        $prevDepartureTime = $Vrp.Depot.WindowStart
+
+        foreach ($nodeId in $route.CustomerIds)
+        {
+            $node = $Vrp.CustomersById[[int]$nodeId]
+            $distance = $Vrp.GetDistance($prevNode, $node)
+            $solutionCost += $distance
+            $arrivalTime = $prevDepartureTime + $distance
+            $departureTime = $node.GetDepartureTime($arrivalTime)
+            if ($arrivalTime -gt $node.WindowEnd)
+            {
+                Write-Error "${SolutionPath}: arrived too late ($departureTime) at $($node.Id)"
+                return
+            }
+            $satisfiedDemand += $node.Demand
+
+            $prevNode = $node
+            $prevDepartureTime = $departureTime
+        }
+
+        $distance = $Vrp.GetDistance($prevNode, $Vrp.Depot)
+        $solutionCost += $distance
+        $arrivalTime = $prevDepartureTime + $distance
+        if ($arrivalTime -gt $Vrp.Depot.WindowEnd)
+        {
+            Write-Error "${SolutionPath}: arrived too late ($arrivalTime) at the depot from $($prevNode.Id)"
+            return
+        }
+
+        if ($satisfiedDemand -gt $Vrp.Capacity)
+        {
+            Write-Error "${SolutionPath}: capacity exceeded ($satisfiedDemand) on route $($route.node[0].Id) - $($prevNode.Id)"
+            return
+        }
+    }
+
+    if ($MinSolutionCost -and ($MinSolutionCost -gt $solutionCost))
+    {
+        Write-Error "${SolutionPath}: capacity exceeded ($satisfiedDemand) on route $($route.node[0].Id) - $($prevNode.Id)"
+        return
+    }
+}
+
+Validate-Benchmark -Directory "D:\Google Drive\Magisterka\data\Set E (Christofides and Eilon, 1969)" -ProblemFormat Tsplib95
+Validate-Benchmark -Directory "D:\Google Drive\Magisterka\data\Solomon" -ProblemFormat Tsplib95
+Validate-Benchmark -Directory "D:\Google Drive\Magisterka\data\Uchoa et al. (2014)" -ProblemFormat Tsplib95
+Validate-Benchmark -Directory "D:\Google Drive\Magisterka\data\VrpTestCasesGenerator" -ProblemFormat Solomon
