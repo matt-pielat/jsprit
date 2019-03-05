@@ -88,7 +88,7 @@ function Read-AugeratSolutionFile {
         }
         elseif ($line -match "^\s*[Cc]ost") {
             $line -match "[0-9]+((,|\.)[0-9]+)?"
-            $solution.Cost = [double]::parse($matches[0])
+            $solution.Cost = $matches[0]
         }
     }
 
