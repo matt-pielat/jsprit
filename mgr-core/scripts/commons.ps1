@@ -30,6 +30,22 @@ class VrpDefinition {
             ($A.CoordY - $B.CoordY) * ($A.CoordY - $B.CoordY)
         return [System.Math]::Sqrt($distanceSquared)
     }
+
+    [double]GetSolutionCost([VrpSolution]$Solution) {
+        [double]$cost = 0
+
+        foreach ($route in $Solution.Routes) {
+            $prevNode = $this.Depot
+            foreach ($nodeId in $route.CustomerIds) {
+                $currNode = $this.CustomersById[$nodeId]
+                $cost += $this.GetDistance($prevNode, $currNode)
+                $prevNode = $currNode
+            }
+            $cost += $this.GetDistance($prevNode, $this.Depot)
+        }
+
+        return $cost
+    }
 }
 
 class Route {
@@ -69,17 +85,17 @@ $allBenchmarks = @(
     },
     @{ 
         path = "${dataRootDirectory}\Solomon"; 
-        problemFormat = "solomon"; 
+        problemFormat = [ProblemFormat]::Solomon;
         externalSolutionFormat = [SolutionFormat]::Plain
     },
     @{ 
         path = "${dataRootDirectory}\Uchoa et al. (2014)"; 
-        problemFormat = "tsplib95"; 
+        problemFormat = [ProblemFormat]::Tsplib95;
         externalSolutionFormat = [SolutionFormat]::Uchoa
     },
     @{ 
         path = "${dataRootDirectory}\VrpTestCasesGenerator"; 
-        problemFormat = "tsplib95"; 
+        problemFormat = [ProblemFormat]::Tsplib95;
         externalSolutionFormat = [SolutionFormat]::None
     }
 )

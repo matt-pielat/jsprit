@@ -25,21 +25,25 @@ function Read-SolutionFile {
         }
     }
 
-    switch ($format) {
-        Xml {
-            return $FilePath | Read-XmlSolutionFile
+    try {
+        switch ($format) {
+            Xml {
+                return $FilePath | Read-XmlSolutionFile
+            }
+            Plain {
+                return $FilePath | Read-AugeratSolutionFile
+            }
+            Uchoa {
+                return $FilePath | Read-UchoaSolutionFile
+            }
+            Default {
+                Write-Error "Solution format ${Format} is not supported."
+                return $null
+            }
         }
-        Plain {
-            return $FilePath | Read-AugeratSolutionFile
-        }
-        Uchoa {
-            Write-Error "Uchoa solution format not yet supported."
-            return $null
-        }
-        Default {
-            Write-Error "Solution format ${Format} is not supported."
-            return $null
-        }
+    }
+    catch {
+        return $FilePath | Read-AugeratSolutionFile
     }
 }
 
@@ -93,6 +97,62 @@ function Read-AugeratSolutionFile {
     }
 
     return $solution
+}
+
+function Read-UchoaSolutionFile {
+    param (
+        [Parameter(ValueFromPipeline)]
+        [string]
+        $FilePath
+    )
+
+    $solution = New-Object VrpSolution
+    $k = 0
+
+    $i = 0
+    foreach ($line in Get-Content $FilePath) {
+        $i += 1
+        if ($i -eq 1) {
+            $solution.Cost = [double]::parse($line)
+        }
+        elseif ($i -eq 2) {
+            $k = [int]::parse($line)
+        }
+        elseif ($i -ge 5 -and $i -lt $k + 5) {
+            $newRoute = New-Object Route
+            $line -match "0 (([1-9][0-9]* )+)0$"
+            $nodes = $matches[1].Split(" ", [System.StringSplitOptions]::RemoveEmptyEntries) | 
+                ForEach-Object { [int]::parse($_) }
+            $newRoute.CustomerIds = $nodes
+            $solution.Routes += $newRoute
+        }
+    }
+
+    return $solution
+}
+
+function Read-ProblemFile {
+    param (
+        [Parameter(ValueFromPipeline)]
+        [string]
+        $FilePath,
+
+        [ProblemFormat]
+        $ProblemFormat
+    )    
+
+    switch ($ProblemFormat) {
+        Tsplib95 {
+            return $FilePath | Read-Tsplib95ProblemFile
+        }
+        Solomon {
+            return $FilePath | Read-SolomonProblemFile
+        }
+        Default {
+            Write-Error "Solution format ${Format} is not supported."
+            return $null
+        }
+    }
 }
 
 function Read-Tsplib95ProblemFile {
