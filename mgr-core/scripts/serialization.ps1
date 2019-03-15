@@ -2,6 +2,7 @@
 
 function Read-SolutionFile {
     param (
+        [Parameter(ValueFromPipeline)]
         [string]
         $FilePath,
 
@@ -24,27 +25,29 @@ function Read-SolutionFile {
             $format = $ExternalFormat
         }
     }
-
-    try {
-        switch ($format) {
-            Xml {
-                return $FilePath | Read-XmlSolutionFile
+    
+    switch ($format) {
+        Xml {
+            $solution = Read-XmlSolutionFile -FilePath $FilePath
+        }
+        Plain {
+            $solution = Read-AugeratSolutionFile -FilePath $FilePath
+        }
+        Uchoa {
+            try {
+                $solution = Read-UchoaSolutionFile -FilePath $FilePath
             }
-            Plain {
-                return $FilePath | Read-AugeratSolutionFile
-            }
-            Uchoa {
-                return $FilePath | Read-UchoaSolutionFile
-            }
-            Default {
-                Write-Error "Solution format ${Format} is not supported."
-                return $null
+            catch {
+                $solution = Read-AugeratSolutionFile -FilePath $FilePath
             }
         }
+        Default {
+            Write-Error "Solution format ${Format} is not supported."
+            return
+        }
     }
-    catch {
-        return $FilePath | Read-AugeratSolutionFile
-    }
+
+    return $solution
 }
 
 function Read-XmlSolutionFile {
@@ -86,12 +89,12 @@ function Read-AugeratSolutionFile {
         if ($line -match "^\s*[Rr]oute") {
             $newRoute = New-Object Route
             $newRoute.CustomerIds = $line -creplace "^.*:", "" | 
-                ForEach-Object { $_.Split(" \t", [System.StringSplitOptions]::RemoveEmptyEntries) } | 
+                ForEach-Object { $_.Split(" `t", [System.StringSplitOptions]::RemoveEmptyEntries) } | 
                 ForEach-Object { [int]::parse($_) }
             $solution.Routes += $newRoute
         }
         elseif ($line -match "^\s*[Cc]ost") {
-            $line -match "[0-9]+((,|\.)[0-9]+)?"
+            $line -match "[0-9]+((,|\.)[0-9]+)?" | Out-Null
             $solution.Cost = $matches[0]
         }
     }
@@ -120,8 +123,8 @@ function Read-UchoaSolutionFile {
         }
         elseif ($i -ge 5 -and $i -lt $k + 5) {
             $newRoute = New-Object Route
-            $line -match "0 (([1-9][0-9]* )+)0$"
-            $nodes = $matches[1].Split(" ", [System.StringSplitOptions]::RemoveEmptyEntries) | 
+            $line -match "0 (([1-9][0-9]* )+)0$" | Out-Null
+            $nodes = $matches[1].Split(" `t", [System.StringSplitOptions]::RemoveEmptyEntries) | 
                 ForEach-Object { [int]::parse($_) }
             $newRoute.CustomerIds = $nodes
             $solution.Routes += $newRoute
@@ -143,10 +146,10 @@ function Read-ProblemFile {
 
     switch ($ProblemFormat) {
         Tsplib95 {
-            return $FilePath | Read-Tsplib95ProblemFile
+            return Read-Tsplib95ProblemFile -FilePath $FilePath
         }
         Solomon {
-            return $FilePath | Read-SolomonProblemFile
+            return Read-SolomonProblemFile -FilePath $FilePath
         }
         Default {
             Write-Error "Solution format ${Format} is not supported."
@@ -179,11 +182,12 @@ function Read-Tsplib95ProblemFile {
                 continue
             }
 
-            $tokens = $line.Split(" ", [System.StringSplitOptions]::RemoveEmptyEntries)
+            $tokens = $line.Split(" `t", [System.StringSplitOptions]::RemoveEmptyEntries)
 
             if ($edgeWeightFormat -eq "LOWER_ROW") {
+
                 foreach ($token in $tokens) {
-                    if ($y -gt $x) { $x += 1; $y = 0 }
+                    if ($y -ge $x) { $x += 1; $y = 0 }
 
                     $vrp.DistanceMatrix[$x, $y] = $vrp.DistanceMatrix[$y, $x] = [double]$token
                     $y++
@@ -192,7 +196,9 @@ function Read-Tsplib95ProblemFile {
             elseif ($edgeWeightFormat -eq "FULL_MATRIX") {
                 foreach ($token in $tokens) {
                     if ($y -ge $dimension) { $x += 1; $y = 0 }
-                    if ($y -eq $x) { $y += 1 }
+                    if ($y -eq $x -and $token -ne 0) {
+                        Write-Error "Invalid value"
+                    }
 
                     $vrp.DistanceMatrix[$x, $y] = [double]$token
                     $y++
@@ -209,7 +215,7 @@ function Read-Tsplib95ProblemFile {
                 $readDemandSection = $false
                 continue
             }
-            $tokens = $line.Split(" ", [System.StringSplitOptions]::RemoveEmptyEntries)
+            $tokens = $line.Split(" `t", [System.StringSplitOptions]::RemoveEmptyEntries)
 
             $id = [int]$tokens[0] - 1
             if ($id -eq 0) {
@@ -225,7 +231,7 @@ function Read-Tsplib95ProblemFile {
                 $readNodeCoordSection = $false
                 continue
             }
-            $tokens = $line.Split(" ", [System.StringSplitOptions]::RemoveEmptyEntries)
+            $tokens = $line.Split(" `t", [System.StringSplitOptions]::RemoveEmptyEntries)
 
             $id = [int]$tokens[0] - 1
             if ($id -eq 0) {
@@ -295,7 +301,7 @@ function Read-SolomonProblemFile {
             continue
         }
         if ($readVehicleInfo) {
-            $tokens = $line.Split(" ", [System.StringSplitOptions]::RemoveEmptyEntries)
+            $tokens = $line.Split(" `t", [System.StringSplitOptions]::RemoveEmptyEntries)
 
             $vrp.Capacity = [int]$tokens[1]
 
@@ -308,7 +314,7 @@ function Read-SolomonProblemFile {
                 continue
             }
 
-            $tokens = $line.Split(" ", [System.StringSplitOptions]::RemoveEmptyEntries)
+            $tokens = $line.Split(" `t", [System.StringSplitOptions]::RemoveEmptyEntries)
 
             $node = New-Object Node
             $node.Id = [int]$tokens[0]
