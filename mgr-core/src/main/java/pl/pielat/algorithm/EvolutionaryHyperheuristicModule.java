@@ -2,8 +2,7 @@ package pl.pielat.algorithm;
 
 import com.graphhopper.jsprit.core.algorithm.SearchStrategyModule;
 import com.graphhopper.jsprit.core.algorithm.listener.SearchStrategyModuleListener;
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import com.graphhopper.jsprit.core.problem.solution.SolutionCostCalculator;
+import com.graphhopper.jsprit.core.algorithm.termination.TimeTermination;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.constructive.ConstructiveHeuristicProvider;
@@ -33,12 +32,16 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
     private GeneticOperatorManager operatorManager;
     private int epoch = 0;
 
+    private TimeTermination timeTermination = null;
     private ProblemInfo problemInfo;
     private EntityConverter converter;
     private ObjectiveFunction objectiveFunction;
 
-    public EvolutionaryHyperheuristicModule(ExtendedProblemDefinition problemDefinition,
-                                            int popSize, int offspringSize, int initChromosomeSize)
+    public EvolutionaryHyperheuristicModule(
+        ExtendedProblemDefinition problemDefinition,
+        int popSize,
+        int offspringSize,
+        int initChromosomeSize)
     {
         converter = new EntityConverter(problemDefinition.vrp);
         problemInfo = converter.getProblemInfo(problemDefinition.transportAsymmetry, problemDefinition.timeWindows);
@@ -61,6 +64,11 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
     {
         this.random = random;
         operatorManager.setRandom(this.random);
+    }
+
+    public void setTimeTermination(TimeTermination timeTermination)
+    {
+        this.timeTermination = timeTermination;
     }
 
     private void createRandomPopulation()
@@ -138,6 +146,11 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
         List<Chromosome> offspring = new ArrayList<>(offspringSize);
         for (int i = 0; i < offspringSize; i++)
         {
+            if (timeTermination != null && timeTermination.isPrematureBreak(null))
+            {
+                break;
+            }
+
             boolean[] ignoredPops = new boolean[popSize];
 
             int breederIdx = selectRandomIndividualIndex(ignoredPops);
@@ -192,7 +205,7 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
         boolean[] popsToKeepAlive = new boolean[popSize];
         popsToKeepAlive[eliteIdx] = true;
 
-        for (int i = 0; i < popSize - offspringSize - 1; i++)
+        for (int i = 0; i < popSize - offspring.size() - 1; i++)
         {
             int selectedIdx = selectRandomIndividualIndex(popsToKeepAlive);
             popsToKeepAlive[selectedIdx] = true;
