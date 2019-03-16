@@ -20,6 +20,8 @@ class VrpDefinition {
     [hashtable]$CustomersById = @{}
     [int]$Capacity
     [double[,]]$DistanceMatrix
+    [bool]$TransportAsymmetry = $false
+    [bool]$TimeWindows = $false
 
     [double]GetDistance([Node]$A, [Node]$B) {
         if ($this.DistanceMatrix) {

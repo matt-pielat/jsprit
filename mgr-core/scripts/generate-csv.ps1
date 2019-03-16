@@ -26,6 +26,9 @@ foreach ($benchmark in $allBenchmarks) {
 
         $dataItem = [PSCustomObject]@{
             id = $problemId
+            "matrix based distance" = $null -ne $problemObject.DistanceMatrix
+            "asymmetric transport" = $problemObject.TransportAsymmetry
+            "time windows" = $problemObject.TimeWindows
             "is best optimal" = $false
         }
         $data += $dataItem
@@ -76,7 +79,7 @@ foreach ($benchmark in $allBenchmarks) {
 }
 
 $keys = $keys.Keys | Sort-Object
-$keys = "id", "is best optimal" + $keys | Select-Object -Unique
+$keys = "id", "matrix based distance", "asymmetric transport", "time windows", "is best optimal" + $keys | Select-Object -Unique
 
 $culture = [System.Globalization.CultureInfo]::InvariantCulture
 [System.Threading.Thread]::CurrentThread.CurrentCulture = $culture

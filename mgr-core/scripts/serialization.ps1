@@ -194,6 +194,7 @@ function Read-Tsplib95ProblemFile {
                 }           
             }
             elseif ($edgeWeightFormat -eq "FULL_MATRIX") {
+                $vrp.TransportAsymmetry = $true
                 foreach ($token in $tokens) {
                     if ($y -ge $dimension) { $x += 1; $y = 0 }
                     if ($y -eq $x -and $token -ne 0) {
@@ -294,6 +295,7 @@ function Read-SolomonProblemFile {
     $linesToSkip = 0
 
     $vrp = New-Object VrpDefinition
+    $vrp.TimeWindows = $true
 
     foreach ($line in Get-Content $FilePath) {
         if ($linesToSkip -gt 0) {
