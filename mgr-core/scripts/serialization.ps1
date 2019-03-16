@@ -123,7 +123,7 @@ function Read-UchoaSolutionFile {
         }
         elseif ($i -ge 5 -and $i -lt $k + 5) {
             $newRoute = New-Object Route
-            $line -match "0 (([1-9][0-9]* )+)0$" | Out-Null
+            $line -match "0 (([1-9][0-9]* )+)0 *$" | Out-Null
             $nodes = $matches[1].Split(" `t", [System.StringSplitOptions]::RemoveEmptyEntries) | 
                 ForEach-Object { [int]::parse($_) }
             $newRoute.CustomerIds = $nodes

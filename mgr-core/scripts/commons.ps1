@@ -46,6 +46,25 @@ class VrpDefinition {
 
         return $cost
     }
+
+    [bool]ValidateSolution([VrpSolution]$Solution) {
+        $foundCustomerIds = @{}
+        foreach ($route in $Solution.Routes) {
+            $demand = 0
+            foreach ($nodeId in $route.CustomerIds) {
+                if ($foundCustomerIds.ContainsKey($nodeId)) {
+                    return $false
+                }
+                $foundCustomerIds[$nodeId] = $true
+                $node = $this.CustomersById[$nodeId]
+                $demand += $node.Demand
+            }
+            if ($demand -gt $this.Capacity) {
+                return $false
+            }
+        }
+        return $foundCustomerIds.Count -eq $this.CustomersById.Count
+    }
 }
 
 class Route {
@@ -81,22 +100,26 @@ $allBenchmarks = @(
     @{ 
         path = "${dataRootDirectory}\Set E (Christofides and Eilon, 1969)"; 
         problemFormat = [ProblemFormat]::Tsplib95; 
-        externalSolutionFormat = [SolutionFormat]::Plain
+        externalSolutionFormat = [SolutionFormat]::Plain;
+        advancedSort = $true
     },
     @{ 
         path = "${dataRootDirectory}\Solomon"; 
         problemFormat = [ProblemFormat]::Solomon;
-        externalSolutionFormat = [SolutionFormat]::Plain
+        externalSolutionFormat = [SolutionFormat]::Plain;
+        advancedSort = $false
     },
     @{ 
         path = "${dataRootDirectory}\Uchoa et al. (2014)"; 
         problemFormat = [ProblemFormat]::Tsplib95;
-        externalSolutionFormat = [SolutionFormat]::Uchoa
+        externalSolutionFormat = [SolutionFormat]::Uchoa;
+        advancedSort = $true
     },
     @{ 
         path = "${dataRootDirectory}\VrpTestCasesGenerator"; 
         problemFormat = [ProblemFormat]::Tsplib95;
-        externalSolutionFormat = [SolutionFormat]::None
+        externalSolutionFormat = [SolutionFormat]::None;
+        advancedSort = $true
     }
 )
 

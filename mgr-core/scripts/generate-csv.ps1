@@ -7,7 +7,18 @@ $keys = @{}
 foreach ($benchmark in $allBenchmarks) {
     $benchmarkName = Split-Path -Path $benchmark.path -Leaf
     $problemDirectory = "$($benchmark.path)\Problems"
-    $problemFiles = Get-ChildItem $problemDirectory
+
+    $problemFiles = Get-ChildItem $problemDirectory | Select-Object -Property `
+        BaseName, `
+        FullName, `
+        @{Name = "SortPriority"; Expression = { $_.Name -match "n([0-9]+)\D*k([0-9]+)"; [int]::Parse($matches[1]); [int]::Parse($matches[2]) }}
+
+    if ($benchmark.advancedSort) {
+        $problemFiles = $problemFiles | Sort-Object -Property @{Expression = { $_.SortPriority[1] }}, @{Expression = { $_.SortPriority[2] }}
+    }
+    else {
+        $problemFiles = $problemFiles | Sort-Object -Property BaseName
+    }
 
     foreach ($problemFile in $problemFiles) {
         $problemId = $problemFile.BaseName
@@ -31,8 +42,12 @@ foreach ($benchmark in $allBenchmarks) {
                 $solutionObject = $solutionFile.FullName | Read-SolutionFile -SolutionType $solutionType -ExternalFormat $benchmark.externalSolutionFormat
 
                 if (-not $solutionObject) {
-                    Write-Warning "Solution ${solutionFile} not parsed."
+                    Write-Warning "Solution $($solutionFile.FullName) not parsed."
                     continue
+                }
+
+                if (-not $problemObject.ValidateSolution($solutionObject)) {
+                    Write-Error "Invalid solution $($solutionFile.FullName)"
                 }
 
                 if ($solutionType -eq "optimal") {
@@ -43,8 +58,13 @@ foreach ($benchmark in $allBenchmarks) {
                     $keyBase = $solutionFile.BaseName.Replace($problemId, $solutionType)
                 }
 
+                $solutionCost = $problemObject.GetSolutionCost($solutionObject)
+                if ($solutionCost -eq 0) {
+                    Write-Error "Cost unknown for $($solutionFile.FullName)"
+                }
+
                 $costKey = "cost " + $keyBase
-                $dataItem | Add-Member $costKey $problemObject.GetSolutionCost($solutionObject)
+                $dataItem | Add-Member $costKey $solutionCost
                 $keys[$costKey] = $null
 
                 $kKey = "k " + $keyBase
