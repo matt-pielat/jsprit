@@ -33,7 +33,7 @@ public class SimpleTestsBase
                 outputWriter.printf("Run #%d:", i + 1);
                 outputWriter.println();
 
-                solutionSerializer.serialize(runSolutions[i], 0, outputWriter);
+                solutionSerializer.serialize(runSolutions[i], 0, 0, outputWriter);
 
                 outputWriter.println();
                 outputWriter.println();

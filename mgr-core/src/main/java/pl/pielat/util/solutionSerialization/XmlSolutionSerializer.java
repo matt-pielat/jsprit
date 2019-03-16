@@ -16,6 +16,7 @@ public class XmlSolutionSerializer implements VrpSolutionSerializer
     {
         public double cost;
         public long millisecondsElapsed;
+        public int iterationCount;
         public int routeCount;
         public List routes;
     }
@@ -36,11 +37,12 @@ public class XmlSolutionSerializer implements VrpSolutionSerializer
     }
 
     @Override
-    public void serialize(VehicleRoutingProblemSolution solution, long millisecondsElapsed, PrintWriter writer)
+    public void serialize(VehicleRoutingProblemSolution solution, long millisecondsElapsed, int iterationCount, PrintWriter writer)
     {
         Solution s = new Solution();
         s.cost = solution.getCost();
         s.millisecondsElapsed = millisecondsElapsed;
+        s.iterationCount = iterationCount;
 
         VehicleRoute[] routes = solution.getRoutes().toArray(new VehicleRoute[0]);
         s.routeCount = routes.length;

@@ -1,6 +1,7 @@
 package pl.pielat.program;
 
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
+import com.graphhopper.jsprit.core.algorithm.listener.IterationEndsListener;
 import com.graphhopper.jsprit.core.algorithm.selector.SelectBest;
 import com.graphhopper.jsprit.core.algorithm.selector.SolutionSelector;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
@@ -142,7 +143,18 @@ public class BenchmarkRunner
             return;
         }
 
+        final int[] iterationCount = {0};
         VehicleRoutingAlgorithm vra = algorithmFactory.build(epd);
+        vra.addListener(new IterationEndsListener() {
+            @Override
+            public void informIterationEnds(
+                int i,
+                VehicleRoutingProblem problem,
+                Collection<VehicleRoutingProblemSolution> solutions)
+            {
+                iterationCount[0] = i;
+            }
+        });
 
         long startTime = System.nanoTime();
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
@@ -159,7 +171,7 @@ public class BenchmarkRunner
         createOrOverwriteSolutionFile(solutionFile);
         try (PrintWriter writer = new PrintWriter(new FileOutputStream(solutionFile, false)))
         {
-            solutionSerializer.serialize(bestSolution, millisecondsElapsed, writer);
+            solutionSerializer.serialize(bestSolution, millisecondsElapsed, iterationCount[0], writer);
         }
         catch (FileNotFoundException e)
         {

@@ -9,7 +9,7 @@ import java.util.Collection;
 public class SimpleSolutionSerializer implements VrpSolutionSerializer
 {
     @Override
-    public void serialize(VehicleRoutingProblemSolution solution, long millisecondsElapsed, PrintWriter writer)
+    public void serialize(VehicleRoutingProblemSolution solution, long millisecondsElapsed, int iterationCount, PrintWriter writer)
     {
         Collection<VehicleRoute> routes = solution.getRoutes();
         double cost = solution.getCost();

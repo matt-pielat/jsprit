@@ -6,5 +6,5 @@ import java.io.PrintWriter;
 
 public interface VrpSolutionSerializer
 {
-    void serialize(VehicleRoutingProblemSolution solution, long millisecondsElapsed, PrintWriter writer);
+    void serialize(VehicleRoutingProblemSolution solution, long millisecondsElapsed, int iterationCount, PrintWriter writer);
 }
