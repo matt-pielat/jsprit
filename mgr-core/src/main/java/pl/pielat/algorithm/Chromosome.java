@@ -60,9 +60,10 @@ public class Chromosome extends ArrayList<Gene>
 
             liStart = System.nanoTime();
             doLocalImprovement = routesAfter - routesBefore > 0;
+            RepairingHeuristic li = null;
             if (doLocalImprovement)
             {
-                RepairingHeuristic li = gene.localImprovementHeuristic;
+                li = gene.localImprovementHeuristic;
                 li.improveRoutes(routes.subList(routesBefore, routes.size()));
             }
 
@@ -80,7 +81,7 @@ public class Chromosome extends ArrayList<Gene>
                 if (doLocalImprovement)
                 {
                     Diagnostics.Logger.log(
-                        "[LI]%s: %d ms", ch.getClass().getSimpleName(), (ihStart-liStart)/1000000L);
+                        "[LI]%s: %d ms", li.getClass().getSimpleName(), (ihStart-liStart)/1000000L);
                 }
                 Diagnostics.Logger.log(
                     "[IH]%s: %d ms", ih.getClass().getSimpleName(), (ihEnd-ihStart)/1000000L);
