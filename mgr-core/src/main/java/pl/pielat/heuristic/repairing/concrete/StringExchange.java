@@ -1,6 +1,7 @@
 package pl.pielat.heuristic.repairing.concrete;
 
 import pl.pielat.algorithm.ProblemInfo;
+import pl.pielat.heuristic.Place;
 import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.repairing.RepairingHeuristic;
 
@@ -24,19 +25,15 @@ public class StringExchange extends RepairingHeuristic
         for (int a = 1; a < routes.size(); a++)
         {
             Route alpha = routes.get(a);
-            double alphaCost = alpha.getCost();
 
             for (int b = 0; b < a; b++)
             {
                 Route beta = routes.get(b);
-                double betaCost = beta.getCost();
 
-                double costToBeat = alphaCost + betaCost;
-
-                if (performExchange(routes, a, b, 2, 2, costToBeat) ||
-                    performExchange(routes, a, b, 2, 1, costToBeat) ||
-                    performExchange(routes, a, b, 1, 2, costToBeat) ||
-                    performExchange(routes, a, b, 1, 1, costToBeat))
+                if (performExchange(routes, a, b, 2, 2) ||
+                    performExchange(routes, a, b, 2, 1) ||
+                    performExchange(routes, a, b, 1, 2) ||
+                    performExchange(routes, a, b, 1, 1))
                 {
                     return true;
                 }
@@ -45,7 +42,7 @@ public class StringExchange extends RepairingHeuristic
         return false;
     }
 
-    public boolean performExchange(List<Route> routes, int alphaIdx, int betaIdx, int kA, int kB, double costToBeat)
+    public boolean performExchange(List<Route> routes, int alphaIdx, int betaIdx, int kA, int kB)
     {
         Route alpha = routes.get(alphaIdx);
         Route beta = routes.get(betaIdx);
@@ -65,6 +62,8 @@ public class StringExchange extends RepairingHeuristic
                     continue;
                 if (betaDemand - betaStringDemand + alphaStringDemand > vehicleCapacity)
                     continue;
+                if (getCostDelta(alpha, beta, i, j, kA, kB) > -EPSILON)
+                    continue;
 
                 Route alphaNew = createRoute(alpha.length() - kA + kB);
                 alphaNew.addAll(alpha, 0, i, false);
@@ -80,9 +79,6 @@ public class StringExchange extends RepairingHeuristic
                 betaNew.addAll(beta, j + kB, beta.length(), false);
 
                 if (timeWindows && !betaNew.areTimeWindowsValid())
-                    continue;
-
-                if (alphaNew.getCost() + betaNew.getCost() + EPSILON > costToBeat)
                     continue;
 
                 routes.set(alphaIdx, alphaNew);
@@ -101,5 +97,38 @@ public class StringExchange extends RepairingHeuristic
         for (int i = from; i < from + length; i++)
             result += route.getFromStart(i).demand;
         return result;
+    }
+
+    private Place getRouteNodeSafely(Route route, int idx)
+    {
+        if (idx == -1 || idx == route.length())
+            return depot;
+        return route.getFromStart(idx);
+    }
+
+    private double getCostDelta(Route alpha, Route beta, int idxA, int idxB, int kA, int kB)
+    {
+        // BEFORE:
+        // ... - bA - sA - ... - eA - aA - ...
+        // ... - bB - sB - ... - eB - aB - ...
+
+        // AFTER:
+        // ... - bA - sB - ... - eB - aA - ...
+        // ... - bB - sA - ... - eA - aB - ...
+
+        Place bA = getRouteNodeSafely(alpha, idxA - 1);
+        Place sA = getRouteNodeSafely(alpha, idxA);
+        Place eA = getRouteNodeSafely(alpha, idxA + kA - 1);
+        Place aA = getRouteNodeSafely(alpha, idxA + kA);
+
+        Place bB = getRouteNodeSafely(beta, idxB - 1);
+        Place sB = getRouteNodeSafely(beta, idxB);
+        Place eB = getRouteNodeSafely(beta, idxB + kB - 1);
+        Place aB = getRouteNodeSafely(beta, idxB + kB);
+
+        double costDelta =
+            - getCost(bA, sA) - getCost(eA, aA) - getCost(bB, sB) - getCost(eB, aB)
+            + getCost(bA, sB) + getCost(eB, aA) + getCost(bB, sA) + getCost(eA, aB);
+        return costDelta;
     }
 }
