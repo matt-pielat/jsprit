@@ -121,6 +121,7 @@ public class BenchmarkRunnerTests
                 "--problemFormat", "tsplib95",
                 "--algorithm", "GarridoRiff",
                 "--timeLimit", "1000",
+                "--minIntermediateCostDelay", "500"
             };
         BenchmarkRunner.main(args);
 

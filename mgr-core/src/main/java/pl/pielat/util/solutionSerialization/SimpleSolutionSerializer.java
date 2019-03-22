@@ -2,6 +2,7 @@ package pl.pielat.util.solutionSerialization;
 
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
+import pl.pielat.util.metadata.AlgorithmRunMetadata;
 
 import java.io.PrintWriter;
 import java.util.Collection;
@@ -9,7 +10,7 @@ import java.util.Collection;
 public class SimpleSolutionSerializer implements VrpSolutionSerializer
 {
     @Override
-    public void serialize(VehicleRoutingProblemSolution solution, long millisecondsElapsed, int iterationCount, PrintWriter writer)
+    public void serialize(VehicleRoutingProblemSolution solution, AlgorithmRunMetadata metadata, PrintWriter writer)
     {
         Collection<VehicleRoute> routes = solution.getRoutes();
         double cost = solution.getCost();

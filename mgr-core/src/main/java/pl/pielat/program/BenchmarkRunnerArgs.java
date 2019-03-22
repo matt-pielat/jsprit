@@ -87,6 +87,12 @@ public class BenchmarkRunnerArgs
         validateWith = PositiveNumberValidator.class)
     public int iterationLimit;
 
+    @Parameter(
+        names = {"--minIntermediateCostDelay"},
+        description = "Minimum time in milliseconds between intermediate cost writes",
+        validateWith = PositiveNumberValidator.class)
+    public long minIntermediateCostDelay = -1;
+
     public static BenchmarkRunnerArgs parse(String[] rawArgs) throws ParameterException
     {
         BenchmarkRunnerArgs args = new BenchmarkRunnerArgs();
@@ -100,7 +106,7 @@ public class BenchmarkRunnerArgs
             throw new ParameterException("Offspring size can not be greater than population size");
 
         if (args.timeLimitInMs == 0 && args.iterationLimit == 0)
-            throw new ParameterException("Either time limit or iteration limit has to be provided");
+            throw new ParameterException("Either timeInMs limit or iteration limit has to be provided");
 
         return args;
     }

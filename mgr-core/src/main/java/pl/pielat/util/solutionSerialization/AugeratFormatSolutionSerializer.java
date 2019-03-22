@@ -3,6 +3,7 @@ package pl.pielat.util.solutionSerialization;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
+import pl.pielat.util.metadata.AlgorithmRunMetadata;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -13,7 +14,7 @@ import java.util.Locale;
 public class AugeratFormatSolutionSerializer implements VrpSolutionSerializer
 {
     @Override
-    public void serialize(VehicleRoutingProblemSolution solution, long millisecondsElapsed, int iterationCount, PrintWriter writer)
+    public void serialize(VehicleRoutingProblemSolution solution, AlgorithmRunMetadata metadata, PrintWriter writer)
     {
         VehicleRoute[] routes = solution.getRoutes().toArray(new VehicleRoute[0]);
 

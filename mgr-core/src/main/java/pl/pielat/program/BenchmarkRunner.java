@@ -1,7 +1,6 @@
 package pl.pielat.program;
 
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
-import com.graphhopper.jsprit.core.algorithm.listener.IterationEndsListener;
 import com.graphhopper.jsprit.core.algorithm.selector.SelectBest;
 import com.graphhopper.jsprit.core.algorithm.selector.SolutionSelector;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
@@ -13,6 +12,7 @@ import pl.pielat.algorithm.factory.GarridoRiffFactory;
 import pl.pielat.algorithm.factory.JspritFactory;
 import pl.pielat.util.Diagnostics;
 import pl.pielat.util.logging.*;
+import pl.pielat.util.metadata.AlgorithmRunMetadataGatherer;
 import pl.pielat.util.problemParsing.FileFormatType;
 import pl.pielat.util.problemParsing.SolomonFileReader;
 import pl.pielat.util.problemParsing.Tsplib95FileReader;
@@ -35,13 +35,15 @@ public class BenchmarkRunner
     private Logger logger;
     private Logger diagnosticLogger;
 
-    private ExtendedProblemDefinition epd;
     private AlgorithmFactory algorithmFactory;
-
     private VrpSolutionSerializer solutionSerializer;
+
+    private ExtendedProblemDefinition epd;
     private File solutionFile;
 
     private boolean errorEncountered = false;
+
+    private long minIntermediateCostDelay = -1;
 
     public BenchmarkRunner(BenchmarkRunnerArgs args)
     {
@@ -130,6 +132,8 @@ public class BenchmarkRunner
             algorithmFactory.setTimeLimit(args.timeLimitInMs);
         if (args.iterationLimit > 0)
             algorithmFactory.setTimeLimit(args.iterationLimit);
+        if (args.minIntermediateCostDelay >= 0)
+            minIntermediateCostDelay = args.minIntermediateCostDelay;
 
         solutionFile = args.solutionFile;
         solutionSerializer = new XmlSolutionSerializer();
@@ -143,23 +147,11 @@ public class BenchmarkRunner
             return;
         }
 
-        final int[] iterationCount = {0};
         VehicleRoutingAlgorithm vra = algorithmFactory.build(epd);
-        vra.addListener(new IterationEndsListener() {
-            @Override
-            public void informIterationEnds(
-                int i,
-                VehicleRoutingProblem problem,
-                Collection<VehicleRoutingProblemSolution> solutions)
-            {
-                iterationCount[0] = i;
-            }
-        });
+        AlgorithmRunMetadataGatherer metadataGatherer = new AlgorithmRunMetadataGatherer(minIntermediateCostDelay);
+        vra.addListener(metadataGatherer);
 
-        long startTime = System.nanoTime();
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
-        long endTime = System.nanoTime();
-        long millisecondsElapsed = (endTime - startTime) / 1000000;
 
         if (solutions.isEmpty())
         {
@@ -171,7 +163,7 @@ public class BenchmarkRunner
         createOrOverwriteSolutionFile(solutionFile);
         try (PrintWriter writer = new PrintWriter(new FileOutputStream(solutionFile, false)))
         {
-            solutionSerializer.serialize(bestSolution, millisecondsElapsed, iterationCount[0], writer);
+            solutionSerializer.serialize(bestSolution, metadataGatherer.getMetadata(), writer);
         }
         catch (FileNotFoundException e)
         {

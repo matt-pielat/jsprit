@@ -5,6 +5,8 @@ import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.DeliverService;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.thoughtworks.xstream.XStream;
+import pl.pielat.util.metadata.AlgorithmRunMetadata;
+import pl.pielat.util.metadata.IntermediateCost;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ public class XmlSolutionSerializer implements VrpSolutionSerializer
         public int iterationCount;
         public int routeCount;
         public List routes;
+        public List intermediateCosts;
     }
 
     private static class Route
@@ -31,18 +34,24 @@ public class XmlSolutionSerializer implements VrpSolutionSerializer
     public XmlSolutionSerializer()
     {
         xStream.alias("solution", Solution.class);
+
         xStream.alias("route", Route.class);
         xStream.alias("node", String.class);
         xStream.addImplicitCollection(Route.class, "nodes");
+
+        xStream.alias("ic", IntermediateCost.class);
+        xStream.useAttributeFor(IntermediateCost.class, "cost");
+        xStream.useAttributeFor(IntermediateCost.class, "timeInMs");
     }
 
     @Override
-    public void serialize(VehicleRoutingProblemSolution solution, long millisecondsElapsed, int iterationCount, PrintWriter writer)
+    public void serialize(VehicleRoutingProblemSolution solution, AlgorithmRunMetadata metadata, PrintWriter writer)
     {
         Solution s = new Solution();
         s.cost = solution.getCost();
-        s.millisecondsElapsed = millisecondsElapsed;
-        s.iterationCount = iterationCount;
+        s.millisecondsElapsed = metadata.millisecondsElapsed;
+        s.iterationCount = metadata.iterationCount;
+        s.intermediateCosts = metadata.intermediateCosts;
 
         VehicleRoute[] routes = solution.getRoutes().toArray(new VehicleRoute[0]);
         s.routeCount = routes.length;

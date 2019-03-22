@@ -25,7 +25,7 @@ public abstract class BaseHeuristic
         if (info.transportAsymmetry && info.timeWindows)
         {
             throw new IllegalArgumentException(
-                "Transport asymmetry and time windows cannot be enabled at the same time.");
+                "Transport asymmetry and timeInMs windows cannot be enabled at the same timeInMs.");
         }
 
         problemInfo = info;
