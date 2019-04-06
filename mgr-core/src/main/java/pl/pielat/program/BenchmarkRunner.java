@@ -5,14 +5,14 @@ import com.graphhopper.jsprit.core.algorithm.selector.SelectBest;
 import com.graphhopper.jsprit.core.algorithm.selector.SolutionSelector;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
-import pl.pielat.algorithm.ExtendedProblemDefinition;
-import pl.pielat.algorithm.ObjectiveFunction;
+import pl.pielat.algorithm.*;
 import pl.pielat.algorithm.factory.AlgorithmFactory;
 import pl.pielat.algorithm.factory.GarridoRiffFactory;
 import pl.pielat.algorithm.factory.JspritFactory;
 import pl.pielat.util.Diagnostics;
 import pl.pielat.util.logging.*;
 import pl.pielat.util.metadata.AlgorithmRunMetadataGatherer;
+import pl.pielat.util.metadata.HeuristicUsages;
 import pl.pielat.util.problemParsing.FileFormatType;
 import pl.pielat.util.problemParsing.SolomonFileReader;
 import pl.pielat.util.problemParsing.Tsplib95FileReader;
@@ -22,6 +22,7 @@ import pl.pielat.util.solutionSerialization.XmlSolutionSerializer;
 
 import java.io.*;
 import java.util.Collection;
+import java.util.List;
 
 public class BenchmarkRunner
 {
@@ -152,6 +153,13 @@ public class BenchmarkRunner
         vra.addListener(metadataGatherer);
 
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
+
+        if (vra instanceof GarridoRiffAlgorithm)
+        {
+            List<HeuristicUsages> heuristicUsageStatistics =
+                ((GarridoRiffAlgorithm)vra).getHeuristicUsageStatistics();
+            metadataGatherer.setHeuristicUsageStatistics(heuristicUsageStatistics);
+        }
 
         if (solutions.isEmpty())
         {

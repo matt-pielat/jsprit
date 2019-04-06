@@ -75,16 +75,16 @@ public class Chromosome extends ArrayList<Gene>
             if (Diagnostics.Enabled)
             {
                 Diagnostics.Logger.log(
-                    "[OH]%s: %d ms", oh.getClass().getSimpleName(), (chStart-ohStart)/1000000L);
+                    "[OH]%s: %d ms", oh.Id, (chStart-ohStart)/1000000L);
                 Diagnostics.Logger.log(
-                    "[CH]%s: %d ms", ch.getClass().getSimpleName(), (liStart-chStart)/1000000L);
+                    "[CH]%s: %d ms", ch.Id, (liStart-chStart)/1000000L);
                 if (doLocalImprovement)
                 {
                     Diagnostics.Logger.log(
-                        "[LI]%s: %d ms", li.getClass().getSimpleName(), (ihStart-liStart)/1000000L);
+                        "[LI]%s: %d ms", li.Id, (ihStart-liStart)/1000000L);
                 }
                 Diagnostics.Logger.log(
-                    "[IH]%s: %d ms", ih.getClass().getSimpleName(), (ihEnd-ihStart)/1000000L);
+                    "[IH]%s: %d ms", ih.Id, (ihEnd-ihStart)/1000000L);
             }
         }
 

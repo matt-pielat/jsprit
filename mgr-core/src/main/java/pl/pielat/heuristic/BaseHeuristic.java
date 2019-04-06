@@ -6,9 +6,10 @@ import java.util.List;
 
 public abstract class BaseHeuristic
 {
-
     protected static final double EPSILON = 1e-5;
     private static final int INITIAL_ROUTE_CAPACITY = 10;
+
+    public final String Id = getClass().getSimpleName();
 
     private final ProblemInfo problemInfo;
 

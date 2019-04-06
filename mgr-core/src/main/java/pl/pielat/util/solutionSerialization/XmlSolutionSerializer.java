@@ -6,6 +6,7 @@ import com.graphhopper.jsprit.core.problem.solution.route.activity.DeliverServic
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.thoughtworks.xstream.XStream;
 import pl.pielat.util.metadata.AlgorithmRunMetadata;
+import pl.pielat.util.metadata.HeuristicUsages;
 import pl.pielat.util.metadata.IntermediateCost;
 
 import java.io.PrintWriter;
@@ -22,6 +23,7 @@ public class XmlSolutionSerializer implements VrpSolutionSerializer
         public int routeCount;
         public List routes;
         public List intermediateCosts;
+        public List heuristicUsages;
     }
 
     private static class Route
@@ -42,6 +44,10 @@ public class XmlSolutionSerializer implements VrpSolutionSerializer
         xStream.alias("ic", IntermediateCost.class);
         xStream.useAttributeFor(IntermediateCost.class, "cost");
         xStream.useAttributeFor(IntermediateCost.class, "timeInMs");
+
+        xStream.alias("hu", HeuristicUsages.class);
+        xStream.useAttributeFor(HeuristicUsages.class, "id");
+        xStream.useAttributeFor(HeuristicUsages.class, "usageCount");
     }
 
     @Override
@@ -52,6 +58,7 @@ public class XmlSolutionSerializer implements VrpSolutionSerializer
         s.millisecondsElapsed = metadata.millisecondsElapsed;
         s.iterationCount = metadata.iterationCount;
         s.intermediateCosts = metadata.intermediateCosts;
+        s.heuristicUsages = metadata.heuristicUsageStatistics;
 
         VehicleRoute[] routes = solution.getRoutes().toArray(new VehicleRoute[0]);
         s.routeCount = routes.length;

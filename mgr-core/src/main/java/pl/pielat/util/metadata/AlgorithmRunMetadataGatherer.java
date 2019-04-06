@@ -29,6 +29,8 @@ public class AlgorithmRunMetadataGatherer implements IterationStartsListener, It
     private Queue<Double> intermediateCosts;
     private double lastCost = Double.POSITIVE_INFINITY;
 
+    private List<HeuristicUsages> heuristicUsageStatistics;
+
     private final SolutionSelector selector = new SelectBest();
 
     public AlgorithmRunMetadataGatherer(long minIntermediateCostWriteDelayInMs)
@@ -49,6 +51,7 @@ public class AlgorithmRunMetadataGatherer implements IterationStartsListener, It
 
         result.iterationCount = iterationStarted;
         result.millisecondsElapsed = (algorithmEndNanoTime - algorithmStartNanoTime) / 1000000;
+        result.heuristicUsageStatistics = heuristicUsageStatistics;
         result.intermediateCosts = new ArrayList<>(intermediateCosts.size());
 
         while (!intermediateCosts.isEmpty())
@@ -60,6 +63,11 @@ public class AlgorithmRunMetadataGatherer implements IterationStartsListener, It
         }
 
         return result;
+    }
+
+    public void setHeuristicUsageStatistics(List<HeuristicUsages> statistics)
+    {
+        heuristicUsageStatistics = statistics;
     }
 
     @Override

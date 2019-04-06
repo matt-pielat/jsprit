@@ -8,6 +8,8 @@ import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.constructive.ConstructiveHeuristicProvider;
 import pl.pielat.heuristic.ordering.OrderingHeuristicProvider;
 import pl.pielat.heuristic.repairing.RepairingHeuristicProvider;
+import pl.pielat.util.metadata.HeuristicUsageStatisticsGatherer;
+import pl.pielat.util.metadata.HeuristicUsages;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,13 +31,14 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
     private ArrayList<Route> bestSolutionRoutes;
 
     private Random random = new Random();
-    private GeneticOperatorManager operatorManager;
     private int epoch = 0;
 
     private TimeTermination timeTermination = null;
     private ProblemInfo problemInfo;
     private EntityConverter converter;
     private ObjectiveFunction objectiveFunction;
+    private GeneticOperatorManager operatorManager;
+    private HeuristicUsageStatisticsGatherer statisticsGatherer;
 
     public EvolutionaryHyperheuristicModule(
         ExtendedProblemDefinition problemDefinition,
@@ -55,9 +58,10 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
         this.popSize = popSize;
         this.offspringSize = offspringSize;
         this.initChromosomeSize = initChromosomeSize;
-        this.objectiveFunction = new ObjectiveFunction(problemDefinition, problemDefinition.timeWindows);
 
+        objectiveFunction = new ObjectiveFunction(problemDefinition, problemDefinition.timeWindows);
         operatorManager = new GeneticOperatorManager(problemInfo);
+        statisticsGatherer = new HeuristicUsageStatisticsGatherer();
     }
 
     public void setRandom(Random random)
@@ -130,6 +134,9 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
                 bestSolutionRoutes = resultRoutes;
                 bestSolution = converter.getSolution(bestSolutionRoutes, routesCost);
             }
+
+            for (Gene gene : population[i])
+                statisticsGatherer.incrementHeuristicUsages(gene);
         }
     }
 
@@ -236,6 +243,11 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
         }
 
         return bestSolution;
+    }
+
+    public List<HeuristicUsages> getHeuristicUsageStatistics()
+    {
+        return statisticsGatherer.getStatistics();
     }
 
     private int selectRandomIndividualIndex(boolean[] ignoredPops)
