@@ -1,14 +1,15 @@
 $scriptPath = ".\Start-Runner.ps1"
 
-$timeLimit = 30000
-$runsPerProblem = 10
 $diagnosticMode = $false
 
 function Run-Benchmark
 {
     param(
         [string]$Directory, 
-        [string]$ProblemFormat
+        [string]$ProblemFormat,
+        [long]$TimeLimit,
+        [int]$RunsPerProblem,
+        [long]$MinIntermediateCostDelay
     )
 
     $problemsDir = "$Directory\Problems"
@@ -21,7 +22,7 @@ function Run-Benchmark
     $problemFiles = Get-ChildItem $problemsDir
     foreach ($problemFile in $problemFiles)
     {
-        for ($i = 0; $i -lt $runsPerProblem; $i++)
+        for ($i = 0; $i -lt $RunsPerProblem; $i++)
         {
             $problemId = $problemFile | Select-Object -ExpandProperty BaseName
             $problemFilePath = $problemFile | Select-Object -ExpandProperty FullName
@@ -35,7 +36,8 @@ function Run-Benchmark
                     -SolutionPath "$solutionFilePath" `
                     -ProblemFormat $ProblemFormat `
                     -Algorithm jsprit `
-                    -TimeLimit $timeLimit `
+                    -TimeLimit $TimeLimit `
+                    -MinIntermediateCostDelay $MinIntermediateCostDelay `
             }
 
             if ($diagnosticMode)
@@ -53,13 +55,16 @@ function Run-Benchmark
                     -SolutionPath "$solutionFilePath" `
                     -ProblemFormat $ProblemFormat `
                     -Algorithm GarridoRiff `
-                    -TimeLimit $timeLimit `
+                    -TimeLimit $TimeLimit `
+                    -MinIntermediateCostDelay $MinIntermediateCostDelay `
             }
         }
     }
 }
 
-Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Set E (Christofides and Eilon, 1969)" -ProblemFormat Tsplib95
-Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Uchoa et al. (2014)" -ProblemFormat Tsplib95
-Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\VrpTestCasesGenerator" -ProblemFormat Tsplib95
-Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Solomon" -ProblemFormat Solomon
+# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Uchoa et al. (2014)" -ProblemFormat Tsplib95 -TimeLimit 30000 -RunsPerProblem 10
+# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\VrpTestCasesGenerator" -ProblemFormat Tsplib95 -TimeLimit 30000 -RunsPerProblem 10
+# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Set E (Christofides and Eilon, 1969)" -ProblemFormat Tsplib95 -TimeLimit 30000 -RunsPerProblem 10
+# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Solomon" -ProblemFormat Solomon -TimeLimit 30000 -RunsPerProblem 10
+
+Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Convergence" -ProblemFormat Solomon -TimeLimit 600000 -RunsPerProblem 3 -MinIntermediateCostDelay 500
