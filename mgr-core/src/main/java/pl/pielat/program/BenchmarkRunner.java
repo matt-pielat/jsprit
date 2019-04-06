@@ -12,8 +12,8 @@ import pl.pielat.algorithm.factory.JspritFactory;
 import pl.pielat.util.Diagnostics;
 import pl.pielat.util.logging.*;
 import pl.pielat.util.metadata.AlgorithmRunMetadataGatherer;
-import pl.pielat.util.metadata.HeuristicUsageStatistics;
-import pl.pielat.util.metadata.HeuristicUsages;
+import pl.pielat.util.metadata.EhDvrpStatistics;
+import pl.pielat.util.metadata.EhDvrpStatisticsGatherer;
 import pl.pielat.util.problemParsing.FileFormatType;
 import pl.pielat.util.problemParsing.SolomonFileReader;
 import pl.pielat.util.problemParsing.Tsplib95FileReader;
@@ -23,7 +23,6 @@ import pl.pielat.util.solutionSerialization.XmlSolutionSerializer;
 
 import java.io.*;
 import java.util.Collection;
-import java.util.List;
 
 public class BenchmarkRunner
 {
@@ -39,6 +38,7 @@ public class BenchmarkRunner
 
     private AlgorithmFactory algorithmFactory;
     private VrpSolutionSerializer solutionSerializer;
+    private EhDvrpStatisticsGatherer statisticsGatherer;
 
     private ExtendedProblemDefinition epd;
     private File solutionFile;
@@ -114,12 +114,17 @@ public class BenchmarkRunner
         {
             case GarridoRiff:
                 GarridoRiffFactory gr = new GarridoRiffFactory();
+
                 if (args.chromosomeSize > 0)
                     gr.setChromosomeSize(args.chromosomeSize);
                 if (args.populationSize > 0)
                     gr.setChromosomeSize(args.populationSize);
                 if (args.offspringSize > 0)
                     gr.setChromosomeSize(args.offspringSize);
+
+                statisticsGatherer = new EhDvrpStatisticsGatherer();
+                gr.setStatisticsGatherer(statisticsGatherer);
+
                 algorithmFactory = gr;
                 break;
             case Jsprit:
@@ -150,17 +155,12 @@ public class BenchmarkRunner
         }
 
         VehicleRoutingAlgorithm vra = algorithmFactory.build(epd);
-        AlgorithmRunMetadataGatherer metadataGatherer = new AlgorithmRunMetadataGatherer(minIntermediateCostDelay);
+        AlgorithmRunMetadataGatherer metadataGatherer = new AlgorithmRunMetadataGatherer(
+            statisticsGatherer,
+            minIntermediateCostDelay);
         vra.addListener(metadataGatherer);
 
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
-
-        if (vra instanceof GarridoRiffAlgorithm)
-        {
-            HeuristicUsageStatistics heuristicUsageStatistics =
-                ((GarridoRiffAlgorithm)vra).getHeuristicUsageStatistics();
-            metadataGatherer.setHeuristicUsageStatistics(heuristicUsageStatistics);
-        }
 
         if (solutions.isEmpty())
         {

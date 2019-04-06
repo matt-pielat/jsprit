@@ -8,9 +8,8 @@ import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.constructive.ConstructiveHeuristicProvider;
 import pl.pielat.heuristic.ordering.OrderingHeuristicProvider;
 import pl.pielat.heuristic.repairing.RepairingHeuristicProvider;
-import pl.pielat.util.metadata.HeuristicUsageStatistics;
-import pl.pielat.util.metadata.HeuristicUsageStatisticsGatherer;
-import pl.pielat.util.metadata.HeuristicUsages;
+import pl.pielat.util.metadata.EhDvrpStatistics;
+import pl.pielat.util.metadata.EhDvrpStatisticsGatherer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,10 +38,11 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
     private EntityConverter converter;
     private ObjectiveFunction objectiveFunction;
     private GeneticOperatorManager operatorManager;
-    private HeuristicUsageStatisticsGatherer statisticsGatherer;
+    private EhDvrpStatisticsGatherer statisticsGatherer;
 
     public EvolutionaryHyperheuristicModule(
         ExtendedProblemDefinition problemDefinition,
+        EhDvrpStatisticsGatherer gatherer,
         int popSize,
         int offspringSize,
         int initChromosomeSize)
@@ -62,7 +62,7 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
 
         objectiveFunction = new ObjectiveFunction(problemDefinition, problemDefinition.timeWindows);
         operatorManager = new GeneticOperatorManager(problemInfo);
-        statisticsGatherer = new HeuristicUsageStatisticsGatherer();
+        statisticsGatherer = gatherer;
     }
 
     public void setRandom(Random random)
@@ -244,11 +244,6 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
         }
 
         return bestSolution;
-    }
-
-    public HeuristicUsageStatistics getHeuristicUsageStatistics()
-    {
-        return statisticsGatherer.getStatistics();
     }
 
     private int selectRandomIndividualIndex(boolean[] ignoredPops)

@@ -6,7 +6,7 @@ public class AlgorithmRunMetadata
 {
     public List<IntermediateCost> intermediateCosts;
 
-    public HeuristicUsageStatistics heuristicUsageStatistics;
+    public EhDvrpStatistics ehDvrpStatistics;
 
     public int iterationCount;
 

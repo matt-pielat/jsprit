@@ -29,12 +29,16 @@ public class AlgorithmRunMetadataGatherer implements IterationStartsListener, It
     private Queue<Double> intermediateCosts;
     private double lastCost = Double.POSITIVE_INFINITY;
 
-    private HeuristicUsageStatistics heuristicUsageStatistics;
+    private EhDvrpStatisticsGatherer ehDvrpStatisticsGatherer;
 
     private final SolutionSelector selector = new SelectBest();
 
-    public AlgorithmRunMetadataGatherer(long minIntermediateCostWriteDelayInMs)
+    public AlgorithmRunMetadataGatherer(
+        EhDvrpStatisticsGatherer statisticsGatherer,
+        long minIntermediateCostWriteDelayInMs)
     {
+        ehDvrpStatisticsGatherer = statisticsGatherer;
+
         gatherIntermediateCosts = minIntermediateCostWriteDelayInMs >= 0;
         minIntermediateCostWriteDelayInNano = minIntermediateCostWriteDelayInMs * 1000000;
 
@@ -49,9 +53,11 @@ public class AlgorithmRunMetadataGatherer implements IterationStartsListener, It
     {
         AlgorithmRunMetadata result = new AlgorithmRunMetadata();
 
+        if (ehDvrpStatisticsGatherer != null)
+            result.ehDvrpStatistics = ehDvrpStatisticsGatherer.getStatistics();
+
         result.iterationCount = iterationStarted;
         result.millisecondsElapsed = (algorithmEndNanoTime - algorithmStartNanoTime) / 1000000;
-        result.heuristicUsageStatistics = heuristicUsageStatistics;
         result.intermediateCosts = new ArrayList<>(intermediateCosts.size());
 
         while (!intermediateCosts.isEmpty())
@@ -65,9 +71,9 @@ public class AlgorithmRunMetadataGatherer implements IterationStartsListener, It
         return result;
     }
 
-    public void setHeuristicUsageStatistics(HeuristicUsageStatistics statistics)
+    public void setEhDvrpStatisticsGatherer(EhDvrpStatisticsGatherer gatherer)
     {
-        heuristicUsageStatistics = statistics;
+        ehDvrpStatisticsGatherer = gatherer;
     }
 
     @Override

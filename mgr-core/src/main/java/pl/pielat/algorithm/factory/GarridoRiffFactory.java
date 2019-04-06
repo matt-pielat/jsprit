@@ -12,6 +12,7 @@ import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import pl.pielat.algorithm.EvolutionaryHyperheuristicModule;
 import pl.pielat.algorithm.ExtendedProblemDefinition;
 import pl.pielat.algorithm.GarridoRiffAlgorithm;
+import pl.pielat.util.metadata.EhDvrpStatisticsGatherer;
 
 import java.util.Random;
 import java.util.Stack;
@@ -28,6 +29,7 @@ public class GarridoRiffFactory extends AlgorithmFactory
     private int chromosomeSize;
 
     private Random random = new Random();
+    private EhDvrpStatisticsGatherer statisticsGatherer;
 
     public GarridoRiffFactory()
     {
@@ -56,6 +58,11 @@ public class GarridoRiffFactory extends AlgorithmFactory
         this.random = random;
     }
 
+    public void setStatisticsGatherer(EhDvrpStatisticsGatherer gatherer)
+    {
+        this.statisticsGatherer = gatherer;
+    }
+
     @Override
     protected VehicleRoutingAlgorithm internalBuild(ExtendedProblemDefinition epd)
     {
@@ -69,7 +76,7 @@ public class GarridoRiffFactory extends AlgorithmFactory
         };
 
         EvolutionaryHyperheuristicModule searchStrategyModule = new EvolutionaryHyperheuristicModule(
-            epd, populationSize, offspringSize, chromosomeSize);
+            epd, statisticsGatherer, populationSize, offspringSize, chromosomeSize);
         searchStrategyModule.setRandom(random);
 
         SearchStrategy searchStrategy = new SearchStrategy(

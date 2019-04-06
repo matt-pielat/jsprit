@@ -5,13 +5,13 @@ import pl.pielat.algorithm.Gene;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class HeuristicUsageStatisticsGatherer
+public class EhDvrpStatisticsGatherer
 {
     private HashMap<String, HeuristicUsages> orderingHeuristicUsages;
     private HashMap<String, HeuristicUsages> constructiveHeuristicUsages;
     private HashMap<String, HeuristicUsages> repairingHeuristicUsages;
 
-    public HeuristicUsageStatisticsGatherer()
+    public EhDvrpStatisticsGatherer()
     {
         orderingHeuristicUsages = new HashMap<>();
         constructiveHeuristicUsages = new HashMap<>();
@@ -46,9 +46,9 @@ public class HeuristicUsageStatisticsGatherer
         incrementHeuristicUsages(repairingHeuristicUsages, gene.improvementHeuristic.Id);
     }
 
-    public HeuristicUsageStatistics getStatistics()
+    public EhDvrpStatistics getStatistics()
     {
-        HeuristicUsageStatistics statistics = new HeuristicUsageStatistics();
+        EhDvrpStatistics statistics = new EhDvrpStatistics();
         statistics.orderingHeuristicUsages = new ArrayList<>(orderingHeuristicUsages.size());
         statistics.constructiveHeuristicUsages = new ArrayList<>(constructiveHeuristicUsages.size());
         statistics.repairingHeuristicUsages = new ArrayList<>(repairingHeuristicUsages.size());
