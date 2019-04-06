@@ -6,6 +6,7 @@ import com.graphhopper.jsprit.core.algorithm.termination.PrematureAlgorithmTermi
 import com.graphhopper.jsprit.core.algorithm.termination.TimeTermination;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.solution.SolutionCostCalculator;
+import pl.pielat.util.metadata.HeuristicUsageStatistics;
 import pl.pielat.util.metadata.HeuristicUsages;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public class GarridoRiffAlgorithm extends VehicleRoutingAlgorithm
         }
     }
 
-    public List<HeuristicUsages> getHeuristicUsageStatistics()
+    public HeuristicUsageStatistics getHeuristicUsageStatistics()
     {
         EvolutionaryHyperheuristicModule module = (EvolutionaryHyperheuristicModule)super
             .getSearchStrategyManager()

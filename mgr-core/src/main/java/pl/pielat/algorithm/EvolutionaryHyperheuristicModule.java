@@ -8,6 +8,7 @@ import pl.pielat.heuristic.Route;
 import pl.pielat.heuristic.constructive.ConstructiveHeuristicProvider;
 import pl.pielat.heuristic.ordering.OrderingHeuristicProvider;
 import pl.pielat.heuristic.repairing.RepairingHeuristicProvider;
+import pl.pielat.util.metadata.HeuristicUsageStatistics;
 import pl.pielat.util.metadata.HeuristicUsageStatisticsGatherer;
 import pl.pielat.util.metadata.HeuristicUsages;
 
@@ -134,9 +135,6 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
                 bestSolutionRoutes = resultRoutes;
                 bestSolution = converter.getSolution(bestSolutionRoutes, routesCost);
             }
-
-            for (Gene gene : population[i])
-                statisticsGatherer.incrementHeuristicUsages(gene);
         }
     }
 
@@ -240,12 +238,15 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
                 bestSolutionRoutes = resultRoutes;
                 bestSolution = converter.getSolution(bestSolutionRoutes, routesCost);
             }
+
+            for (Gene gene : population[i])
+                statisticsGatherer.incrementHeuristicUsages(gene);
         }
 
         return bestSolution;
     }
 
-    public List<HeuristicUsages> getHeuristicUsageStatistics()
+    public HeuristicUsageStatistics getHeuristicUsageStatistics()
     {
         return statisticsGatherer.getStatistics();
     }

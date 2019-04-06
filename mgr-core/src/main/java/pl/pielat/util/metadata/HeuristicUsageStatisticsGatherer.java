@@ -4,54 +4,80 @@ import pl.pielat.algorithm.Gene;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class HeuristicUsageStatisticsGatherer
 {
-    private HashMap<String, Integer> heuristicUsages;
+    private HashMap<String, HeuristicUsages> orderingHeuristicUsages;
+    private HashMap<String, HeuristicUsages> constructiveHeuristicUsages;
+    private HashMap<String, HeuristicUsages> repairingHeuristicUsages;
 
     public HeuristicUsageStatisticsGatherer()
     {
-        heuristicUsages = new HashMap<>();
+        orderingHeuristicUsages = new HashMap<>();
+        constructiveHeuristicUsages = new HashMap<>();
+        repairingHeuristicUsages = new HashMap<>();
     }
 
-    public void setHeuristicUsages(String id, int value)
+    private static void incrementHeuristicUsages(
+        HashMap<String, HeuristicUsages> usagesMap,
+        String id)
     {
-        heuristicUsages.put(id, value);
-    }
-
-    public void incrementHeuristicUsages(String id)
-    {
-        if (!heuristicUsages.containsKey(id))
+        HeuristicUsages usages;
+        if (!usagesMap.containsKey(id))
         {
-            heuristicUsages.put(id, 1);
+            usages = new HeuristicUsages();
+            usages.id = id;
+            usages.usageCount = 0;
+            usagesMap.put(id, usages);
         }
         else
         {
-            Integer oldValue = heuristicUsages.get(id);
-            heuristicUsages.put(id, oldValue + 1);
+            usages = usagesMap.get(id);
         }
+
+        usages.usageCount++;
     }
 
     public void incrementHeuristicUsages(Gene gene)
     {
-        incrementHeuristicUsages(gene.orderingHeuristic.Id);
-        incrementHeuristicUsages(gene.constructiveHeuristic.Id);
-        incrementHeuristicUsages(gene.localImprovementHeuristic.Id);
-        incrementHeuristicUsages(gene.improvementHeuristic.Id);
+        incrementHeuristicUsages(orderingHeuristicUsages, gene.orderingHeuristic.Id);
+        incrementHeuristicUsages(constructiveHeuristicUsages, gene.constructiveHeuristic.Id);
+        incrementHeuristicUsages(repairingHeuristicUsages, gene.localImprovementHeuristic.Id);
+        incrementHeuristicUsages(repairingHeuristicUsages, gene.improvementHeuristic.Id);
     }
 
-    public List<HeuristicUsages> getStatistics()
+    public HeuristicUsageStatistics getStatistics()
     {
-        ArrayList<HeuristicUsages> statistics = new ArrayList<>(heuristicUsages.size());
+        HeuristicUsageStatistics statistics = new HeuristicUsageStatistics();
+        statistics.orderingHeuristicUsages = new ArrayList<>(orderingHeuristicUsages.size());
+        statistics.constructiveHeuristicUsages = new ArrayList<>(constructiveHeuristicUsages.size());
+        statistics.repairingHeuristicUsages = new ArrayList<>(repairingHeuristicUsages.size());
 
-        for (String key : heuristicUsages.keySet())
+        for (String key : orderingHeuristicUsages.keySet())
         {
             HeuristicUsages usages = new HeuristicUsages();
             usages.id = key;
-            usages.usageCount = heuristicUsages.get(key);
+            usages.usageCount = orderingHeuristicUsages.get(key).usageCount;
 
-            statistics.add(usages);
+            statistics.orderingHeuristicUsages.add(usages);
+        }
+
+        for (String key : constructiveHeuristicUsages.keySet())
+        {
+            HeuristicUsages usages = new HeuristicUsages();
+            usages.id = key;
+            usages.usageCount = constructiveHeuristicUsages.get(key).usageCount;
+
+            statistics.constructiveHeuristicUsages.add(usages);
+        }
+
+        for (String key : repairingHeuristicUsages.keySet())
+        {
+            HeuristicUsages usages = new HeuristicUsages();
+            usages.id = key;
+            usages.usageCount = repairingHeuristicUsages.get(key).usageCount;
+
+            statistics.repairingHeuristicUsages.add(usages);
         }
 
         return statistics;

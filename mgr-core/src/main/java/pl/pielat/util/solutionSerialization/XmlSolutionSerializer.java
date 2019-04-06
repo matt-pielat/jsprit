@@ -5,7 +5,10 @@ import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.DeliverService;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.converters.extended.ToAttributedValueConverter;
+import com.thoughtworks.xstream.converters.extended.ToStringConverter;
 import pl.pielat.util.metadata.AlgorithmRunMetadata;
+import pl.pielat.util.metadata.HeuristicUsageStatistics;
 import pl.pielat.util.metadata.HeuristicUsages;
 import pl.pielat.util.metadata.IntermediateCost;
 
@@ -23,7 +26,7 @@ public class XmlSolutionSerializer implements VrpSolutionSerializer
         public int routeCount;
         public List routes;
         public List intermediateCosts;
-        public List heuristicUsages;
+        public HeuristicUsageStatistics heuristicUsages;
     }
 
     private static class Route
@@ -45,9 +48,15 @@ public class XmlSolutionSerializer implements VrpSolutionSerializer
         xStream.useAttributeFor(IntermediateCost.class, "cost");
         xStream.useAttributeFor(IntermediateCost.class, "timeInMs");
 
+        xStream.alias("heuristicUsages", HeuristicUsageStatistics.class);
+
         xStream.alias("hu", HeuristicUsages.class);
-        xStream.useAttributeFor(HeuristicUsages.class, "id");
-        xStream.useAttributeFor(HeuristicUsages.class, "usageCount");
+        xStream.registerConverter(new ToAttributedValueConverter(
+            HeuristicUsages.class,
+            xStream.getMapper(),
+            xStream.getReflectionProvider(),
+            xStream.getConverterLookup(),
+            "usageCount"));
     }
 
     @Override

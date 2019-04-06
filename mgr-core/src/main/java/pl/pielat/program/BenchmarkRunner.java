@@ -12,6 +12,7 @@ import pl.pielat.algorithm.factory.JspritFactory;
 import pl.pielat.util.Diagnostics;
 import pl.pielat.util.logging.*;
 import pl.pielat.util.metadata.AlgorithmRunMetadataGatherer;
+import pl.pielat.util.metadata.HeuristicUsageStatistics;
 import pl.pielat.util.metadata.HeuristicUsages;
 import pl.pielat.util.problemParsing.FileFormatType;
 import pl.pielat.util.problemParsing.SolomonFileReader;
@@ -156,7 +157,7 @@ public class BenchmarkRunner
 
         if (vra instanceof GarridoRiffAlgorithm)
         {
-            List<HeuristicUsages> heuristicUsageStatistics =
+            HeuristicUsageStatistics heuristicUsageStatistics =
                 ((GarridoRiffAlgorithm)vra).getHeuristicUsageStatistics();
             metadataGatherer.setHeuristicUsageStatistics(heuristicUsageStatistics);
         }

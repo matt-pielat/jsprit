@@ -29,7 +29,7 @@ public class AlgorithmRunMetadataGatherer implements IterationStartsListener, It
     private Queue<Double> intermediateCosts;
     private double lastCost = Double.POSITIVE_INFINITY;
 
-    private List<HeuristicUsages> heuristicUsageStatistics;
+    private HeuristicUsageStatistics heuristicUsageStatistics;
 
     private final SolutionSelector selector = new SelectBest();
 
@@ -65,7 +65,7 @@ public class AlgorithmRunMetadataGatherer implements IterationStartsListener, It
         return result;
     }
 
-    public void setHeuristicUsageStatistics(List<HeuristicUsages> statistics)
+    public void setHeuristicUsageStatistics(HeuristicUsageStatistics statistics)
     {
         heuristicUsageStatistics = statistics;
     }
