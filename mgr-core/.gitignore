@@ -13,3 +13,5 @@
 .project
 .classpath
 .settings
+
+/scripts/.vscode
