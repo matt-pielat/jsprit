@@ -99,25 +99,26 @@ $allSolutionTypes = @(
 )
 
 $allBenchmarks = @(
-    @{ 
-        path = "${dataRootDirectory}\Set E (Christofides and Eilon, 1969)";
-        externalSolutionFormat = [SolutionFormat]::Plain;
-        advancedSort = $true
-    },
-    @{ 
-        path = "${dataRootDirectory}\Solomon";
-        externalSolutionFormat = [SolutionFormat]::Plain;
-        advancedSort = $false
-    },
-    @{ 
-        path = "${dataRootDirectory}\Uchoa et al. (2014)";
-        externalSolutionFormat = [SolutionFormat]::Uchoa;
-        advancedSort = $true
-    },
-    @{ 
-        path = "${dataRootDirectory}\VrpTestCasesGenerator";
-        externalSolutionFormat = [SolutionFormat]::None;
-        advancedSort = $true
-    }
+    @{ path = "${dataRootDirectory}\Set E (Christofides and Eilon, 1969)" },
+    @{ path = "${dataRootDirectory}\Solomon" },
+    @{ path = "${dataRootDirectory}\Uchoa et al. (2014)" },
+    @{ path = "${dataRootDirectory}\VrpTestCasesGenerator" }
 )
 
+function Test-All {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)]
+    $Condition,
+    [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
+    $InputObject
+    )
+
+    begin { $result = $true }
+    process {
+        $InputObject | Foreach-Object { 
+            if (-not (& $Condition)) { $result = $false }
+        }
+    }
+    end { $result }
+}

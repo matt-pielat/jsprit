@@ -11,9 +11,10 @@ foreach ($benchmark in $allBenchmarks) {
     $problemFiles = Get-ChildItem $problemDirectory | Select-Object -Property `
         BaseName, `
         FullName, `
-        @{Name = "SortPriority"; Expression = { $_.Name -match "n([0-9]+)\D*k([0-9]+)"; [int]::Parse($matches[1]); [int]::Parse($matches[2]) }}
+        @{Name = "SortPriority"; Expression = { $_.Name -match "[Nn](\d+)\D*[Kk](\d+)"; [int]::Parse($matches[1]); [int]::Parse($matches[2]) }}
 
-    if ($benchmark.advancedSort) {
+    $advancedSort = $problemFiles | Test-All { $_.SortPriority -eq $null }
+    if ($advancedSort) {
         $problemFiles = $problemFiles | Sort-Object -Property @{Expression = { $_.SortPriority[1] }}, @{Expression = { $_.SortPriority[2] }}
     }
     else {
@@ -42,8 +43,8 @@ foreach ($benchmark in $allBenchmarks) {
             $solutionFiles = Get-ChildItem $solutionDirectory | Where-Object { $_.Name.StartsWith($problemId) }
             
             foreach ($solutionFile in $solutionFiles) {
-                $solutionObject = $solutionFile.FullName | Read-SolutionFile -SolutionType $solutionType -ExternalFormat $benchmark.externalSolutionFormat
-
+                $solutionObject = $solutionFile.FullName | Read-SolutionFile
+                
                 if (-not $solutionObject) {
                     Write-Warning "Solution $($solutionFile.FullName) not parsed."
                     continue

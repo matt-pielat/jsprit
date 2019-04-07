@@ -1,53 +1,93 @@
 . .\commons.ps1
 
+function Get-SolutionFileFormat {
+    param (
+        [Parameter(ValueFromPipeline)]
+        [string]
+        $FilePath
+    )
+
+    $fileContents = [IO.File]::ReadAllText($FilePath)
+
+    if ($fileContents -match "[Rr]oute\s*#?\d+\s*:\s*(\d+\s+)+\d+\s*") {
+        return [SolutionFormat]::Plain
+    }
+    elseif ($fileContents -match "^\s*<solution>") {
+        return [SolutionFormat]::Xml
+    }
+    elseif ($fileContents -match "^[\d\s]+$") {
+        return [SolutionFormat]::Uchoa
+    }
+    else {
+        Write-Error "Unindentified solution format."
+        return $null
+    }
+}
+
 function Read-SolutionFile {
     param (
         [Parameter(ValueFromPipeline)]
         [string]
-        $FilePath,
-
-        [string]
-        $SolutionType,
-
-        [SolutionFormat]
-        $ExternalFormat
+        $FilePath
     )
 
-    $format = [SolutionFormat]::None
-    switch -regex ($SolutionType) {
-        "jsprit|GarridoRiff" {
-            $format = [SolutionFormat]::Xml
-        }
-        "Bakala" {
-            $format = [SolutionFormat]::Plain
-        }
-        "optimal|best" {
-            $format = $ExternalFormat
-        }
-    }
-    
-    switch ($format) {
-        Xml {
-            $solution = Read-XmlSolutionFile -FilePath $FilePath
-        }
-        Plain {
-            $solution = Read-AugeratSolutionFile -FilePath $FilePath
-        }
-        Uchoa {
-            try {
-                $solution = Read-UchoaSolutionFile -FilePath $FilePath
-            }
-            catch {
-                $solution = Read-AugeratSolutionFile -FilePath $FilePath
-            }
-        }
-        Default {
-            Write-Error "Solution format ${Format} is not supported."
-            return
-        }
-    }
+    $solutionFormat = $FilePath | Get-SolutionFileFormat
 
-    return $solution
+    if ($solutionFormat -eq [SolutionFormat]::Plain) {
+        return Read-PlainSolutionFile -FilePath $FilePath
+    }
+    elseif ($solutionFormat -eq [SolutionFormat]::Xml) {
+        return Read-XmlSolutionFile -FilePath $FilePath
+    }
+    elseif ($solutionFormat -eq [SolutionFormat]::Uchoa) {
+        return Read-UchoaSolutionFile -FilePath $FilePath
+    }
+    else {
+        Write-Error "Unsupported solution format: ${solutionFormat}."
+        return $null
+    }
+}
+
+function Get-ProblemFileFormat {
+    param (
+        [Parameter(ValueFromPipeline)]
+        [string]
+        $FilePath
+    )
+
+    $fileContents = [IO.File]::ReadAllText($FilePath)
+
+    if ($fileContents -match "CUST +NO.\s+XCOORD.\s+YCOORD.\s+DEMAND\s+READY +TIME\s+DUE +DATE\s+SERVICE +TIME") {
+        return [ProblemFormat]::Solomon
+    }
+    elseif ($fileContents -match "DEMAND_SECTION\s+[\d\s]+DEPOT_SECTION") {
+        return [ProblemFormat]::Tsplib95
+    }
+    else {
+        Write-Error "Unindentified problem format."
+        return $null
+    }
+}
+
+function Read-ProblemFile {
+    param (
+        [Parameter(ValueFromPipeline)]
+        [string]
+        $FilePath
+    )
+
+    $problemFormat = $FilePath | Get-ProblemType
+
+    if ($problemFormat -eq [ProblemFormat]::Solomon) {
+        return Read-SolomonProblemFile -FilePath $FilePath
+    }
+    elseif ($problemFormat -eq [ProblemFormat]::Tsplib95) {
+        return Read-Tsplib95ProblemFile -FilePath $FilePath
+    }
+    else {
+        Write-Error "Unsupported problem format: ${problemFormat}."
+        return $null
+    }
 }
 
 function Read-XmlSolutionFile {
@@ -76,7 +116,7 @@ function Read-XmlSolutionFile {
     return $solution
 }
 
-function Read-AugeratSolutionFile {
+function Read-PlainSolutionFile {
     param (
         [Parameter(ValueFromPipeline)]
         [string]
@@ -94,7 +134,7 @@ function Read-AugeratSolutionFile {
             $solution.Routes += $newRoute
         }
         elseif ($line -match "^\s*[Cc]ost") {
-            $line -match "[0-9]+((,|\.)[0-9]+)?" | Out-Null
+            $line -match "\d+((,|\.)\d+)?" | Out-Null
             $solution.Cost = $matches[0]
         }
     }
@@ -132,48 +172,6 @@ function Read-UchoaSolutionFile {
     }
 
     return $solution
-}
-
-function Get-ProblemType {
-    param (
-        [Parameter(ValueFromPipeline)]
-        [string]
-        $FilePath
-    )
-
-    $fileContents = [IO.File]::ReadAllText($FilePath)
-
-    if ($fileContents -match "CUST +NO.\s+XCOORD.\s+YCOORD.\s+DEMAND\s+READY +TIME\s+DUE +DATE\s+SERVICE +TIME") {
-        return [ProblemFormat]::Solomon
-    }
-    elseif ($fileContents -match "DEMAND_SECTION\s+[0-9\s]+DEPOT_SECTION") {
-        return [ProblemFormat]::Tsplib95
-    }
-    else {
-        Write-Error "Problem format not identified."
-        return $null
-    }
-}
-
-function Read-ProblemFile {
-    param (
-        [Parameter(ValueFromPipeline)]
-        [string]
-        $FilePath
-    )
-
-    $problemType = $FilePath | Get-ProblemType
-
-    if ($problemType -eq [ProblemType]::Solomon) {
-        return Read-SolomonProblemFile -FilePath $FilePath
-    }
-    elseif ($problemType -eq [ProblemType]::Tsplib95) {
-        return Read-Tsplib95ProblemFile -FilePath $FilePath
-    }
-    else {
-        Write-Error "Problem format ${Format} is not supported."
-        return $null
-    }
 }
 
 function Read-Tsplib95ProblemFile {

@@ -26,7 +26,7 @@ function Run-Benchmark
     {
         $problemId = $problemFile | Select-Object -ExpandProperty BaseName
         $problemFilePath = $problemFile | Select-Object -ExpandProperty FullName
-        $problemFormat = $problemFilePath | Get-ProblemType
+        $problemFileFormat = $problemFilePath | Get-ProblemFileFormat
 
         for ($i = 0; $i -lt $RunsPerProblem; $i++)
         {
@@ -37,7 +37,7 @@ function Run-Benchmark
                     -ProblemPath "$problemFilePath" `
                     -LogPath "$logFilePath" `
                     -SolutionPath "$solutionFilePath" `
-                    -ProblemFormat $ProblemFormat `
+                    -ProblemFormat $problemFileFormat `
                     -Algorithm jsprit `
                     -TimeLimit $TimeLimit `
                     -MinIntermediateCostDelay $MinIntermediateCostDelay `
@@ -56,7 +56,7 @@ function Run-Benchmark
                     -LogPath "$logFilePath" `
                     -DiagnosticLogPath "$diagnosticLogFilePath" `
                     -SolutionPath "$solutionFilePath" `
-                    -ProblemFormat $ProblemFormat `
+                    -ProblemFormat $problemFileFormat `
                     -Algorithm GarridoRiff `
                     -TimeLimit $TimeLimit `
                     -MinIntermediateCostDelay $MinIntermediateCostDelay `
