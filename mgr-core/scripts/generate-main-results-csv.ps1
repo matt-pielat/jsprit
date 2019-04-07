@@ -1,6 +1,15 @@
 . .\serialization.ps1
 
-$csvPath = "D:\results.csv"
+$dataSetDir = "${dataRoot}\data sets"
+$csvOutputPath = "${dataRoot}\main results.csv"
+
+$allBenchmarks = @(
+    @{ path = "${dataSetDir}\Set E (Christofides and Eilon, 1969)" },
+    @{ path = "${dataSetDir}\Solomon" },
+    @{ path = "${dataSetDir}\Uchoa et al. (2014)" },
+    @{ path = "${dataSetDir}\VrpTestCasesGenerator" }
+)
+
 $data = @()
 $keys = @{}
 
@@ -13,7 +22,7 @@ foreach ($benchmark in $allBenchmarks) {
         FullName, `
         @{Name = "SortPriority"; Expression = { $_.Name -match "[Nn](\d+)\D*[Kk](\d+)"; [int]::Parse($matches[1]); [int]::Parse($matches[2]) }}
 
-    $advancedSort = $problemFiles | Test-All { $_.SortPriority -eq $null }
+    $advancedSort = $problemFiles | Test-All { ($_.SortPriority -ne $null) -and $_.SortPriority[0] }
     if ($advancedSort) {
         $problemFiles = $problemFiles | Sort-Object -Property @{Expression = { $_.SortPriority[1] }}, @{Expression = { $_.SortPriority[2] }}
     }
@@ -25,14 +34,13 @@ foreach ($benchmark in $allBenchmarks) {
         $problemId = $problemFile.BaseName
         $problemObject = $problemFile.FullName | Read-ProblemFile
 
-        $dataItem = [PSCustomObject]@{
+        $dataItem = @{
             id = $problemId
             "matrix based distance" = $null -ne $problemObject.DistanceMatrix
             "asymmetric transport" = $problemObject.TransportAsymmetry
             "time windows" = $problemObject.TimeWindows
             "is best optimal" = $false
         }
-        $data += $dataItem
 
         foreach ($solutionType in $allSolutionTypes) {
             $solutionDirectory = "$($benchmark.path)\Solutions\${solutionType}"
@@ -68,14 +76,16 @@ foreach ($benchmark in $allBenchmarks) {
                 }
 
                 $costKey = "cost " + $keyBase
-                $dataItem | Add-Member $costKey $solutionCost
+                $dataItem.$costKey = $solutionCost
                 $keys[$costKey] = $null
 
                 $kKey = "k " + $keyBase
-                $dataItem | Add-Member $kKey $solutionObject.Routes.Count
+                $dataItem.$kKey = $solutionObject.Routes.Count
                 $keys[$kKey] = $null
             }
         }
+
+        $data += [PSCustomObject]$dataItem
     }
 }
 
@@ -85,4 +95,4 @@ $keys = "id", "matrix based distance", "asymmetric transport", "time windows", "
 $culture = [System.Globalization.CultureInfo]::InvariantCulture
 [System.Threading.Thread]::CurrentThread.CurrentCulture = $culture
 
-$data | Select-Object $keys | Export-Csv -Delimiter ',' -Path $csvPath -NoTypeInformation 
+$data | Select-Object $keys | Export-Csv -Delimiter ',' -Path $csvOutputPath -NoTypeInformation 

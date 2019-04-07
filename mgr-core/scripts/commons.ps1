@@ -1,4 +1,4 @@
-$dataRootDirectory = "D:\Google Drive\Magisterka\data"
+$dataRoot = "D:\Google Drive\Magisterka\data"
 
 class Node {
     [int]$Id
@@ -96,13 +96,6 @@ $allSolutionTypes = @(
     "jsprit",
     "GarridoRiff",
     "Bakala"
-)
-
-$allBenchmarks = @(
-    @{ path = "${dataRootDirectory}\Set E (Christofides and Eilon, 1969)" },
-    @{ path = "${dataRootDirectory}\Solomon" },
-    @{ path = "${dataRootDirectory}\Uchoa et al. (2014)" },
-    @{ path = "${dataRootDirectory}\VrpTestCasesGenerator" }
 )
 
 function Test-All {

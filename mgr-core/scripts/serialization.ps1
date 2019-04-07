@@ -76,7 +76,7 @@ function Read-ProblemFile {
         $FilePath
     )
 
-    $problemFormat = $FilePath | Get-ProblemType
+    $problemFormat = $FilePath | Get-ProblemFileFormat
 
     if ($problemFormat -eq [ProblemFormat]::Solomon) {
         return Read-SolomonProblemFile -FilePath $FilePath

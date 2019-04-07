@@ -2,7 +2,6 @@
 . .\serialization.ps1
 
 $scriptPath = ".\Start-Runner.ps1"
-
 $diagnosticMode = $false
 
 function Run-Benchmark
@@ -65,8 +64,8 @@ function Run-Benchmark
     }
 }
 
-# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Uchoa et al. (2014)" -TimeLimit 30000 -RunsPerProblem 10
-# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\VrpTestCasesGenerator" -TimeLimit 30000 -RunsPerProblem 10
-# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Set E (Christofides and Eilon, 1969)" -TimeLimit 30000 -RunsPerProblem 10
-# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Solomon" -TimeLimit 30000 -RunsPerProblem 10
-Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Convergence" -TimeLimit 600000 -RunsPerProblem 4 -MinIntermediateCostDelay 500
+# Run-Benchmark -Directory "${dataRoot}\data sets\Uchoa et al. (2014)" -TimeLimit 30000 -RunsPerProblem 10
+# Run-Benchmark -Directory "${dataRoot}\data sets\VrpTestCasesGenerator" -TimeLimit 30000 -RunsPerProblem 10
+# Run-Benchmark -Directory "${dataRoot}\data sets\Set E (Christofides and Eilon, 1969)" -TimeLimit 30000 -RunsPerProblem 10
+# Run-Benchmark -Directory "${dataRoot}\data sets\Solomon" -TimeLimit 30000 -RunsPerProblem 10
+Run-Benchmark -Directory "${dataRoot}\data sets\Cherry picked" -TimeLimit 600000 -RunsPerProblem 4 -MinIntermediateCostDelay 500

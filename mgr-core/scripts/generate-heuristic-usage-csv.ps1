@@ -1,6 +1,8 @@
-$dataRoot = "D:\Google Drive\Magisterka\data\Convergence"
-$problemIds = Get-ChildItem "${dataRoot}\Problems" -File | Select-Object -ExpandProperty BaseName
-$solutionDir = Get-ChildItem "${dataRoot}\Solutions\GarridoRiff" -File
+. .\commons.ps1
+
+$problemIds = Get-ChildItem "${dataRoot}\data sets\Cherry picked\Problems" -File | Select-Object -ExpandProperty BaseName
+$solutionDir = Get-ChildItem "${dataRoot}\data sets\Cherry picked\Solutions\GarridoRiff" -File
+$csvOutputPath = "${dataRoot}\heuristic_usage.tsv"
 
 $orderingHeuristicIds = @()
 $constructiveHeuristicIds = @()
@@ -38,6 +40,5 @@ $orderingHeuristicIds = $orderingHeuristicIds | Sort-Object -Unique
 $constructiveHeuristicIds = $constructiveHeuristicIds | Sort-Object -Unique
 $repairingHeuristicIds = $repairingHeuristicIds | Sort-Object -Unique
 
-$csvPath = "D:\heuristic_usage.tsv"
 $keys = , "Id" + $orderingHeuristicIds + $constructiveHeuristicIds + $repairingHeuristicIds
-$data | Select-Object $keys | Export-Csv -Delimiter "`t" -Path $csvPath -NoTypeInformation 
+$data | Select-Object $keys | Export-Csv -Delimiter "`t" -Path $csvOutputPath -NoTypeInformation 
