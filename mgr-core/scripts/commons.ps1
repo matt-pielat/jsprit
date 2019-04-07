@@ -100,26 +100,22 @@ $allSolutionTypes = @(
 
 $allBenchmarks = @(
     @{ 
-        path = "${dataRootDirectory}\Set E (Christofides and Eilon, 1969)"; 
-        problemFormat = [ProblemFormat]::Tsplib95; 
+        path = "${dataRootDirectory}\Set E (Christofides and Eilon, 1969)";
         externalSolutionFormat = [SolutionFormat]::Plain;
         advancedSort = $true
     },
     @{ 
-        path = "${dataRootDirectory}\Solomon"; 
-        problemFormat = [ProblemFormat]::Solomon;
+        path = "${dataRootDirectory}\Solomon";
         externalSolutionFormat = [SolutionFormat]::Plain;
         advancedSort = $false
     },
     @{ 
-        path = "${dataRootDirectory}\Uchoa et al. (2014)"; 
-        problemFormat = [ProblemFormat]::Tsplib95;
+        path = "${dataRootDirectory}\Uchoa et al. (2014)";
         externalSolutionFormat = [SolutionFormat]::Uchoa;
         advancedSort = $true
     },
     @{ 
-        path = "${dataRootDirectory}\VrpTestCasesGenerator"; 
-        problemFormat = [ProblemFormat]::Tsplib95;
+        path = "${dataRootDirectory}\VrpTestCasesGenerator";
         externalSolutionFormat = [SolutionFormat]::None;
         advancedSort = $true
     }

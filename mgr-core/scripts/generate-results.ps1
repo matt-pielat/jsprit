@@ -1,3 +1,6 @@
+. .\commons.ps1
+. .\serialization.ps1
+
 $scriptPath = ".\Start-Runner.ps1"
 
 $diagnosticMode = $false
@@ -5,8 +8,7 @@ $diagnosticMode = $false
 function Run-Benchmark
 {
     param(
-        [string]$Directory, 
-        [string]$ProblemFormat,
+        [string]$Directory,
         [long]$TimeLimit,
         [int]$RunsPerProblem,
         [long]$MinIntermediateCostDelay
@@ -22,11 +24,12 @@ function Run-Benchmark
     $problemFiles = Get-ChildItem $problemsDir
     foreach ($problemFile in $problemFiles)
     {
+        $problemId = $problemFile | Select-Object -ExpandProperty BaseName
+        $problemFilePath = $problemFile | Select-Object -ExpandProperty FullName
+        $problemFormat = $problemFilePath | Get-ProblemType
+
         for ($i = 0; $i -lt $RunsPerProblem; $i++)
         {
-            $problemId = $problemFile | Select-Object -ExpandProperty BaseName
-            $problemFilePath = $problemFile | Select-Object -ExpandProperty FullName
-
             $solutionFilePath = "$solutionsDir\jsprit\${problemId}_r${i}.sol"
             if (-not (Test-Path -Path $solutionFilePath))
             {
@@ -62,9 +65,8 @@ function Run-Benchmark
     }
 }
 
-# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Uchoa et al. (2014)" -ProblemFormat Tsplib95 -TimeLimit 30000 -RunsPerProblem 10
-# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\VrpTestCasesGenerator" -ProblemFormat Tsplib95 -TimeLimit 30000 -RunsPerProblem 10
-# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Set E (Christofides and Eilon, 1969)" -ProblemFormat Tsplib95 -TimeLimit 30000 -RunsPerProblem 10
-# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Solomon" -ProblemFormat Solomon -TimeLimit 30000 -RunsPerProblem 10
-
-Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Convergence" -ProblemFormat Solomon -TimeLimit 600000 -RunsPerProblem 3 -MinIntermediateCostDelay 500
+# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Uchoa et al. (2014)" -TimeLimit 30000 -RunsPerProblem 10
+# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\VrpTestCasesGenerator" -TimeLimit 30000 -RunsPerProblem 10
+# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Set E (Christofides and Eilon, 1969)" -TimeLimit 30000 -RunsPerProblem 10
+# Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Solomon" -TimeLimit 30000 -RunsPerProblem 10
+Run-Benchmark -Directory "D:\Google Drive\Magisterka\data\Convergence" -TimeLimit 600000 -RunsPerProblem 4 -MinIntermediateCostDelay 500

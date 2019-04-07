@@ -134,27 +134,45 @@ function Read-UchoaSolutionFile {
     return $solution
 }
 
+function Get-ProblemType {
+    param (
+        [Parameter(ValueFromPipeline)]
+        [string]
+        $FilePath
+    )
+
+    $fileContents = [IO.File]::ReadAllText($FilePath)
+
+    if ($fileContents -match "CUST +NO.\s+XCOORD.\s+YCOORD.\s+DEMAND\s+READY +TIME\s+DUE +DATE\s+SERVICE +TIME") {
+        return [ProblemFormat]::Solomon
+    }
+    elseif ($fileContents -match "DEMAND_SECTION\s+[0-9\s]+DEPOT_SECTION") {
+        return [ProblemFormat]::Tsplib95
+    }
+    else {
+        Write-Error "Problem format not identified."
+        return $null
+    }
+}
+
 function Read-ProblemFile {
     param (
         [Parameter(ValueFromPipeline)]
         [string]
-        $FilePath,
+        $FilePath
+    )
 
-        [ProblemFormat]
-        $ProblemFormat
-    )    
+    $problemType = $FilePath | Get-ProblemType
 
-    switch ($ProblemFormat) {
-        Tsplib95 {
-            return Read-Tsplib95ProblemFile -FilePath $FilePath
-        }
-        Solomon {
-            return Read-SolomonProblemFile -FilePath $FilePath
-        }
-        Default {
-            Write-Error "Solution format ${Format} is not supported."
-            return $null
-        }
+    if ($problemType -eq [ProblemType]::Solomon) {
+        return Read-SolomonProblemFile -FilePath $FilePath
+    }
+    elseif ($problemType -eq [ProblemType]::Tsplib95) {
+        return Read-Tsplib95ProblemFile -FilePath $FilePath
+    }
+    else {
+        Write-Error "Problem format ${Format} is not supported."
+        return $null
     }
 }
 

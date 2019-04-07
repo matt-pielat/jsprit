@@ -22,7 +22,7 @@ foreach ($benchmark in $allBenchmarks) {
 
     foreach ($problemFile in $problemFiles) {
         $problemId = $problemFile.BaseName
-        $problemObject = $problemFile.FullName | Read-ProblemFile -ProblemFormat $benchmark.problemFormat
+        $problemObject = $problemFile.FullName | Read-ProblemFile
 
         $dataItem = [PSCustomObject]@{
             id = $problemId
