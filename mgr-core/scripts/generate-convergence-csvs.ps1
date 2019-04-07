@@ -1,18 +1,22 @@
+. .\commons.ps1
 
-$algorithms = @("GarridoRiff", "jsprit")
-$problems = @("C101", "R101", "M30", "M31", "X-n322", "X-n327")
+$outputDir = "${dataRoot}\convergence csvs"
 $scriptPath = $PSScriptRoot + "\convergence.py"
 
-foreach ($problem in $problems) {
-    $outputPath = "D:\Magisterka\convergence\${problem}.tsv"
-    $params = $scriptPath, $outputPath
+$problemIds = Get-ChildItem "${dataRoot}\data sets\Cherry picked\Problems" -File | Select-Object -ExpandProperty BaseName
+$solutionDirs = Get-ChildItem "${dataRoot}\data sets\Cherry picked\Solutions" -Directory
 
-    foreach ($algorithm in $algorithms) {
-        $inputPaths = Get-ChildItem "D:\Google Drive\Magisterka\data\Convergence\Solutions\${algorithm}" | 
-            Where-Object { $_.BaseName.StartsWith($problem) } | 
-            Select-Object -ExpandProperty FullName
-        $params += $inputPaths
+foreach ($solutionDir in $solutionDirs) {
+    foreach ($problemId in $problemIds) {
+        $outputPath = "${outputDir}\$($solutionDir.BaseName)_${problemId}.tsv"
+
+        $inputFilePaths = Get-ChildItem $solutionDir.FullName | 
+            Where-Object { $_.BaseName.StartsWith($problemId) } | 
+            Select-Object -ExpandProperty FullName |
+            Sort-Object
+
+        $params = @($scriptPath, $outputPath) + $inputFilePaths
+        & python.exe  @params
+        
     }
-
-    & python.exe  @params
 }
