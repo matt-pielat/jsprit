@@ -1,5 +1,5 @@
-. .\commons.ps1
-. .\serialization.ps1
+. $PSScriptRoot\commons.ps1
+. $PSScriptRoot\serialization.ps1
 
 $scriptPath = ".\Start-Runner.ps1"
 $diagnosticMode = $false

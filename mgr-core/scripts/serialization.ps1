@@ -1,4 +1,4 @@
-. .\commons.ps1
+. $PSScriptRoot\commons.ps1
 
 function Get-SolutionFileFormat {
     param (

@@ -1,4 +1,4 @@
-. .\commons.ps1
+. $PSScriptRoot\commons.ps1
 
 $problemIds = Get-ChildItem "${dataRoot}\data sets\Cherry picked\Problems" -File | Select-Object -ExpandProperty BaseName
 $solutionDir = Get-ChildItem "${dataRoot}\data sets\Cherry picked\Solutions\eh-dvrp" -File

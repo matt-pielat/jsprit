@@ -1,4 +1,4 @@
-. .\serialization.ps1
+. $PSScriptRoot\serialization.ps1
 
 $dataSetDir = "${dataRoot}\data sets"
 $csvOutputPath = "${dataRoot}\main results.csv"

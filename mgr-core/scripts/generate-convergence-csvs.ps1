@@ -1,4 +1,4 @@
-. .\commons.ps1
+. $PSScriptRoot\commons.ps1
 
 $outputDir = "${dataRoot}\convergence csvs"
 $scriptPath = $PSScriptRoot + "\convergence.py"
