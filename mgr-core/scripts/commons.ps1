@@ -94,7 +94,7 @@ $allSolutionTypes = @(
     "optimal",
     "best",
     "jsprit",
-    "GarridoRiff",
+    "eh-dvrp",
     "Bakala"
 )
 

@@ -47,7 +47,7 @@ function Run-Benchmark
                 $diagnosticLogFilePath = "${logDir}\diagnostic_${problemId}_${serializableDate}.log"
             }
     
-            $solutionFilePath = "$solutionsDir\GarridoRiff\${problemId}_r${i}.sol"
+            $solutionFilePath = "$solutionsDir\eh-dvrp\${problemId}_r${i}.sol"
             if (-not (Test-Path -Path $solutionFilePath))
             {
                 & "$scriptPath" `

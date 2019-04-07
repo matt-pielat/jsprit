@@ -1,7 +1,7 @@
 . .\commons.ps1
 
 $problemIds = Get-ChildItem "${dataRoot}\data sets\Cherry picked\Problems" -File | Select-Object -ExpandProperty BaseName
-$solutionDir = Get-ChildItem "${dataRoot}\data sets\Cherry picked\Solutions\GarridoRiff" -File
+$solutionDir = Get-ChildItem "${dataRoot}\data sets\Cherry picked\Solutions\eh-dvrp" -File
 $csvOutputPath = "${dataRoot}\heuristic_usage.tsv"
 
 $orderingHeuristicIds = @()
