@@ -1,7 +1,7 @@
 . $PSScriptRoot\serialization.ps1
 
 $dataSetDir = "${dataRoot}\data sets"
-$csvOutputPath = "${dataRoot}\main results.csv"
+$csvOutputPath = "${dataRoot}\main_results.csv"
 
 $allBenchmarks = @(
     @{ path = "${dataSetDir}\Set E (Christofides and Eilon, 1969)" },
