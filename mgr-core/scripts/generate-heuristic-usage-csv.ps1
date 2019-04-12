@@ -11,6 +11,36 @@ $repairingHeuristicIds = @()
 
 $data = @()
 
+function GetDataRows {
+    param (
+        $ProblemId,
+        $RunNo,
+        $Vrp,
+        $Hus,
+        $HeuristicType
+    )
+
+    $rows = @()
+    $heuristicUsages = $Hus | Select-Object id, @{Name = 'usage count'; Expression = '#text' }
+
+    foreach ($hu in $heuristicUsages) {
+        $dataItem = @{
+            id = $ProblemId
+            "matrix based distance" = $null -ne $Vrp.DistanceMatrix
+            "asymmetric transport" = $Vrp.TransportAsymmetry
+            "time windows" = $Vrp.TimeWindows
+            "run no" = $RunNo
+            "heuristic id" = $hu.id
+            "heuristic type" = $HeuristicType
+            "usage count" = [int]::Parse($hu.'usage count')
+        }
+        $rows += [PSCustomObject]$dataItem
+    }
+    
+    return $rows
+
+}
+
 foreach ($problemFile in $problemFiles) {
     $vrp = Read-ProblemFile -FilePath $problemFile.FullName
     $problemId = $problemFile.BaseName
@@ -20,38 +50,19 @@ foreach ($problemFile in $problemFiles) {
         $xmlDoc = New-Object System.Xml.XmlDocument
         $xmlDoc.Load($solutionFile.FullName)
 
-        $orderingHeuristicIds += ($xmlDoc.solution.heuristicUsages.orderingHeuristicUsages.hu | Select-Object -ExpandProperty id)
-        $constructiveHeuristicIds += ($xmlDoc.solution.heuristicUsages.constructiveHeuristicUsages.hu | Select-Object -ExpandProperty id)
-        $repairingHeuristicIds += ($xmlDoc.solution.heuristicUsages.repairingHeuristicUsages.hu | Select-Object -ExpandProperty id)
-
-        $heuristicUsages = $xmlDoc.solution.heuristicUsages.orderingHeuristicUsages.hu + 
-            $xmlDoc.solution.heuristicUsages.constructiveHeuristicUsages.hu +
-            $xmlDoc.solution.heuristicUsages.repairingHeuristicUsages.hu | 
-            Select-Object id, @{Name = 'usage count'; Expression = '#text' }
-
         $solutionFile.BaseName -match "r(\d)+$" | Out-Null
         $runNo = [int]::Parse($matches[1])
 
-        $dataItem = @{
-            id = "$problemId"
-            runNo = $runNo
-            "matrix based distance" = $null -ne $problemObject.DistanceMatrix
-            "asymmetric transport" = $vrp.TransportAsymmetry
-            "time windows" = $vrp.TimeWindows
-        }
+        $orderingHus = $xmlDoc.solution.heuristicUsages.orderingHeuristicUsages.hu
+        $data += GetDataRows $problemId $runNo $vrp $orderingHus "ordering"
 
-        foreach ($hu in $heuristicUsages) {
-            $propertyName = $hu.id
-            $propertyValue = [int]::Parse($hu.'usage count')
-            $dataItem.$propertyName = $propertyValue
-        }
-        $data += [PSCustomObject]$dataItem
+        $constructiveHus = $xmlDoc.solution.heuristicUsages.constructiveHeuristicUsages.hu
+        $data += GetDataRows $problemId $runNo $vrp $constructiveHus "constructive"
+
+        $repairingHus = $xmlDoc.solution.heuristicUsages.repairingHeuristicUsages.hu
+        $data += GetDataRows $problemId $runNo $vrp $repairingHus "repairing"
     }
 }
 
-$orderingHeuristicIds = $orderingHeuristicIds | Sort-Object -Unique
-$constructiveHeuristicIds = $constructiveHeuristicIds | Sort-Object -Unique
-$repairingHeuristicIds = $repairingHeuristicIds | Sort-Object -Unique
-
-$keys = "id", "runNo", "matrix based distance", "asymmetric transport", "time windows" + $orderingHeuristicIds + $constructiveHeuristicIds + $repairingHeuristicIds
+$keys = "id", "matrix based distance", "asymmetric transport", "time windows", "run no", "heuristic id", "heuristic type", "usage count"
 $data | Select-Object $keys | Export-Csv -Delimiter "`t" -Path $csvOutputPath -NoTypeInformation 
