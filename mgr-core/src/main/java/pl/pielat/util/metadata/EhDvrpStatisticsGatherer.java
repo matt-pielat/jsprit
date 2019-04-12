@@ -40,10 +40,10 @@ public class EhDvrpStatisticsGatherer
 
     public void incrementHeuristicUsages(Gene gene)
     {
-        incrementHeuristicUsages(orderingHeuristicUsages, gene.orderingHeuristic.Id);
-        incrementHeuristicUsages(constructiveHeuristicUsages, gene.constructiveHeuristic.Id);
-        incrementHeuristicUsages(repairingHeuristicUsages, gene.localImprovementHeuristic.Id);
-        incrementHeuristicUsages(repairingHeuristicUsages, gene.improvementHeuristic.Id);
+        incrementHeuristicUsages(orderingHeuristicUsages, gene.orderingHeuristic.getId());
+        incrementHeuristicUsages(constructiveHeuristicUsages, gene.constructiveHeuristic.getId());
+        incrementHeuristicUsages(repairingHeuristicUsages, gene.localImprovementHeuristic.getId());
+        incrementHeuristicUsages(repairingHeuristicUsages, gene.improvementHeuristic.getId());
     }
 
     public EhDvrpStatistics getStatistics()

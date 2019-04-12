@@ -10,6 +10,13 @@ import java.util.Comparator;
 
 public class OrderingByDemand extends OrderingHeuristic
 {
+    @Override
+    public String getId()
+    {
+        return "Ordering by demand"
+            + (order == Order.DESCENDING ? " (desc)" : " (asc)");
+    }
+
     private class DemandComparator implements Comparator<Job>
     {
         @Override

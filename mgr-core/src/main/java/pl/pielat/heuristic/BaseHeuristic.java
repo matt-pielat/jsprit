@@ -9,8 +9,6 @@ public abstract class BaseHeuristic
     protected static final double EPSILON = 1e-5;
     private static final int INITIAL_ROUTE_CAPACITY = 10;
 
-    public final String Id = getClass().getSimpleName();
-
     private final ProblemInfo problemInfo;
 
     protected final boolean transportAsymmetry;
@@ -39,6 +37,8 @@ public abstract class BaseHeuristic
         depot = info.depot;
         costFunction = info.costFunction;
     }
+
+    public abstract String getId();
 
     protected double getCost(Place from, Place to)
     {

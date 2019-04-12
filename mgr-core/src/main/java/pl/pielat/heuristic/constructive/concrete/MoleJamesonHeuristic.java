@@ -24,6 +24,12 @@ public class MoleJamesonHeuristic extends ConstructiveHeuristic
     }
 
     @Override
+    public String getId()
+    {
+        return "Mole & Jameson heuristic";
+    }
+
+    @Override
     public void insertJobs(ArrayList<Route> routes, ArrayList<Job> jobsToInsert)
     {
         ArrayList<InsertInfo> insertInfos = new ArrayList<>(jobsToInsert.size());

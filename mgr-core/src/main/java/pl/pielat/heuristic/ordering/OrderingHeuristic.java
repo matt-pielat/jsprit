@@ -15,11 +15,12 @@ public abstract class OrderingHeuristic extends BaseHeuristic
         DESCENDING
     }
 
-    private Order order;
+    protected final Order order;
 
     protected OrderingHeuristic(ProblemInfo info, Order order)
     {
         super(info);
+        this.order = order;
     }
 
     protected abstract void orderJobsAscending(ArrayList<Job> jobs);

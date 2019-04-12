@@ -17,6 +17,12 @@ public class TwoOpt extends RepairingHeuristic
     }
 
     @Override
+    public String getId()
+    {
+        return "2-opt";
+    }
+
+    @Override
     public void improveRoutes(List<Route> routes)
     {
         for (int i = 0; i < routes.size(); i++)

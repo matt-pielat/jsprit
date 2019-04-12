@@ -17,6 +17,12 @@ public class ThreeOpt extends RepairingHeuristic
     }
 
     @Override
+    public String getId()
+    {
+        return "3-opt";
+    }
+
+    @Override
     public void improveRoutes(List<Route> routes)
     {
         for (int i = 0; i < routes.size(); i++)

@@ -11,6 +11,13 @@ import java.util.Collections;
 
 public class OrderingByRadialSweep extends OrderingHeuristic
 {
+    @Override
+    public String getId()
+    {
+        return "Ordering by radial sweep"
+            + (order == Order.DESCENDING ? " (ccw)" : " (cw)");
+    }
+
     public enum SweepStart
     {
         CLOSEST_JOB,

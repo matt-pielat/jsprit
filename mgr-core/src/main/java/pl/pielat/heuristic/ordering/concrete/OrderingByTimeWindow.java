@@ -10,6 +10,24 @@ import java.util.Comparator;
 
 public class OrderingByTimeWindow extends OrderingHeuristic
 {
+    @Override
+    public String getId()
+    {
+        switch (property)
+        {
+            case WINDOW_START:
+                return "Ordering by window start"
+                    + (order == Order.DESCENDING ? " (desc)" : " (asc)");
+            case WINDOW_END:
+                return "Ordering by window end"
+                    + (order == Order.DESCENDING ? " (desc)" : " (asc)");
+            case WINDOW_SIZE:
+                return "Ordering by window size"
+                    + (order == Order.DESCENDING ? " (desc)" : " (asc)");
+        }
+        throw new RuntimeException();
+    }
+
     public enum Property
     {
         WINDOW_START,
@@ -45,11 +63,13 @@ public class OrderingByTimeWindow extends OrderingHeuristic
     }
 
     private Comparator<Job> comparator;
+    private Property property;
 
     public OrderingByTimeWindow(ProblemInfo info, Order order, Property property)
     {
         super(info, order);
 
+        this.property = property;
         switch (property)
         {
             case WINDOW_START:

@@ -15,6 +15,12 @@ public class StringRelocation extends RepairingHeuristic
     }
 
     @Override
+    public String getId()
+    {
+        return "String relocation";
+    }
+
+    @Override
     public void improveRoutes(List<Route> routes)
     {
         while (findAnyImprovement(routes, 2) || findAnyImprovement(routes, 1));

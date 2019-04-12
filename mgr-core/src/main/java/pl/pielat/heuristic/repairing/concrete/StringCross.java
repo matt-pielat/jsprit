@@ -14,6 +14,12 @@ public class StringCross extends RepairingHeuristic
     }
 
     @Override
+    public String getId()
+    {
+        return "String cross";
+    }
+
+    @Override
     public void improveRoutes(List<Route> routes)
     {
         while (findAnyImprovementCross(routes));

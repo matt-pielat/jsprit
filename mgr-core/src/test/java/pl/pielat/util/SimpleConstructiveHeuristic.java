@@ -66,4 +66,10 @@ public class SimpleConstructiveHeuristic extends ConstructiveHeuristic
             currentRoute.add(jobToInsert);
         }
     }
+
+    @Override
+    public String getId()
+    {
+        return "simple constructive heuristic";
+    }
 }

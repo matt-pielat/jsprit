@@ -14,6 +14,12 @@ public class ClarkeWrightHeuristic extends ConstructiveHeuristic
         super(info);
     }
 
+    @Override
+    public String getId()
+    {
+        return "Clarke & Wright heuristic";
+    }
+
     private class Saving implements Comparable<Saving>
     {
         Job jobA;

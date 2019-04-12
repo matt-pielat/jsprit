@@ -16,6 +16,12 @@ public class KilbyAlgorithm extends ConstructiveHeuristic
     }
 
     @Override
+    public String getId()
+    {
+        return "Kilby's algorithm";
+    }
+
+    @Override
     public void insertJobs(ArrayList<Route> routes, ArrayList<Job> jobsToInsert)
     {
         for (Job job : jobsToInsert)

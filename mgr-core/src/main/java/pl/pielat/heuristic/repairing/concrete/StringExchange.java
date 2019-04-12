@@ -15,6 +15,12 @@ public class StringExchange extends RepairingHeuristic
     }
 
     @Override
+    public String getId()
+    {
+        return "String exchange";
+    }
+
+    @Override
     public void improveRoutes(List<Route> routes)
     {
         while (findAnyImprovement(routes));

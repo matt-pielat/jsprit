@@ -30,6 +30,12 @@ public class SweepAlgorithm extends ConstructiveHeuristic
     }
 
     @Override
+    public String getId()
+    {
+        return "Sweep algorithm";
+    }
+
+    @Override
     public void insertJobs(ArrayList<Route> routes, ArrayList<Job> jobsToInsert)
     {
         ArrayList<Job> jobsLeft = new ArrayList<>(jobsToInsert);

@@ -15,6 +15,12 @@ public class OrOpt extends RepairingHeuristic
     }
 
     @Override
+    public String getId()
+    {
+        return "Or-opt";
+    }
+
+    @Override
     public void improveRoutes(List<Route> routes)
     {
         for (int i = 0; i < routes.size(); i++)

@@ -11,6 +11,13 @@ import java.util.HashMap;
 
 public class OrderingByCost extends OrderingHeuristic
 {
+    @Override
+    public String getId()
+    {
+        return "Ordering by cost"
+            + (order == Order.DESCENDING ? " (desc)" : " (asc)");
+    }
+
     private class CostComparator implements Comparator<Job>
     {
         @Override
