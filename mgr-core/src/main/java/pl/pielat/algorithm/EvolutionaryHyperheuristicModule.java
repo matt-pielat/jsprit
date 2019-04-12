@@ -241,6 +241,7 @@ public class EvolutionaryHyperheuristicModule implements SearchStrategyModule
 
             for (Gene gene : population[i])
                 statisticsGatherer.incrementHeuristicUsages(gene);
+            statisticsGatherer.incrementChromosomeSizeCounter(population[i].size());
         }
 
         return bestSolution;

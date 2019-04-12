@@ -11,11 +11,15 @@ public class EhDvrpStatisticsGatherer
     private HashMap<String, HeuristicUsages> constructiveHeuristicUsages;
     private HashMap<String, HeuristicUsages> repairingHeuristicUsages;
 
+    private HashMap<Integer, Integer> chromosomeSizes;
+
     public EhDvrpStatisticsGatherer()
     {
         orderingHeuristicUsages = new HashMap<>();
         constructiveHeuristicUsages = new HashMap<>();
         repairingHeuristicUsages = new HashMap<>();
+
+        chromosomeSizes = new HashMap<>();
     }
 
     private static void incrementHeuristicUsages(
@@ -44,6 +48,15 @@ public class EhDvrpStatisticsGatherer
         incrementHeuristicUsages(constructiveHeuristicUsages, gene.constructiveHeuristic.getId());
         incrementHeuristicUsages(repairingHeuristicUsages, gene.localImprovementHeuristic.getId());
         incrementHeuristicUsages(repairingHeuristicUsages, gene.improvementHeuristic.getId());
+    }
+
+    public void incrementChromosomeSizeCounter(int size)
+    {
+        Integer count = chromosomeSizes.get(size);
+        if (count == null)
+            count = 0;
+        count++;
+        chromosomeSizes.put(size, count);
     }
 
     public EhDvrpStatistics getStatistics()
@@ -78,6 +91,17 @@ public class EhDvrpStatisticsGatherer
             usages.usageCount = repairingHeuristicUsages.get(key).usageCount;
 
             statistics.repairingHeuristicUsages.add(usages);
+        }
+
+        int maxSize = 0;
+        for (Integer size : chromosomeSizes.keySet())
+        {
+            maxSize = size > maxSize ? size : maxSize;
+        }
+        statistics.chromosomeSizes = new int[maxSize + 1];
+        for (Integer size : chromosomeSizes.keySet())
+        {
+            statistics.chromosomeSizes[size] = chromosomeSizes.get(size);
         }
 
         return statistics;
