@@ -18,7 +18,7 @@ public class KilbyAlgorithm extends ConstructiveHeuristic
     @Override
     public String getId()
     {
-        return "Kilby's algorithm";
+        return "Kilby";
     }
 
     @Override

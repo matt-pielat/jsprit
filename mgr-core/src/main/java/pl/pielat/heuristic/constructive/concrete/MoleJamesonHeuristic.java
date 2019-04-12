@@ -26,7 +26,7 @@ public class MoleJamesonHeuristic extends ConstructiveHeuristic
     @Override
     public String getId()
     {
-        return "Mole & Jameson heuristic";
+        return "Mole and Jameson";
     }
 
     @Override
