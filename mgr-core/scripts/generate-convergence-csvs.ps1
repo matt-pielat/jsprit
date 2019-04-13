@@ -17,6 +17,5 @@ foreach ($solutionDir in $solutionDirs) {
 
         $params = @($scriptPath, $outputPath) + $inputFilePaths
         & python.exe  @params
-        
     }
 }

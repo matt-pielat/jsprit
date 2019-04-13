@@ -17,33 +17,34 @@ if __name__ == "__main__":
     output_path = sys.argv[1]
     input_paths = sys.argv[2:]
 
-    costs_by_file, times_by_file = zip(*[read_data_from_file(path) for path in input_paths])
+    all_times = np.concatenate((
+        np.arange(0,            1e3 * 10,       200,    dtype=int), 
+        np.arange(1e3 * 10,     1e3 * 60,       500,    dtype=int),
+        np.arange(1e3 * 60,     1e3 * 180,      1000,   dtype=int),
+        np.arange(1e3 * 180,    1e3 * 601,      2000,   dtype=int),
+        ))
 
-    all_times = [time for times in times_by_file for time in times]
-    all_times.append(0)
-    all_times.append(10*60*1000)
-    all_times = list(set(all_times))
-    all_times.sort()
+    all_costs = np.empty([all_times.size, len(input_paths)])
 
-    max_time = all_times[-1]
-
-    x_new = np.array(all_times)
-
-    data = {"time in milliseconds": all_times}
-    
     for i in range(len(input_paths)):
-        times_by_file[i].append(max_time)
-        costs_by_file[i].append(min(costs_by_file[i]))
+        input_path = input_paths[i]
 
-        times_by_file[i].append(0)
-        costs_by_file[i].append(max(costs_by_file[i]))
+        costs, times = read_data_from_file(input_path)
+        times.append(0)
+        costs.append(max(costs))
+        times.append(1e3 * 600)
+        costs.append(min(costs))
 
-        x = np.array(times_by_file[i])
-        y = np.array(costs_by_file[i])
-        f = interpolate.interp1d(x, y)
-        y_new = f(x_new)
+        f = interpolate.interp1d(times, costs)
+        all_costs[:, i] = f(all_times)
 
-        data[f"cost {i+1}"] = y_new.tolist()
+    data = {
+        "time in ms": all_times.tolist(),
+        "mean": np.mean(all_costs, axis=1).tolist(),
+        "standard deviation": np.std(all_costs, axis=1).tolist(),
+        "min": np.min(all_costs, axis=1).tolist(),
+        "max": np.max(all_costs, axis=1).tolist()
+    }
 
     df = pd.DataFrame(data)
     df.to_csv(path_or_buf=output_path, sep="\t", index=False, decimal=",")
