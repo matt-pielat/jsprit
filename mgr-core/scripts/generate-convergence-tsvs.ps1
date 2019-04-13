@@ -1,7 +1,7 @@
 . $PSScriptRoot\commons.ps1
 
-$outputDir = "${dataRoot}\convergence csvs"
-$scriptPath = $PSScriptRoot + "\convergence.py"
+$outputDir = "${dataRoot}\convergence tsvs"
+$scriptPath = $PSScriptRoot + "\convergence_tsv.py"
 
 $problemIds = Get-ChildItem "${dataRoot}\data sets\Cherry picked\Problems" -File | Select-Object -ExpandProperty BaseName
 $solutionDirs = Get-ChildItem "${dataRoot}\data sets\Cherry picked\Solutions" -Directory
