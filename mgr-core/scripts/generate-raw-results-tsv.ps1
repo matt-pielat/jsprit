@@ -1,7 +1,7 @@
 . $PSScriptRoot\serialization.ps1
 
 $dataSetDir = "${dataRoot}\data sets"
-$csvOutputPath = "${dataRoot}\main_results.csv"
+$csvOutputPath = "${dataRoot}\main raw.tsv"
 
 $allBenchmarks = @(
     @{ path = "${dataSetDir}\Set E (Christofides and Eilon, 1969)" },
@@ -40,6 +40,7 @@ foreach ($benchmark in $allBenchmarks) {
             "asymmetric transport" = $problemObject.TransportAsymmetry
             "time windows" = $problemObject.TimeWindows
             "is best optimal" = $false
+            "n" = $problemObject.CustomersById.Count
         }
 
         foreach ($solutionType in $allSolutionTypes) {
@@ -90,9 +91,9 @@ foreach ($benchmark in $allBenchmarks) {
 }
 
 $keys = $keys.Keys | Sort-Object
-$keys = "id", "matrix based distance", "asymmetric transport", "time windows", "is best optimal" + $keys | Select-Object -Unique
+$keys = "id", "n", "matrix based distance", "asymmetric transport", "time windows", "is best optimal" + $keys | Select-Object -Unique
 
 $culture = [System.Globalization.CultureInfo]::InvariantCulture
 [System.Threading.Thread]::CurrentThread.CurrentCulture = $culture
 
-$data | Select-Object $keys | Export-Csv -Delimiter ',' -Path $csvOutputPath -NoTypeInformation 
+$data | Select-Object $keys | Export-Csv -Delimiter "`t" -Path $csvOutputPath -NoTypeInformation 

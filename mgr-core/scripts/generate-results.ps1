@@ -68,4 +68,4 @@ function Run-Benchmark
 # Run-Benchmark -Directory "${dataRoot}\data sets\VrpTestCasesGenerator" -TimeLimit 30000 -RunsPerProblem 10
 # Run-Benchmark -Directory "${dataRoot}\data sets\Set E (Christofides and Eilon, 1969)" -TimeLimit 30000 -RunsPerProblem 10
 # Run-Benchmark -Directory "${dataRoot}\data sets\Solomon" -TimeLimit 30000 -RunsPerProblem 10
-Run-Benchmark -Directory "${dataRoot}\data sets\Cherry picked" -TimeLimit 600000 -RunsPerProblem 8 -MinIntermediateCostDelay 500
+Run-Benchmark -Directory "${dataRoot}\data sets\Cherry picked" -TimeLimit 600000 -RunsPerProblem 10 -MinIntermediateCostDelay 500
