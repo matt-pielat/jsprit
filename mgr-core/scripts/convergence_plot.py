@@ -12,6 +12,9 @@ if __name__ == "__main__":
     ax = figure.add_subplot(1, 1, 1)
     ax.xaxis.set_major_formatter(FormatStrFormatter('%ds'))
 
+    ax.set_axisbelow(True)
+    ax.yaxis.grid(color='#dbdbdb', linestyle='--')
+
     max_end_mean = -np.inf
     min_end_mean = np.inf
 
