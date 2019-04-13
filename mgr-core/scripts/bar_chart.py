@@ -33,4 +33,3 @@ if __name__ == "__main__":
     ax.set_ylabel('Współczynnik różnicy kosztu')
 
     plt.savefig(output_path, bbox_inches='tight')
-    # plt.show()
