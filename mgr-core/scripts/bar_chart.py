@@ -18,18 +18,17 @@ if __name__ == "__main__":
 
     df = pd.read_csv(input_path, delimiter='\t')
     df = df[df.id.isin(ids)]
-    df = df[['id', 'jsprit cost mean', 'eh-dvrp cost mean']]
+    df['relative cost'] = df.apply(lambda row: row['eh-dvrp best cost'] / row['jsprit best cost'] - 1, axis=1)
+    df = df.sort_values(by=['relative cost'])
 
-    labels = df.values[:,0]
-    jsprit_mean = df.values[:,1].astype(float)
-    ehdvrp_mean = df.values[:,2].astype(float)
-    relative_costs = np.divide(ehdvrp_mean, jsprit_mean) - 1
+    labels = df['id'].values
+    relative_costs = df['relative cost'].values.astype(float)
 
     plt.xticks(rotation=90)
     ax.bar(labels, relative_costs)
 
     ax.set_ylim(ymin=-0.2, ymax=0.2)
 
-    ax.set_ylabel('Współczynnik różnicy kosztu')
+    ax.set_ylabel('Koszt względny')
 
     plt.savefig(output_path, bbox_inches='tight')
