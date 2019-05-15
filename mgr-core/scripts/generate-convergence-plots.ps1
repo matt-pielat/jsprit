@@ -1,7 +1,7 @@
 . $PSScriptRoot\commons.ps1
 
 $tsvDir = "${dataRoot}\convergence tsvs"
-$plotDir = "${dataRoot}\convergence plots"
+$plotDir = "D:\convergence plots"
 $scriptPath = $PSScriptRoot + "\convergence_plot.py"
 
 $problemIds = Get-ChildItem "${dataRoot}\data sets\Cherry picked\Problems" -File | Select-Object -ExpandProperty BaseName

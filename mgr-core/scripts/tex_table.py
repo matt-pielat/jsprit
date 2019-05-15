@@ -50,7 +50,7 @@ class TableMaker:
             if id.startswith('M'):
                 output += "$^{%s}$" % (r'*')
             return output
-        return "{:.2f}".format(value)
+        return "{:.2f}".format(value).replace('.', ',')
 
     def write_opening_statements(self):
         self.write_line(r'\begin{center}')

@@ -2,12 +2,12 @@ $dataRoot = "D:\Google Drive\Magisterka\data"
 
 class Node {
     [int]$Id
-    [double]$CoordX
-    [double]$CoordY
+    [double]$CoordX = [double]::NaN
+    [double]$CoordY = [double]::NaN
     [double]$WindowStart = 0
     [double]$WindowEnd = [double]::PositiveInfinity
     [double]$ServiceTime = 0
-    [int]$Demand
+    [int]$Demand = -1
 
     [double]GetDepartureTime([double]$ArrivalTime) {
         $actualArrivalTime = $this.WindowStart, $ArrivalTime | Measure-Object -Maximum | Select-Object -ExpandProperty Maximum

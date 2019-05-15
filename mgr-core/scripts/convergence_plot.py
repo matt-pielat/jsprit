@@ -15,6 +15,9 @@ if __name__ == "__main__":
     ax.set_axisbelow(True)
     ax.yaxis.grid(color='#dbdbdb', linestyle='--')
 
+    ax.set_xticks([100000, 200000], minor=True)
+    ax.xaxis.grid(True, which='minor', color='#dbdbdb', linestyle='--')
+
     max_end_mean = -np.inf
     min_end_mean = np.inf
 

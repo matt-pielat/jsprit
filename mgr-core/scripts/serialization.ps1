@@ -195,6 +195,7 @@ function Read-Tsplib95ProblemFile {
         if ($readEdgeWeightSection) {
             if ($line -notmatch "^[ \t]*([0-9]+(\.[0-9]+)?[ \t]+)*[0-9]+(\.[0-9]+)?[ \t]*$") {
                 $readEdgeWeightSection = $false
+                $readDemandSection = $true #awful hack
                 continue
             }
 

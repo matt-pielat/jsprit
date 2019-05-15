@@ -31,4 +31,6 @@ if __name__ == "__main__":
 
     ax.set_ylabel('Koszt względny')
 
+    ax.text(0.985, 0.96, '(wartości ujemne - przewaga EH-DVRP)', verticalalignment='top', horizontalalignment='right', transform=ax.transAxes, color='gray')
+
     plt.savefig(output_path, bbox_inches='tight')
